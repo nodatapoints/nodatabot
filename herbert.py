@@ -6,11 +6,12 @@ from telegram.ext import Updater, CommandHandler
 
 
 def hello(bot, update):
-    update.message.reply_text(
-        'Hello {}'.format(update.message.from_user.first_name))
+    update.message.reply_text('Beep boop I am a robot! Hello {update.message.from_user.first_name}')
 
+with open('token.txt', 'r') as fobj:
+	token = fobj.read()
 
-updater = Updater('YOUR TOKEN HERE')
+updater = Updater(token)
 
 updater.dispatcher.add_handler(CommandHandler('hello', hello))
 

@@ -1,23 +1,15 @@
 from itertools import chain, cycle
+from collections import deque
+
 
 class Level:
     def __init__(self, depth=0):
         self.atom = (depth == 0)
-
+        self._winner = None
+        self.tiles = None
         if not self.atom:
             self.tiles = [[Level(depth-1) for _ in range(3)] for _ in range(3)]
 
-        self._winner = None
-        self._terminated = False
-
-    def move(self, player, location_stack):
-        if self.atom:
-            self._winner = player
-            self._terminated = True
-            return
-
-        x, y = location_stack.pop()
-        self[x, y].move(player, location_stack)
 
     def __getitem__(self, pos):
         x, y = pos
@@ -43,7 +35,7 @@ class Level:
 
     @property
     def winner(self):
-        if self.atom or self._winner is not None:
+        if self.atom:
             return self._winner
 
         lines = (
@@ -56,15 +48,46 @@ class Level:
         for line in lines:
             self._winner = self._winner or self.test_equals(line)
 
-        if self._winner is not None:
-            self._terminated = True
-
         return self._winner
+
+    @winner.setter
+    def winner(self, w):
+        self._winner = w
 
     @property
     def terminated(self):
-        if self.atom or self._terminated:
-            return self._terminated
+        if self.atom:
+            return (self.winner is not None)
 
-        self._terminated = all(tile.terminated for tile in chain(*self.tiles))
-        return self._terminated
+        if self.winner is not None:
+            return True
+
+        return all(tile.terminated for tile in chain(*self.tiles))
+
+
+class Game:
+    def __init__(self, players, depth=3):
+        self.players = cycle(players)
+        self.root_level = Level(depth)
+        self.choice_queue = deque(maxlen=depth-1)
+
+    def get_head_level(self):
+        level = self.root_level
+        i = None
+        for i, choice in enumerate(self.choice_queue):
+            if level.terminated:
+                break
+
+            level = level[choice]
+
+        return i, level
+
+    def push_choice(self, choice):
+        i, level = self.get_head_level()
+        if level.terminated:
+            self.choice_queue[i] = choice
+            return
+
+        self.choice_queue.append(choice)
+        if level[choice].atom:
+            level[choice].winner = next(self.players)

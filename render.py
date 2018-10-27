@@ -14,7 +14,7 @@ colors = {
 }
 
 line_color = 200, 200, 200
-widths = 0, 2, 6, 12
+widths = 0, 2, 6, 12, 12
 winner_alpha = 80
 
 
@@ -28,7 +28,7 @@ def antialias(draw_func):
     return antialiased
 
 
-def draw_level(level):
+def draw_level(level, highlights={}):
     # Drawing the lines by not drawing them
     if level.atom:
         image = Image.new('RGB', (atom_size, atom_size), background)
@@ -52,7 +52,7 @@ def draw_level(level):
     for y, row in enumerate(level.tiles):
         for x, tile in enumerate(row):
             image.paste(
-                im=draw_level(tile),
+                im=draw_level(tile, highlights=highlights),
                 box=(x*tile_size + x*w, y*tile_size + y*w)
             )
 
@@ -60,9 +60,24 @@ def draw_level(level):
         color = colors[level.winner] + (winner_alpha, )
         draw.ellipse(xy=(w, w, size-w, size-w), fill=color)
 
+    if level in highlights:
+        draw.rectangle(
+            xy=(0, 0, size, size),
+            outline=highlights[level],
+            width=widths[level.depth+1]
+        )
+
     return image
 
 
 @antialias
 def draw_game(game):
-    return draw_level(game.root_level)
+    highlights = {}
+    queue = list(game.choice_queue)
+    for i, player in enumerate(game.player_order):
+        for level in game.follow_path(queue[i:]):
+            pass
+
+        highlights[level] = colors[player]
+
+    return draw_level(game.root_level, highlights=highlights)

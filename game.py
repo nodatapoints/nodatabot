@@ -71,19 +71,35 @@ class Level:
 class Game:
     def __init__(self, players, depth=3):
         self.players = cycle(players)
+        self.n_players = len(players)
+        self.current_player = next(self.players)
         self.root_level = Level(depth)
         self.choice_queue = deque(maxlen=depth-1)
 
     def get_head_level(self):
         level = self.root_level
         i = None
-        for i, choice in enumerate(self.choice_queue):
+        for i, level in enumerate(self.level_queue()):
             if level.terminated:
                 break
 
-            level = level[choice]
-
         return i, level
+
+    def level_queue(self):
+        yield from self.follow_path(self.choice_queue)
+
+    def follow_path(self, path, include_root=True):
+        level = self.root_level
+        if include_root:
+            yield level
+
+        for choice in path:
+            level = level[choice]
+            yield level
+
+    @property
+    def player_order(self):
+        return [next(self.players) for _ in range(self.n_players)]
 
     def push_choice(self, choice):
         i, level = self.get_head_level()
@@ -102,10 +118,13 @@ class Game:
             query_row = []
             for x, tile in enumerate(row):
                 if tile.terminated:
-                    button = button_class(f'\n{tile.winner}\n' or '\n\n\n', callback_data='invalid')
+                    button = button_class(
+                        tile.winner or ' ',
+                        callback_data='invalid'
+                    )
 
                 else:
-                    button = button_class('\n\n\n', callback_data=repr((x, y)))
+                    button = button_class(' ', callback_data=repr((x, y)))
 
                 query_row.append(button)
 

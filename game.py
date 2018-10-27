@@ -4,16 +4,19 @@ from collections import deque
 
 class Level:
     def __init__(self, depth=0):
-        self.atom = (depth == 0)
+        self.depth = depth
         self._winner = None
         self.tiles = None
         if not self.atom:
             self.tiles = [[Level(depth-1) for _ in range(3)] for _ in range(3)]
 
-
     def __getitem__(self, pos):
         x, y = pos
         return self.tiles[y][x]
+
+    @property
+    def atom(self):
+        return self.depth == 0
 
     @property
     def array(self):
@@ -91,3 +94,21 @@ class Game:
         self.choice_queue.append(choice)
         if level[choice].atom:
             level[choice].winner = next(self.players)
+
+    def render_keyboard(self, keyboard_class, button_class):
+        query = []
+        _, head = self.get_head_level()
+        for y, row in enumerate(head.tiles):
+            query_row = []
+            for x, tile in enumerate(row):
+                if tile.terminated:
+                    button = button_class(f'\n{tile.winner}\n' or '\n\n\n', callback_data='invalid')
+
+                else:
+                    button = button_class('\n\n\n', callback_data=repr((x, y)))
+
+                query_row.append(button)
+
+            query.append(query_row)
+
+        return keyboard_class(query)

@@ -1,34 +1,33 @@
 from PIL import Image, ImageDraw
 from functools import wraps
 
-atom_size = 24
-background = 255, 255, 255
+atom_size = 48
+background = 255, 255, 255, 255
 padding = 2
-resampling_factor = 3
+resampling_factor = 2
 
 colors = {
     'a': (255, 0, 0),
     'b': (0, 255, 0),
-    'c': (0, 0, 255)
+    'c': (0, 0, 255),
+    None: (150, 150, 150)
 }
 
 line_color = 200, 200, 200
-widths = 0, 1, 3, 6
+widths = 0, 2, 6, 12
+winner_alpha = 80
 
 
 def antialias(draw_func):
     @wraps(draw_func)
     def antialiased(*args, **kwargs):
         image = draw_func(*args, **kwargs)
-        scaled = image.resize(
-            (image.width * resampling_factor, image.height * resampling_factor)
-        )
-        return scaled.resize(image.size, resample=Image.ANTIALIAS)
+        size = image.width//resampling_factor, image.height//resampling_factor
+        return image.resize(size, resample=Image.ANTIALIAS)
 
     return antialiased
 
 
-@antialias
 def draw_level(level):
     # Drawing the lines by not drawing them
     if level.atom:
@@ -48,7 +47,7 @@ def draw_level(level):
     size = 3*tile_size + 2*w
 
     image = Image.new('RGB', (size, size), line_color)
-    draw = ImageDraw.Draw(image)
+    draw = ImageDraw.Draw(image, 'RGBA')
 
     for y, row in enumerate(level.tiles):
         for x, tile in enumerate(row):
@@ -57,4 +56,13 @@ def draw_level(level):
                 box=(x*tile_size + x*w, y*tile_size + y*w)
             )
 
+    if level.terminated:
+        color = colors[level.winner] + (winner_alpha, )
+        draw.ellipse(xy=(w, w, size-w, size-w), fill=color)
+
     return image
+
+
+@antialias
+def draw_game(game):
+    return draw_level(game.root_level)

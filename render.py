@@ -16,6 +16,7 @@ colors = {
 line_color = 200, 200, 200
 widths = 0, 2, 6, 12, 12
 winner_alpha = 80
+highlight_alpha = 160
 
 
 def antialias(draw_func):
@@ -74,10 +75,10 @@ def draw_level(level, highlights={}):
 def draw_game(game):
     highlights = {}
     queue = list(game.choice_queue)
-    for i, player in enumerate(game.player_order):
+    for i, player in enumerate(game.player_order[:-1]):
         for level in game.follow_path(queue[i:]):
             pass
 
-        highlights[level] = colors[player]
+        highlights[level] = colors[player] + (highlight_alpha, )
 
     return draw_level(game.root_level, highlights=highlights)

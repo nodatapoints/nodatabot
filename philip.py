@@ -19,3 +19,5 @@ def philip_math(bot,update,args):
         bot.send_message(update.message.chat_id, text="keine validen Zahlen")
         return
     bot.send_message(update.message.chat_id, text=str(res))   
+
+    

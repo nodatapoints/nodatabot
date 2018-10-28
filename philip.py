@@ -2,18 +2,36 @@
 from PIL import Image, ImageDraw
 from functools import wraps
 
-atom_size = 48
-background = 255, 255, 255, 255
-padding = 0
-resampling_factor = 2
-
 colors = {
     'b': (0, 0, 0),
     'w': (255, 255, 255),
     None: (255, 0, 0)
 }
 
+def draw_carpet(bot, update, carpet, pixthick):
+    hght = len(carpet) * pixthick
+    wdth = len(carpet[0]) * pixthick
+    #bot.send_message(update.message.chat_id, text=str(hght)+' '+str(wdth))
+    img = Image.new('RGB', (wdth, hght),(0,0,0,255))
+    pixels = img.load()
+    for by in range(len(carpet)):           # pic y
+        for bx in range(len(carpet[0])):    # pic x
+            for sy in range(pixthick) :     # pix y
+                for sx in range(pixthick):  # pix x
+                    y = by*pixthick+sy
+                    x = bx*pixthick+sx
+                    if carpet[by][bx] == 0: col = colors['w']
+                    if carpet[by][bx] == 1: col = colors['b']
+                    if carpet[by][bx] == 2: col = colors['b']
+                    if carpet[by][bx] == 3: col = colors['w'] 
+                    pixels[x,y] = col
+
+    img.save('carpet.png')
+    bot.send_photo(update.message.chat_id, open('carpet.png', 'rb'))
+
+
 def philip_carpet(bot,update,args):
+    pix = int(float(args.pop(0)))
     depth = int(float(args.pop(0)))
     if depth > 4: return false
     wdt = int(float(args.pop(0)))
@@ -33,13 +51,14 @@ def philip_carpet(bot,update,args):
             # 2 -> gefüllt
     for r in range(depth):
         carp = recursive_carpet(carp, base)
-    s = ''
+    '''s = ''
     for y in range(len(carp)):
         s = s + "`"
         for x in range(len(carp[0])):
             s = s+''+str(carp[y][x])+""
         s = s+"`\n"
-    bot.send_message(update.message.chat_id, text=s, parse_mode='Markdown')
+    bot.send_message(update.message.chat_id, text=s, parse_mode='Markdown')'''
+    draw_carpet(bot, update, carp, pix)
 
 def carpet_modify(mod, num):
     # hab kp wie ich das unhardcodig machen soll

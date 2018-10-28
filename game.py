@@ -77,11 +77,13 @@ class Game:
         self.choice_queue = deque(maxlen=depth-1)
 
     def get_head_level(self):
-        level = self.root_level
+        parent = self.root_level
         i = None
         for i, level in enumerate(self.level_queue()):
             if level.terminated:
-                break
+                return i-1, parent
+
+            parent = level
 
         return i, level
 
@@ -105,7 +107,6 @@ class Game:
         i, level = self.get_head_level()
         if level.terminated:
             self.choice_queue[i] = choice
-            return
 
         self.choice_queue.append(choice)
         if level[choice].atom:

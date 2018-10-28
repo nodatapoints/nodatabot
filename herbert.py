@@ -7,6 +7,7 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 
 from game import Game
 from render import draw_game
+from philip import philip_math
 
 game = Game('abc')
 
@@ -23,6 +24,10 @@ def show_game(bot, update):
         update.message.chat_id, open('board.png', 'rb'),
         reply_markup=game.render_keyboard(InlineKeyboardMarkup, InlineKeyboardButton)
     )
+
+# Philips ausgelagerte Funktionen
+def basic_math(bot, update, args):
+    philip_math(bot, update, args)
 
 
 def handler(bot, update):
@@ -50,6 +55,11 @@ updater = Updater(token)
 
 updater.dispatcher.add_handler(CommandHandler('move', show_menu))
 updater.dispatcher.add_handler(CommandHandler('show', show_game))
+
+# <Philips stuff>
+updater.dispatcher.add_handler(CommandHandler('math', basic_math, pass_args=True))
+# </Philips Stuff>
+
 updater.dispatcher.add_handler(CallbackQueryHandler(handler))
 
 updater.start_polling()

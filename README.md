@@ -40,6 +40,6 @@ for this task and can be held accountable for nondisclosure and late updates.
 All work is protected under Copyright and -left; meaning that you can copy it from all sides
 (at least the horizontal ones, copyup is currently dicussed in our legal dvision under David Rauh
 (who will probably start working at 11pm for 1 hour and will still be leagues better than me tomorrow moning in the legal,
-economics and law discussion D: )
+economics and law discussion D: ))
 
 - edited and written by @AlcedoAttis

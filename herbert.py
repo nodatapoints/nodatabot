@@ -9,7 +9,7 @@ from game import Game
 from render import draw_game
 from philip import philip_math
 
-game = Game('abc')
+game = Game('👍😂💯')
 
 shown_board_message = None
 markup = game.render_keyboard(InlineKeyboardMarkup, InlineKeyboardButton)

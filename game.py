@@ -1,5 +1,6 @@
 from itertools import chain, cycle
 from collections import deque
+from functools import reduce
 
 
 class Level:
@@ -48,9 +49,8 @@ class Level:
             (self.tiles[i][2-i] for i in range(3)),
         )
 
-        for line in lines:
-            self._winner = self._winner or self.test_equals(line)
-
+        # Yay, Python!
+        self._winner = next(filter(None, map(self.test_equals, lines)), None)
         return self._winner
 
     @winner.setter

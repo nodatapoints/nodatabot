@@ -11,7 +11,6 @@ colors = {
 def draw_carpet(bot, update, carpet, pixthick):
     hght = len(carpet) * pixthick
     wdth = len(carpet[0]) * pixthick
-    #bot.send_message(update.message.chat_id, text=str(hght)+' '+str(wdth))
     img = Image.new('RGB', (wdth, hght),(0,0,0,255))
     pixels = img.load()
     for by in range(len(carpet)):           # pic y
@@ -25,7 +24,7 @@ def draw_carpet(bot, update, carpet, pixthick):
                     if carpet[by][bx] == 2: col = colors['b']
                     if carpet[by][bx] == 3: col = colors['w'] 
                     pixels[x,y] = col
-
+                    
     img.save('carpet.png')
     bot.send_photo(update.message.chat_id, open('carpet.png', 'rb'))
 
@@ -33,9 +32,11 @@ def draw_carpet(bot, update, carpet, pixthick):
 def philip_carpet(bot,update,args):
     pix = int(float(args.pop(0)))
     depth = int(float(args.pop(0)))
-    if depth > 4: return false
     wdt = int(float(args.pop(0)))
     hgt = int(float(args.pop(0)))
+    if pow(max(wdt,hgt),depth) > 2500:
+        bot.send_message(update.message.chat_id, text="zu dick, keinen Bock")
+        return
     if len(args) != wdt*hgt:
         bot.send_message(update.message.chat_id, text="Angaben nicht valide")
         return 
@@ -51,8 +52,9 @@ def philip_carpet(bot,update,args):
             # 2 -> gefüllt
     for r in range(depth):
         carp = recursive_carpet(carp, base)
-    '''s = ''
-    for y in range(len(carp)):
+        #bot.send_message(update.message.chat_id, text=str(0))
+    s = ''
+    '''for y in range(len(carp)):
         s = s + "`"
         for x in range(len(carp[0])):
             s = s+''+str(carp[y][x])+""

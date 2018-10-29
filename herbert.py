@@ -1,6 +1,7 @@
 #!/usr/bin/python3.7
 
 from ast import literal_eval as parse_tuple
+import logging
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
@@ -10,13 +11,19 @@ from render import draw_game
 from philip import philip_math
 from philip import philip_carpet
 
+logging.basicConfig(
+	style='{',
+	format='{asctime} [{levelname:5}] {message}',
+	level=logging.INFO
+)
+
+with open('token.txt', 'r') as fobj:
+    token = fobj.read()
+
 game = Game('👍😂💯')
 
 shown_board_message = None
 markup = game.render_keyboard(InlineKeyboardMarkup, InlineKeyboardButton)
-
-def show_menu(bot, update):
-    bot.send_message(update.message.chat_id, text="Your move", reply_markup=markup)
 
 def show_game(bot, update):
     global shown_board_message
@@ -44,12 +51,8 @@ def handler(bot, update):
     )
 
 
-with open('token.txt', 'r') as fobj:
-    token = fobj.read()
-
 updater = Updater(token)
 
-updater.dispatcher.add_handler(CommandHandler('move', show_menu))
 updater.dispatcher.add_handler(CommandHandler('show', show_game))
 
 # <Philips stuff>

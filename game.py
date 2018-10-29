@@ -111,6 +111,9 @@ class Game:
         self.choice_queue.append(choice)
         if level[choice].atom:
             level[choice].winner = next(self.players)
+            return True
+
+        return False
 
     def render_keyboard(self, keyboard_class, button_class):
         query = []

@@ -8,6 +8,7 @@ from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 from game import Game
 from render import draw_game
 from philip import philip_math
+from philip import philip_carpet
 
 game = Game('👍😂💯')
 
@@ -24,11 +25,6 @@ def show_game(bot, update):
         update.message.chat_id, open('board.png', 'rb'),
         reply_markup=game.render_keyboard(InlineKeyboardMarkup, InlineKeyboardButton)
     )
-
-# Philips ausgelagerte Funktionen
-def basic_math(bot, update, args):
-    philip_math(bot, update, args)
-
 
 def handler(bot, update):
     query = update.callback_query
@@ -57,7 +53,8 @@ updater.dispatcher.add_handler(CommandHandler('move', show_menu))
 updater.dispatcher.add_handler(CommandHandler('show', show_game))
 
 # <Philips stuff>
-updater.dispatcher.add_handler(CommandHandler('math', basic_math, pass_args=True))
+updater.dispatcher.add_handler(CommandHandler('math1', philip_math, pass_args=True))
+updater.dispatcher.add_handler(CommandHandler('carpet', philip_carpet, pass_args=True))
 # </Philips Stuff>
 
 updater.dispatcher.add_handler(CallbackQueryHandler(handler))

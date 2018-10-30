@@ -28,7 +28,7 @@ def show_game(bot, update):
 
     draw_game(game).save('board.png')
     shown_board_message = bot.send_photo(
-        update.callback_query.chat_id, open('board.png', 'rb'),
+        update.callback_query.message.chat_id, open('board.png', 'rb'),
         reply_markup=game.render_keyboard(InlineKeyboardMarkup, InlineKeyboardButton)
     )
 
@@ -74,7 +74,7 @@ def game_choice_handler(bot, update):
     if query.data == 'invalid':
         return
 
-    if users[query.from_user] is not game.expected_player:
+    if users[query.from_user] != game.expected_player:
         return
 
     choice = parse_tuple(query.data)

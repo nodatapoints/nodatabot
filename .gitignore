@@ -1,3 +1,4 @@
 token.txt
 *.png
+*.log
 __pycache__/*

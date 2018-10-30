@@ -103,6 +103,10 @@ class Game:
     def player_order(self):
         return [next(self.players) for _ in range(self.n_players)]
 
+    @property
+    def expected_player(self):
+        return self.player_order[0]  # TODO unschön
+
     def push_choice(self, choice):
         i, level = self.get_head_level()
         if level.terminated:
@@ -111,9 +115,6 @@ class Game:
         self.choice_queue.append(choice)
         if level[choice].atom:
             level[choice].winner = next(self.players)
-            return True
-
-        return False
 
     def render_keyboard(self, keyboard_class, button_class):
         query = []

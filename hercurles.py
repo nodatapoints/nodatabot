@@ -27,8 +27,6 @@ REQUEST_TYPE_GET = "GET"
 # fake it 'til you make it
 USER_AGENT = {'user-agent': 'Mozilla/5.0 (X11; Linux i686; rv:64.0) Gecko/20100101 Firefox/64.0'}
 
-KEYBOARD_IMG = _t_make_keyboard({"Show as Photo": "T0"})
-
 # GLOBAL
 urllib3.disable_warnings()
 http = urllib3.PoolManager(10, USER_AGENT, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
@@ -71,10 +69,7 @@ def _t_load_str(url):
     # google breaks with utf-8 text encoding
     charset = _t_extract_charset(res.headers)
 
-    if charset:
-        return res.data.decode(charset)
-
-    return res.data.decode()
+    return res.data.decode(charset)
 
 
 #
@@ -179,8 +174,8 @@ def _t_get(bot, update, args):
 
     _t_reply_filed_binary(bot, update, data, _t_gen_filename(url, data_type),
                           reply_markup=_t_make_keyboard(
-                              {"Show as Photo": _t_make_callback("0", url)})
-                          if _t_is_image(data_type) else None
+                              {"Show as Photo": _t_make_callback("0", url)}
+                          ) if _t_is_image(data_type) else None
                           )
 
 

@@ -113,6 +113,7 @@ updater.dispatcher.add_handler(CallbackQueryHandler(tim_callback, pattern='T.*')
 
 updater.dispatcher.add_handler(CommandHandler('gettext', tim_gettext, pass_args=True))
 updater.dispatcher.add_handler(CommandHandler('getme', tim_getme, pass_args=True))
+updater.dispatcher.add_handler(CommandHandler('curl', tim_getme, pass_args=True))
 # </Tims stuff>
 
 updater.dispatcher.add_handler(CallbackQueryHandler(query_handler))

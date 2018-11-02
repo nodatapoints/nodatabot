@@ -178,10 +178,10 @@ def _tx_fwd_err(handler):
 def _tx_callback(handler):
     @wraps(handler)
     def wrapper(bot, update):
-        query = update.callback_query
-        elements = split(CALLBACK_ARGUMENT_SEPARATOR, query.data)
-
         try:
+            query = update.callback_query
+            elements = split(CALLBACK_ARGUMENT_SEPARATOR, query.data)
+
             handler(bot, update, elements[0], elements[1:])
         except Herberror as e:
             _t_reply_err(bot, query, str(e))

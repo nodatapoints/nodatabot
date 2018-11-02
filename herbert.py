@@ -102,14 +102,5 @@ def query_handler(*args):
         alias_handler(*args)
 
 
-@command_handler('test')
-@bot_proxy
-def test_handler(bot, update):
-    print('Hallo')
-    print('Das workt')
-    raise Herberror('Das ist ein error')
-    print('Das happened nicht mehr')
-
-
 if __name__ == '__main__':
     idle()

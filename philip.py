@@ -2,6 +2,8 @@
 from PIL import Image, ImageDraw
 from functools import wraps
 
+from herbert_utils import command_handler
+
 colors = {
     'b': (0, 0, 0),
     'w': (255, 255, 255),
@@ -29,6 +31,7 @@ def draw_carpet(bot, update, carpet, pixthick):
     bot.send_photo(update.message.chat_id, open('carpet.png', 'rb'))
 
 
+@command_handler('carpet', pass_args=True)
 def philip_carpet(bot,update,args):
     pix = int(float(args.pop(0)))
     depth = int(float(args.pop(0)))
@@ -95,6 +98,8 @@ def recursive_carpet(carp, base):
                     ret[y][x] = carpet_modify(mod, num)
     return ret
 
+
+@command_handler('math1', pass_args=True)
 def philip_math(bot,update,args):
     # is the operand valid?
     arg = args.pop(0)

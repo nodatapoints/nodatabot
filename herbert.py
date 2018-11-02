@@ -7,9 +7,9 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from herbert_utils import *
 from game import Game
 from render import draw_game
-from philip import philip_math, carpet_init
 
-from hercurles import callback as tim_callback, get as tim_getme, get_text as tim_gettext
+from hercurles import *
+from philip import *
 
 aliases = '👍😂💯'
 available_aliases = list(aliases)
@@ -26,7 +26,7 @@ alias_message = None
 def show_game(bot, update):
     global shown_board_message
     if not game_running:
-        raise Herberror('Not all players registrated yet.')
+        raise Herberror('Not all players registered yet.')
 
     draw_game(game).save('board.png')
     shown_board_message = bot.send_photo(

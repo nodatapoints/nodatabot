@@ -1,14 +1,14 @@
-import hercurles as H
-import xml.etree.ElementTree as ET
+import hercurles
+import xml.etree.ElementTree
 import re
 
 __all__ = ['load_xml', 'search_for']
 
 
 def load_xml(url):
-    res = H._t_load_str(url)
+    res = hercurles._t_load_str(url)
     res = re.sub("xmlns=\".*?\"", "", res)
-    return ET.fromstring(res)
+    return xml.etree.ElementTree.fromstring(res)
 
 
 def search_for(searchterm):
@@ -18,7 +18,4 @@ def search_for(searchterm):
     elems = root.findall(".//a[@class='result__snippet']")
 
     return [elem.attrib['href'] for elem in elems]
-
-
-
 

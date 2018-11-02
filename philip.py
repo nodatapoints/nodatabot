@@ -1,114 +1,102 @@
 # das is die Datei in der ich Sachen implementiere (also ich bin Philip, duh)
-from PIL import Image, ImageDraw
-from functools import wraps
+from PIL import Image, ImageOps
+from functools import lru_cache
+from herbert_utils import *
 
-from herbert_utils import command_handler
+black = 0, 0, 0
+gray = 123, 123, 123
+white = 255, 255, 255
 
-colors = {
-    'b': (0, 0, 0),
-    'w': (255, 255, 255),
-    None: (255, 0, 0)
+WHITE = 'w'
+BLACK = 'b'
+ROTATE_LEFT = 'l'
+ROTATE_RIGHT = 'r'
+ROTATE_180 = 'p'
+FLIP_HORIZONTAL = 'h'
+FLIP_VERTICAL = 'v'
+TRANSPOSE = 't'
+INVERT = 'i'
+COPY = 'c'
+
+do_things_to_img = {
+    ROTATE_LEFT: Image.ROTATE_90,
+    ROTATE_RIGHT: Image.ROTATE_270,
+    ROTATE_180: Image.ROTATE_180,
+    FLIP_HORIZONTAL: Image.FLIP_LEFT_RIGHT,
+    FLIP_VERTICAL: Image.FLIP_TOP_BOTTOM,
+    TRANSPOSE: Image.TRANSPOSE
 }
 
-def draw_carpet(bot, update, carpet, pixthick):
-    hght = len(carpet) * pixthick
-    wdth = len(carpet[0]) * pixthick
-    img = Image.new('RGB', (wdth, hght),(0,0,0,255))
-    pixels = img.load()
-    for by in range(len(carpet)):           # pic y
-        for bx in range(len(carpet[0])):    # pic x
-            for sy in range(pixthick) :     # pix y
-                for sx in range(pixthick):  # pix x
-                    y = by*pixthick+sy
-                    x = bx*pixthick+sx
-                    if carpet[by][bx] == 0: col = colors['w']
-                    if carpet[by][bx] == 1: col = colors['b']
-                    if carpet[by][bx] == 2: col = colors['b']
-                    if carpet[by][bx] == 3: col = colors['w'] 
-                    pixels[x,y] = col
-                    
-    img.save('carpet.png')
-    bot.send_photo(update.message.chat_id, open('carpet.png', 'rb'))
+def atom_colors(entry):
+    return white if WHITE in entry or INVERT in entry else black
 
 
 @command_handler('carpet', pass_args=True)
-def philip_carpet(bot,update,args):
-    pix = int(float(args.pop(0)))
-    depth = int(float(args.pop(0)))
-    wdt = int(float(args.pop(0)))
-    hgt = int(float(args.pop(0)))
-    if pow(max(wdt,hgt),depth) > 2500:
-        bot.send_message(update.message.chat_id, text="zu dick, keinen Bock")
-        return
-    if len(args) != wdt*hgt:
-        bot.send_message(update.message.chat_id, text="Angaben nicht valide")
-        return 
-    base = [[0 for x in range(wdt)] for y in range(hgt)] # wie Text: Zeilen, und in diesen Buchstaben
-    carp = [[0 for x in range(wdt)] for y in range(hgt)] # ich bin ein Karpfen
-    for y in range(hgt):
-        for x in range(wdt):
-            base[y][x] = int(float(args[0]))
-            carp[y][x] = int(float(args.pop(0)))
-            # 0 -> leer
-            # 1 -> Muster
-            # -1 -> invertiertes Muster
-            # 2 -> gefüllt
-    for r in range(depth):
-        carp = recursive_carpet(carp, base)
-        #bot.send_message(update.message.chat_id, text=str(0))
-    s = ''
-    '''for y in range(len(carp)):
-        s = s + "`"
-        for x in range(len(carp[0])):
-            s = s+''+str(carp[y][x])+""
-        s = s+"`\n"
-    bot.send_message(update.message.chat_id, text=s, parse_mode='Markdown')'''
-    draw_carpet(bot, update, carp, pix)
+@bot_proxy
+def carpet_init(bot, update, args):
+    scale, depth, width, height = map(int, args[:4])
+    matrix = args[4:]
+    if max(width, height)**depth > 5000:
+        raise Herberror("zu dick, keinen Bock")
 
-def carpet_modify(mod, num):
-    # hab kp wie ich das unhardcodig machen soll
-    if mod == 0:
-        return 0
-    elif mod == 2:
-        return 2
-    elif mod == 1:
-        return num
-    elif mod == 3:
-        if num == 1: return 3
-        elif num == 3: return 1
-        elif num == 2: return 0
-        elif num == 0: return 2
+    if len(matrix) != width*height:
+        raise Herberror("Angaben nicht valide")
+
+    itmatrix = iter(matrix)
+    base = tuple(tuple(next(itmatrix) for x in range(width)) for y in range(height)) 
+    carpet(base, depth).save('carpet.png')
+    bot.send_photo(update.message.chat_id, open('carpet.png', 'rb'))
+
+
+@lru_cache(256)
+def carpet(matrix, depth, entry=COPY):
+    """
+    Returns an Image object containing the corresponding carpet image.
+
+    matrix: 2D-List of dimensions n*m containing the recursive structure
+            encoded in entries of either 0, 1, 2, or 3
+    /([bw]|[rlp]?[hvt]?[ic])/
     
+    bw ->
+    rlphvt abarbeiten
+    i ->
+    (c)
 
-def recursive_carpet(carp, base):
-    bw = len(base[0])
-    bh = len(base)
-    cw = len(carp[0])
-    ch = len(carp)
+    """     
+    if depth == 0:
+        return Image.new('RGB', (1, 1), atom_colors(entry))
 
-    ret = [[0 for x in range(bw*cw)] for y in range(bh*ch)]
-    for ly in range(ch):                # l = large
-        for lx in range(cw):
-            mod = carp[ly][lx]          # mod = modifier
-            for sy in range(bh):        # s = small
-                for sx in range(bw):
-                    y = ly*bh+sy
-                    x = lx*bw+sx
-                    num = base[sy][sx]
-                    ret[y][x] = carpet_modify(mod, num)
-    return ret
+    width = len(matrix[0])**(depth - 1)
+    height = len(matrix)**(depth - 1)
+
+    big_image = Image.new('RGB', (width * len(matrix[0]), height * len(matrix)), atom_colors(entry))
+    if entry in (BLACK, WHITE):
+        return big_image
+
+    for y, row in enumerate(matrix):
+        for x, new_entry in enumerate(row):
+            img = carpet(matrix, depth - 1, new_entry)
+            big_image.paste(img, (x * width, y * height))
+    
+    for s in entry:
+       method = do_things_to_img.get(s)
+       if method is not None:
+           big_image = big_image.transpose(method)
+            
+    if INVERT in entry:
+        ImageOps.invert(big_image)
+
+    return big_image
 
 
-@command_handler('math1', pass_args=True)
+@command_handler('math', pass_args=True)
 def philip_math(bot,update,args):
     # is the operand valid?
     arg = args.pop(0)
     if arg == '+': res = 0
     elif arg == '*': res = 1
     else: 
-        bot.send_message(update.message.chat_id, text="kein valider Operator")
-        return 
-
+        raise Herberror(update.message.chat_id, text="kein valider Operator")
     # are all numbers really numbers?
     try:
         for x in range(len(args)): 
@@ -116,9 +104,6 @@ def philip_math(bot,update,args):
             if arg == '+': res += y
             elif arg == '*': res *= y
     except ValueError:
-        bot.send_message(update.message.chat_id, text="keine validen Zahlen")
-        return
+        raise Herberror(update.message.chat_id, text="keine validen Zahlen")
     bot.send_message(update.message.chat_id, text=str(res))   
 
-
-    

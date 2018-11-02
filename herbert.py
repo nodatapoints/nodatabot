@@ -7,7 +7,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from herbert_utils import *
 from game import Game
 from render import draw_game
-from philip import philip_math, philip_carpet
+from philip import philip_math, carpet_init
 
 from hercurles import callback as tim_callback, get as tim_getme, get_text as tim_gettext
 

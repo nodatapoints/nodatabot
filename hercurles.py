@@ -17,7 +17,7 @@ from hercurles_chat import *
 
 
 # EXPOSE MEMBERS
-__all__ = ["get_text", "get", "callback", "searchfor"]
+__all__ = ["get_text", "get", "callback", "searchfor", "searchforfirst"]
 
 
 ARG_COUNT_ERR = "This takes exactly 1 argument. Please try again."
@@ -62,6 +62,15 @@ def _t_search_for(bot, update, args):
     _t_reply_large_utf8(bot, update, results)
 
 
+def _t_search_for_first(bot, update, args):
+
+    query_string = " ".join(args)
+
+    result = search_for(query_string)[0]
+
+    _t_reply_large_utf8(bot, update, result)
+
+
 @command_handler('gettext', pass_args=True)
 @bot_proxy
 def get_text(bot, update, args):
@@ -83,6 +92,12 @@ def get(bot, update, args):
 @bot_proxy
 def searchfor(bot, update, args):
     _t_search_for(bot, update, args)
+
+
+@command_handler('lookup', pass_args=True)
+@bot_proxy
+def searchforfirst(bot, update, args):
+    _t_search_for_first(bot, update, args)
 
 
 @callback_handler(pattern='T.*')

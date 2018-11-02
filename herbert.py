@@ -10,6 +10,8 @@ from game import Game
 from render import draw_game
 from philip import philip_math, philip_carpet
 
+from hercurles import callback as tim_callback, get as tim_getme, get_text as tim_gettext
+
 aliases = '👍😂💯'
 available_aliases = list(aliases)
 game = Game(aliases)
@@ -95,7 +97,8 @@ def query_handler(*args):
     else:
         alias_handler(*args)
 
-updater = Updater(token)
+
+updater = Updater(token.strip())
 
 updater.dispatcher.add_handler(CommandHandler('show', show_game))
 updater.dispatcher.add_handler(CommandHandler('start', show_aliases))
@@ -105,7 +108,17 @@ updater.dispatcher.add_handler(CommandHandler('math1', philip_math, pass_args=Tr
 updater.dispatcher.add_handler(CommandHandler('carpet', philip_carpet, pass_args=True))
 # </Philips Stuff>
 
+# <Tims stuff>
+updater.dispatcher.add_handler(CallbackQueryHandler(tim_callback, pattern='T.*'))
+
+updater.dispatcher.add_handler(CommandHandler('gettext', tim_gettext, pass_args=True))
+updater.dispatcher.add_handler(CommandHandler('getme', tim_getme, pass_args=True))
+# </Tims stuff>
+
 updater.dispatcher.add_handler(CallbackQueryHandler(query_handler))
+
+print("Running...")
 
 updater.start_polling()
 updater.idle()
+

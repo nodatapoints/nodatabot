@@ -6,7 +6,7 @@ Well not really. His Name is herbert (Yes, lowercase! I also don't know why a pr
 but I guess you'll have to ask the original creator @nodatapoints about this, because I still got no answer after asking
 him a third time, so I'm not positive i'll ever get to konw why.)
 
-And he was created because we, @nodatapoints, @AlcedoAttis and Tim Gerlach (no @ found), all frequent botusers,
+And he was created because we, @nodatapoints, @AlcedoAttis and @CVTTSD2SI, all frequent botusers,
 were itching for something more personal, more customizable and herbert is our take on that.
 
 The current main feature is a recursive, 27x27 sized Version of TickTackToe, where you play on multiple boards to increase the

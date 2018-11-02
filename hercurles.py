@@ -20,6 +20,7 @@ from tim import *
 ARG_COUNT_ERR = "This takes exactly 1 argument. Please try again."
 RESPONSE_STAT_ERR = "Invalid Response status"
 NO_RESPONSE_ERR = "Could not connect to specified URL."
+NOT_TEXT_ERR = "The requested web page couldn't be converted to text."
 
 HTTP_STAT_OK = 200
 REQUEST_TYPE_GET = "GET"
@@ -69,7 +70,10 @@ def _t_load_str(url):
     # google breaks with utf-8 text encoding
     charset = _t_extract_charset(res.headers)
 
-    return res.data.decode(charset)
+    try:
+        return res.data.decode(charset if charset else "utf-8")
+    except UnicodeDecodeError:
+        raise Herberror(NOT_TEXT_ERR)
 
 
 #

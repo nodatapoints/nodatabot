@@ -2,6 +2,7 @@ import telegram
 from functools import wraps
 from io import BytesIO
 from re import split
+import hashlib
 
 BOT_ERR_PREFIX = "`[ERR][ :( ] `"
 
@@ -50,7 +51,7 @@ def _t_reply_large_utf8(bot, update, msg, **kwargs):
     or filed, and then forward the data
     """
     if len(msg) > MAX_CHUNKY_LENGTH:
-        _t_reply_filed_utf8(bot, update, msg, name, **kwargs)
+        _t_reply_filed_utf8(bot, update, msg **kwargs)
     else:
         _t_reply_chunky(bot, update, msg, **kwargs)
 
@@ -95,19 +96,28 @@ def _t_get_photo(param):
     return telegram.InputMediaPhoto(param)
 
 
-def _t_make_callback(name, *args):
-    res = "T" + name
-    for a in args:
-        res += CALLBACK_ARGUMENT_SEPARATOR + str(a)
+callback_data_store = {}
 
-    return res
+
+def _t_make_callback(name, *args):
+    prefix = "T" + name + CALLBACK_ARGUMENT_SEPARATOR
+    res = prefix + CALLBACK_ARGUMENT_SEPARATOR.join(args)
+
+    key = prefix + CALLBACK_ARGUMENT_SEPARATOR + hashlib.md5(res.encode("utf-8")).hexdigest()
+
+    callback_data_store[key] = res
+
+    return key
 
 
 def _tx_callback(handler):
     @wraps(handler)
     def wrapper(bot, update):
         query = update.callback_query
-        name, *args = split(CALLBACK_ARGUMENT_SEPARATOR, query.data)
+
+        stored_data = callback_data_store[query.data]
+
+        name, *args = split(CALLBACK_ARGUMENT_SEPARATOR, stored_data)
 
         handler(bot, update, name, args)
 

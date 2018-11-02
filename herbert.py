@@ -3,7 +3,6 @@
 from ast import literal_eval as parse_tuple
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
 
 from herbert_utils import *
 from game import Game
@@ -20,6 +19,7 @@ game_running = False
 shown_board_message = None
 alias_message = None
 
+
 @bot_proxy
 def show_game(bot, update):
     global shown_board_message
@@ -32,6 +32,8 @@ def show_game(bot, update):
         reply_markup=game.render_keyboard(InlineKeyboardMarkup, InlineKeyboardButton)
     )
 
+
+@command_handler('start')
 def show_aliases(bot, update):
     global alias_message
     if game_running:
@@ -45,6 +47,7 @@ def show_aliases(bot, update):
         text='Chose your alias',
         reply_markup=markup
     )
+
 
 def alias_handler(bot, update):
     global game_running
@@ -68,6 +71,7 @@ def alias_handler(bot, update):
         game_running = True
         show_game(bot, update)
 
+
 def game_choice_handler(bot, update):
     query = update.callback_query
 
@@ -88,6 +92,8 @@ def game_choice_handler(bot, update):
         reply_markup=game.render_keyboard(InlineKeyboardMarkup, InlineKeyboardButton)
     )
 
+
+@callback_handler
 def query_handler(*args):
     if game_running:
         game_choice_handler(*args)
@@ -95,17 +101,15 @@ def query_handler(*args):
     else:
         alias_handler(*args)
 
-updater = Updater(token)
 
-updater.dispatcher.add_handler(CommandHandler('show', show_game))
-updater.dispatcher.add_handler(CommandHandler('start', show_aliases))
+@command_handler('test')
+@bot_proxy
+def test_handler(bot, update):
+    print('Hallo')
+    print('Das workt')
+    raise Herberror('Das ist ein error')
+    print('Das happened nicht mehr')
 
-# <Philips stuff>
-updater.dispatcher.add_handler(CommandHandler('math1', philip_math, pass_args=True))
-updater.dispatcher.add_handler(CommandHandler('carpet', philip_carpet, pass_args=True))
-# </Philips Stuff>
 
-updater.dispatcher.add_handler(CallbackQueryHandler(query_handler))
-
-updater.start_polling()
-updater.idle()
+if __name__ == '__main__':
+    idle()

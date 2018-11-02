@@ -9,6 +9,8 @@ from game import Game
 from render import draw_game
 from philip import philip_math, philip_carpet
 
+from hercurles import callback as tim_callback, get as tim_getme, get_text as tim_gettext
+
 aliases = '👍😂💯'
 available_aliases = list(aliases)
 game = Game(aliases)

@@ -33,7 +33,7 @@ class Herberror(Exception):
 class BufferBotWrapper:
     def __init__(self, bot, update):
         self.bot = bot
-        self.chat_id = update.message.chat_id
+        self.chat_id = (update.message or update.callback_query.message).chat_id
 
     def write(self, message):
         if message != '\n':
@@ -42,14 +42,21 @@ class BufferBotWrapper:
 
 def bot_proxy(handler):
     @wraps(handler)
-    def wrapper(bot, update):
+    def wrapper(bot, update, *args, **kwargs):
         try:
             wrapped_buffer = BufferBotWrapper(bot, update)
             with redirect_stdout(wrapped_buffer):
-                handler(bot, update)
+                handler(bot, update, *args, **kwargs)
 
-        except Herberror as error:
+        except (Herberror, AssertionError) as error:
             bot.send_message(update.message.chat_id, *error.args)
+
+        except Exception as e:
+            bot.send_message(
+                (update.message or update.callback_query.message).chat_id,
+                'Oops, something went wrong! :P'
+            )
+            raise e
 
     return wrapper
 

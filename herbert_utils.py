@@ -64,7 +64,7 @@ def command_handler(command, **kwargs):
     return decorator
 
 
-def callback_handler(command, **kwargs):
+def callback_handler(**kwargs):
     def decorator(handler):
         updater.dispatcher.add_handler(
             CallbackQueryHandler(handler, **kwargs)

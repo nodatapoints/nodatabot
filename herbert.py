@@ -93,7 +93,7 @@ def game_choice_handler(bot, update):
     )
 
 
-@callback_handler
+@callback_handler()
 def query_handler(*args):
     if game_running:
         game_choice_handler(*args)

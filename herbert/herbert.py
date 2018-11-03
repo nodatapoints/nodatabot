@@ -1,7 +1,7 @@
 #!/usr/bin/python3.7
 
 from core import *
-from gamebert.gamebert import GameBert
+from gamebert import GameBert
 from hashbert import HashBert
 from hercurles import Hercurles
 

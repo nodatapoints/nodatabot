@@ -10,6 +10,9 @@
 #
 
 # IMPORTS
+from core import *
+from decorators import *
+
 from herbert_utils import *
 from hercurles_network import *
 from hercurles_utils import *
@@ -35,7 +38,7 @@ def _t_get_text(bot, update, args):
 
     url = args[0]
 
-    _t_reply_large_utf8(bot, update, _t_load_str(url), _t_gen_filename(url))
+    _t_reply_large_utf8(bot, update, _t_load_str(url), name=_t_gen_filename(url))
 
 
 def _t_get(bot, update, args):
@@ -71,54 +74,58 @@ def _t_search_for_first(bot, update, args):
     _t_reply_large_utf8(bot, update, result)
 
 
-@command_handler('gettext', pass_args=True)
-@bot_proxy
-def get_text(bot, update, args):
-    """
-    These functions expose the functionality of the submodule
-    to the bot and are exported from this file
-    """
-    _t_get_text(bot, update, args)
+class Hercurles(BaseBert):
+
+    @aliases('gettext', 'get_text', 'gt')
+    @command
+    @handle_herberrors
+    def get_text(self, bot, update, args):
+        """
+        These functions expose the functionality of the submodule
+        to the bot and are exported from this file
+        """
+        _t_get_text(bot, update, args)
 
 
-@command_handler('curl', pass_args=True)
-@command_handler('getme', pass_args=True)
-@bot_proxy
-def get(bot, update, args):
-    _t_get(bot, update, args)
+    @aliases('getme', 'curl')
+    @command
+    @handle_herberrors
+    def get(self, bot, update, args):
+        _t_get(bot, update, args)
 
 
-@command_handler('searchfor', pass_args=True)
-@bot_proxy
-def searchfor(bot, update, args):
-    _t_search_for(bot, update, args)
+    @command
+    @handle_herberrors
+    def searchfor(self, bot, update, args):
+        _t_search_for(bot, update, args)
 
 
-@command_handler('lookup', pass_args=True)
-@bot_proxy
-def searchforfirst(bot, update, args):
-    _t_search_for_first(bot, update, args)
+    @aliases('lookup')
+    @command
+    @handle_herberrors
+    def searchforfirst(self, bot, update, args):
+        _t_search_for_first(bot, update, args)
 
 
-@callback_handler(pattern='T.*')
-@bot_proxy
-@_tx_callback
-def callback(bot, update, name, args):
-    """
-    When clicking on a button, perform the appropriate event.
-    This currently handles the following queries:
-      - Show Image:
-          ID: T0
-          Params: <url>
-          Action: Replace the given message with the image found at <url>
-    """
-    query = update.callback_query
+    @callback(pattern='T.*')
+    @_tx_callback
+    @handle_herberrors
+    def callback(self, bot, update, name, args):
+        """
+        When clicking on a button, perform the appropriate event.
+        This currently handles the following queries:
+          - Show Image:
+              ID: T0
+              Params: <url>
+              Action: Replace the given message with the image found at <url>
+        """
+        query = update.callback_query
 
-    if name == "T0":
-        bot.edit_message_media(
-            chat_id=query.message.chat_id,
-            message_id=query.message.message_id,
-            media=_t_get_photo(args[0]),
-        )
-    else:
-        raise RuntimeError("Invalid Query Callback")
+        if name == "T0":
+            bot.edit_message_media(
+                chat_id=query.message.chat_id,
+                message_id=query.message.message_id,
+                media=_t_get_photo(args[0]),
+            )
+        else:
+            raise RuntimeError("Invalid Query Callback")

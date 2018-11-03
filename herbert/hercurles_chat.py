@@ -12,7 +12,7 @@ MAX_CHUNKY_LENGTH = 3 * MSG_CHUNK
 CALLBACK_ARGUMENT_SEPARATOR = " "
 
 
-def _t_reply_chunky(bot, update, msg, **kwargs):
+def _t_reply_chunky(bot, update, msg, parse_mode=None, **kwargs):
     """
     The telegram message length is limited to MSG_CHUNK.
     To send more than that amount of bytes, it needs
@@ -21,7 +21,7 @@ def _t_reply_chunky(bot, update, msg, **kwargs):
     takes care of that.
     """
     while msg:
-        _t_reply(bot, update, msg[:MSG_CHUNK], parse_mode=None, **kwargs)
+        _t_reply(bot, update, msg[:MSG_CHUNK], parse_mode=parse_mode, **kwargs)
         msg = msg[MSG_CHUNK:]
 
 
@@ -51,7 +51,7 @@ def _t_reply_large_utf8(bot, update, msg, **kwargs):
     or filed, and then forward the data
     """
     if len(msg) > MAX_CHUNKY_LENGTH:
-        _t_reply_filed_utf8(bot, update, msg **kwargs)
+        _t_reply_filed_utf8(bot, update, msg, **kwargs)
     else:
         _t_reply_chunky(bot, update, msg, **kwargs)
 
@@ -112,14 +112,14 @@ def _t_make_callback(name, *args):
 
 def _tx_callback(handler):
     @wraps(handler)
-    def wrapper(bot, update):
+    def wrapper(self, bot, update, *args, **kwargs):
         query = update.callback_query
 
         stored_data = callback_data_store[query.data]
 
         name, *args = split(CALLBACK_ARGUMENT_SEPARATOR, stored_data)
 
-        handler(bot, update, name, args)
+        handler(self, bot, update, name, args)
 
     return wrapper
 

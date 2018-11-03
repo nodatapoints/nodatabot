@@ -5,7 +5,7 @@ from urllib.parse import quote
 from PIL import Image, ImageOps
 from io import BytesIO
 
-from decorators import command
+from decorators import command, aliases
 from herbert_utils import *
 from hercurles_chat import _t_reply_filed_binary
 from hercurles_network import _t_load_content
@@ -39,20 +39,32 @@ def atom_colors(entry):
     return white if WHITE in entry or INVERT in entry else black
 
 class PhilipBert:
+    @aliases('wa', 'wolframalpha')
     @command
     @bot_proxy
     def wolfram(self, bot, update, args):
         query = quote(''.join(args), safe='')
         url = f'https://api.wolframalpha.com/v1/simple?i={query}&appid=36GXXR-K5UA8L8XTY'
         _, data = _t_load_content(url)
-
-        #breakpoint()
         
         png = BytesIO()              
         Image.open(BytesIO(data)).save(png, format='PNG')
         png.seek(0)
         bot.send_photo(update.message.chat_id, png)
-        #bot.sendDocument(update.message.chat_id, document=png)
+
+    @aliases('hrwa')
+    @command
+    @handle_herberrors
+    def highreswolfram(self, bot, update, args):
+        # TODO implement this properly to avoid writing the same code twice
+        query = quote(''.join(args), safe='')
+        url = f'https://api.wolframalpha.com/v1/simple?i={query}&appid=36GXXR-K5UA8L8XTY'
+        _, data = _t_load_content(url)
+        png = BytesIO()              
+        Image.open(BytesIO(data)).save(png, format='PNG')
+        png.seek(0)
+        bot.sendDocument(update.message.chat_id, document=png)
+
 
     @command
     @bot_proxy

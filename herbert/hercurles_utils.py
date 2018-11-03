@@ -1,4 +1,4 @@
-import hercurles
+import hercurles_network
 import xml.etree.ElementTree
 import re
 
@@ -6,7 +6,7 @@ __all__ = ['load_xml', 'search_for', '_t_bytes']
 
 
 def load_xml(url):
-    res = hercurles._t_load_str(url)
+    res = hercurles_network._t_load_str(url)
     res = re.sub("xmlns=\".*?\"", "", res)
     return xml.etree.ElementTree.fromstring(res)
 

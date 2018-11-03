@@ -83,9 +83,7 @@ class GameBert:
         self.game.push_choice(choice)
 
         draw_game(self.game).save('board.png')
-        bot.edit_message_media(  # TODO use edit_media
-            chat_id=query.message.chat_id,
-            message_id=self.shown_board_message.message_id,
+        self.shown_board_message.edit_media(
             media=InputMediaPhoto(open('board.png', 'rb')),
             reply_markup=self.game.render_keyboard(
                 InlineKeyboardMarkup, InlineKeyboardButton)

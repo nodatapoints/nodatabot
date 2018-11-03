@@ -34,7 +34,7 @@ def _t_load(url):
     try:
         return http.request(REQUEST_TYPE_GET, url, retries=2)
 
-    except urllib3.HTTPError:
+    except urllib3.exceptions.HTTPError:
         raise Herberror(NO_RESPONSE_ERR)
 
 

@@ -4,6 +4,7 @@ Define all the decorators!
 
 from functools import wraps
 from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+from herbert_utils import *
 
 __all__ = ['command', 'aliases', 'callback']
 

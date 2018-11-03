@@ -1,5 +1,6 @@
 import logging
 from functools import wraps
+from hercurles_chat import _t_reply_err
 
 
 logging.basicConfig(
@@ -30,4 +31,18 @@ def bot_proxy(handler):
 
     return wrapper
 
+
+def handle_herberrors(fn):
+    @wraps(fn)
+    def wrapper(self, bot, update, *args, **kwargs):
+        up = update if update.message else update.callback_query
+        try:
+            return fn(self, bot, update, *args, **kwargs)
+        except (AssertionError, Herberror) as e:
+            _t_reply_err(bot, up, str(e))
+        except Exception:
+            _t_reply_err(bot, up, "Something broke. I'll fix it later, try doing something nicer first.")
+            raise
+
+    return wrapper
 

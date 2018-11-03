@@ -38,7 +38,7 @@ def _t_get_text(bot, update, args):
 
     url = args[0]
 
-    _t_reply_large_utf8(bot, update, _t_load_str(url), _t_gen_filename(url))
+    _t_reply_large_utf8(bot, update, _t_load_str(url), name=_t_gen_filename(url))
 
 
 def _t_get(bot, update, args):
@@ -78,6 +78,7 @@ class Hercurles(BaseBert):
 
     @aliases('gettext', 'get_text', 'gt')
     @command
+    @handle_herberrors
     def get_text(self, bot, update, args):
         """
         These functions expose the functionality of the submodule
@@ -88,23 +89,27 @@ class Hercurles(BaseBert):
 
     @aliases('getme', 'curl')
     @command
+    @handle_herberrors
     def get(self, bot, update, args):
         _t_get(bot, update, args)
 
 
     @command
+    @handle_herberrors
     def searchfor(self, bot, update, args):
         _t_search_for(bot, update, args)
 
 
     @aliases('lookup')
     @command
+    @handle_herberrors
     def searchforfirst(self, bot, update, args):
         _t_search_for_first(bot, update, args)
 
 
     @callback(pattern='T.*')
     @_tx_callback
+    @handle_herberrors
     def callback(self, bot, update, name, args):
         """
         When clicking on a button, perform the appropriate event.

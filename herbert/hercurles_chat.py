@@ -51,7 +51,7 @@ def _t_reply_large_utf8(bot, update, msg, **kwargs):
     or filed, and then forward the data
     """
     if len(msg) > MAX_CHUNKY_LENGTH:
-        _t_reply_filed_utf8(bot, update, msg **kwargs)
+        _t_reply_filed_utf8(bot, update, msg, **kwargs)
     else:
         _t_reply_chunky(bot, update, msg, **kwargs)
 

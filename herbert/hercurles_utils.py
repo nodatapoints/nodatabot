@@ -2,7 +2,7 @@ import hercurles
 import xml.etree.ElementTree
 import re
 
-__all__ = ['load_xml', 'search_for']
+__all__ = ['load_xml', 'search_for', '_t_bytes']
 
 
 def load_xml(url):
@@ -18,4 +18,8 @@ def search_for(searchterm):
     elems = root.findall(".//a[@class='result__snippet']")
 
     return [elem.attrib['href'] for elem in elems]
+
+
+def _t_bytes(arr):
+    return bytes(" ".join(arr), encoding="utf-8")
 

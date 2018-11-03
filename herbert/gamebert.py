@@ -1,5 +1,8 @@
 #!/usr/bin/python3.7
 
+from core import *
+from decorators import *
+
 from ast import literal_eval as parse_tuple
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
@@ -33,7 +36,7 @@ class GameBert:
                 InlineKeyboardMarkup, InlineKeyboardButton)
         )
 
-    @command('start')
+    @command(pass_args=False)
     def start(self, bot, update):
         if self.game_running:
             raise Herberror('Game already running')

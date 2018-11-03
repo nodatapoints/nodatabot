@@ -5,10 +5,18 @@ Submodules
 """
 
 import inspect
+import logging
 
-from telegram.ext import Updater, CommandHandler, CallbackQueryHandler
+from telegram.ext import Updater
+
 from hercurles_chat import *
 
+
+logging.basicConfig(
+    style='{',
+    format='{asctime} [{levelname:5}] {message}',
+    level=logging.INFO
+)
 
 with open('token.txt', 'r') as fobj:
     token = fobj.read().strip()
@@ -38,10 +46,10 @@ def idle():
 
 
 class BaseBert:
-  """
-  Common Submodule type
-  """
-  # TODO implementation
+    """
+    Common Submodule type
+    """
+    # TODO implementation
 
-  def reply(self, *args, **kwargs):
-      _t_reply_chunky(*args, **kwargs)
+    def reply(self, *args, **kwargs):
+        _t_reply_chunky(*args, **kwargs)  # TODO

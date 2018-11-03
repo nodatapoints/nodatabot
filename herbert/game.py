@@ -1,6 +1,5 @@
 from itertools import chain, cycle
 from collections import deque
-from functools import reduce
 
 
 class Level:

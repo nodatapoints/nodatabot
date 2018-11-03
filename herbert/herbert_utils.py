@@ -1,13 +1,6 @@
-import logging
 from functools import wraps
 from hercurles_chat import _t_reply_err
 
-
-logging.basicConfig(
-    style='{',
-    format='{asctime} [{levelname:5}] {message}',
-    level=logging.INFO
-)
 
 class Herberror(Exception):
     '''Basic herbert error'''
@@ -39,10 +32,9 @@ def handle_herberrors(fn):
         try:
             return fn(self, bot, update, *args, **kwargs)
         except (AssertionError, Herberror) as e:
-            _t_reply_err(bot, up, str(e))
+            _t_reply_err(bot, up, str(e))  # TODO only temporary
         except Exception:
             _t_reply_err(bot, up, "Something broke. I'll fix it later, try doing something nicer first.")
             raise
 
     return wrapper
-

@@ -71,7 +71,7 @@ class GameBert:
         if len(self.users) == len(self.names):
             self.naming_message.delete()
             self.game_running = True
-            show_game(bot, update)
+            self.show_game(bot, update)
 
     def game_choice_handler(self, bot, update):
         query = update.callback_query

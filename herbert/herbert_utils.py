@@ -8,9 +8,9 @@ class Herberror(Exception):
 
 def bot_proxy(handler):
     @wraps(handler)
-    def wrapper(bot, update, *args, **kwargs):
+    def wrapper(self, bot, update, *args, **kwargs):
         try:
-            handler(bot, update, *args, **kwargs)
+            handler(self, bot, update, *args, **kwargs)
 
         except (Herberror, AssertionError) as error:
             bot.send_message(update.message.chat_id, *error.args)

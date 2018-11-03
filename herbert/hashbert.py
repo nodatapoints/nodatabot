@@ -15,6 +15,7 @@ from hercurles_utils import *
 
 import hashlib as hl
 import base64 as b64
+import re
 
 __all__ = ["HashBert"]
 
@@ -38,7 +39,8 @@ class HashBert(BaseBert):
 
   @command
   def hashit(self, bot, update, args):
-    self.reply(bot, update, hash_all(_t_bytes(args)), parse_mode=self.PARSE_MODE_MD) 
+    import telegram
+    self.reply(bot, update, hash_all(_t_bytes(args)), parse_mode=telegram.ParseMode.MARKDOWN) 
 
   @aliases('rotate', 'shift', 'ceasar')
   @command
@@ -76,7 +78,7 @@ def hash_all(arg):
     try:
       h = hl.new(name)
       h.update(arg)
-      res += f"{name}: `{h.hexdigest()}`\n"
+      res += f"{re.sub('_', '-', name)}: ```{h.hexdigest()}```\n\n"
     except:
       pass
   

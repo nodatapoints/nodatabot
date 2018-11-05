@@ -100,22 +100,10 @@ class Hercurles(BaseBert):
 
     @callback(pattern='T.*')
     @_tx_callback
-    def callback(self, name, args):
-        """
-        When clicking on a button, perform the appropriate event.
-        This currently handles the following queries:
-          - Show Image:
-              ID: T0
-              Params: <url>
-              Action: Replace the given message with the image found at <url>
-        """
-        query = self.update.callback_query
-
-        if name == "T0":
-            self.bot.edit_message_media(
-                chat_id=query.message.chat_id,
-                message_id=query.message.message_id,
-                media=_t_get_photo(args[0]),
-            )
-        else:
-            raise RuntimeError("Invalid Query Callback")
+    def callback_fix(self, query, args):
+        # I have no idea what I am doing. :)
+        self.bot.edit_message_media(
+            chat_id=query.message.chat_id,
+            message_id=query.message.message_id,
+            media=_t_get_photo(args[0]),
+        )

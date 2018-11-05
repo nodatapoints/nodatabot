@@ -26,7 +26,7 @@ def handle_herberrors(method):
             self.send_message(*error.args)
 
         except Exception as e:
-            self.send_message('Oops, something went wrong! :scream:')
+            self.send_message('Oops, something went wrong! 😱')
             raise e
 
     return wrapped

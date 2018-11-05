@@ -27,7 +27,7 @@ class BaseBert:
         return fp
 
     def send_message(self, *args, **kwargs):
-        self.bot.send_message(self.message.chat_id, *args, **kwargs)
+        return self.bot.send_message(self.message.chat_id, *args, **kwargs)
 
     def send_pil_image(self, image, *, format='PNG', **kwargs):
         fp = self.pil_image_to_fp(format)

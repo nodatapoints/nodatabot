@@ -20,7 +20,7 @@ def handle_herberrors(method):
     @wraps(method)
     def wrapped(self, *args, **kwargs):
         try:
-            return self.method(*args, **kwargs)
+            return method(self, *args, **kwargs)
 
         except Herberror as error:
             self.send_message(*error.args)
@@ -60,7 +60,6 @@ def command(arg=None, *, pass_args=True, pass_update=False, **kwargs):
     When applied directly via `@command` it acts like the decorator it returns.
 
     """
-    @handle_herberrors
     def command_decorator(method):
         """Adds an callable `handler` attribute to the method, which will return
         appropriate handler for the dispatcher.
@@ -82,7 +81,7 @@ def command(arg=None, *, pass_args=True, pass_update=False, **kwargs):
 
         method._command_handler = handler
         method._commands = [method.__name__]
-        return method
+        return handle_herberrors(method)
 
     if callable(arg):
         return command_decorator(arg)
@@ -103,14 +102,13 @@ def aliases(*args):
 
 
 def callback(arg=None, *, pass_update=False, pass_query=True, **kwargs):
-    @handle_herberrors
     def callback_decorator(method):
         def handler(bound_method):
             callback = pull_bot_and_update(bound_method, pass_update, pass_query)
             return CallbackQueryHandler(callback, **kwargs)
 
         method._callback_query_handler = handler
-        return method
+        return handle_herberrors(method)
 
     if callable(arg):
         return callback_decorator(arg)

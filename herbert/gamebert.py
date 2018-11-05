@@ -12,7 +12,7 @@ from render import draw_game
 
 class GameBert(BaseBert):
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
         self.names = '👍😂💯'
         self.available_names = list(self.names)
         self.game = Game(self.names)

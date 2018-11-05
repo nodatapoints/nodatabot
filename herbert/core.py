@@ -9,8 +9,6 @@ import logging
 
 from telegram.ext import Updater
 
-from hercurles_chat import *
-
 
 logging.basicConfig(
     style='{',
@@ -43,13 +41,3 @@ def register_bert(cls):
 def idle():
     updater.start_polling()
     updater.idle()
-
-
-class BaseBert:
-    """
-    Common Submodule type
-    """
-    # TODO implementation
-
-    def reply(self, *args, **kwargs):
-        _t_reply_chunky(*args, **kwargs)  # TODO

@@ -1,20 +1,18 @@
 #!/usr/bin/python3.7
 
 from ast import literal_eval as parse_tuple
-from io import BytesIO
-
-from core import *
-from decorators import *
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 
-from herbert_utils import *
+from decorators import command, callback
+from basebert import BaseBert, Herberror
 from game import Game
 from render import draw_game
 
 
-class GameBert:
+class GameBert(BaseBert):
     def __init__(self):
+        super().__init__(self)
         self.names = '👍😂💯'
         self.available_names = list(self.names)
         self.game = Game(self.names)
@@ -25,22 +23,18 @@ class GameBert:
         self.shown_board_message = None
         self.naming_message = None
 
-    @bot_proxy
-    def show_game(self, bot, update):
+    def show_game(self):
         if not self.game_running:
             raise Herberror('Not all players registered yet.')
 
-        fp = BytesIO()
-        draw_game(self.game).save(fp, format='PNG')
-        fp.seek(0)
-        self.shown_board_message = bot.send_photo(
-            update.callback_query.message.chat_id, open('board.png', 'rb'),
+        self.shown_board_message = self.send_photo(
+            draw_game(self.game),
             reply_markup=self.game.render_keyboard(
                 InlineKeyboardMarkup, InlineKeyboardButton)
         )
 
     @command(pass_args=False)
-    def start(self, bot, update):
+    def start(self):
         if self.game_running:
             raise Herberror('Game already running')
 
@@ -48,14 +42,12 @@ class GameBert:
             [InlineKeyboardButton(name, callback_data=name)
              for name in self.available_names]
         ])
-        self.naming_message = bot.send_message(
-            update.message.chat_id,
+        self.naming_message = self.send_message(
             text='Chose your name',
             reply_markup=markup
         )
 
-    def name_handler(self, bot, update):
-        query = update.callback_query
+    def name_handler(self, query):
         if query.from_user in self.users:
             return
 
@@ -74,11 +66,9 @@ class GameBert:
         if len(self.users) == len(self.names):
             self.naming_message.delete()
             self.game_running = True
-            self.show_game(bot, update)
+            self.show_game()
 
-    def game_choice_handler(self, bot, update):
-        query = update.callback_query
-
+    def game_choice_handler(self, query):
         if query.data == 'invalid':
             return
 
@@ -88,17 +78,17 @@ class GameBert:
         choice = parse_tuple(query.data)
         self.game.push_choice(choice)
 
-        draw_game(self.game).save('board.png')
+        fp = self.pil_image_to_fp(draw_game(self.game), format='PNG')
         self.shown_board_message.edit_media(
-            media=InputMediaPhoto(open('board.png', 'rb')),
+            media=InputMediaPhoto(fp),
             reply_markup=self.game.render_keyboard(
                 InlineKeyboardMarkup, InlineKeyboardButton)
         )
 
     @callback
-    def query_handler(self, *args):
+    def query_handler(self, query):
         if self.game_running:
-            self.game_choice_handler(*args)
+            self.game_choice_handler(query)
 
         else:
-            self.name_handler(*args)
+            self.name_handler(query)

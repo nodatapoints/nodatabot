@@ -2,18 +2,65 @@
 Define all the decorators!
 """
 
+from functools import wraps
+
 from telegram.ext import CommandHandler, CallbackQueryHandler
+
+from basebert import Herberror
 
 __all__ = ['command', 'aliases', 'callback']
 
 
-def command(arg=None, pass_args=True, **kwargs):
+def handle_herberrors(method):
+    """
+    Catches `Herberror` and sends the argument of the exception as a message
+    to the user. When an exception of any other type is catched, it will send
+    a default error message to the user and raise it again.
+    """
+    @wraps(method)
+    def wrapped(self, *args, **kwargs):
+        try:
+            return self.method(*args, **kwargs)
+
+        except Herberror as error:
+            self.send_message(*error.args)
+
+        except Exception as e:
+            self.send_message('Oops, something went wrong! :scream:')
+            raise e
+
+    return wrapped
+
+
+def pull_bot_and_update(bound_method, pass_update=False, pass_query=True):
+    """
+    Updates `bot` and `update` of the bot instance of the
+    bound method before calling it.
+    """
+    # Honestly, this is extremely bodgy ... sad kamal
+    @wraps(bound_method)
+    def wrapped(bot, update, *args):
+        bound_method.__self__.bot = bot
+        bound_method.__self__.update = update
+        if pass_query:
+            args = (update.callback_query, ) + args
+
+        if pass_update:
+            args = (update, ) + args
+
+        return bound_method(*args)
+
+    return wrapped
+
+
+def command(arg=None, *, pass_args=True, pass_update=False, **kwargs):
     """
     Generates a command decorator (see `command_decorator`).
     `**kwargs` will be passed to the dispatcher.
     When applied directly via `@command` it acts like the decorator it returns.
 
     """
+    @handle_herberrors
     def command_decorator(method):
         """Adds an callable `handler` attribute to the method, which will return
         appropriate handler for the dispatcher.
@@ -26,7 +73,12 @@ def command(arg=None, pass_args=True, **kwargs):
             raise ValueError(f'{method} not callable. Did you use @command()?')
 
         def handler(name, bound_method):
-            return CommandHandler(name, bound_method, pass_args=pass_args, **kwargs)
+            callback = pull_bot_and_update(
+                bound_method,
+                pass_update,
+                pass_query=False
+            )
+            return CommandHandler(name, callback, pass_args=pass_args, **kwargs)
 
         method._command_handler = handler
         method._commands = [method.__name__]
@@ -50,12 +102,12 @@ def aliases(*args):
     return decorator
 
 
-def callback(arg=None, **kwargs):
-
+def callback(arg=None, *, pass_update=False, pass_query=True, **kwargs):
+    @handle_herberrors
     def callback_decorator(method):
-
         def handler(bound_method):
-            return CallbackQueryHandler(bound_method, **kwargs)
+            callback = pull_bot_and_update(bound_method, pass_update, pass_query)
+            return CallbackQueryHandler(callback, **kwargs)
 
         method._callback_query_handler = handler
         return method

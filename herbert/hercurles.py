@@ -10,10 +10,9 @@
 #
 
 # IMPORTS
-from core import *
+from basebert import *
 from decorators import *
 
-from herbert_utils import *
 from hercurles_network import *
 from hercurles_utils import *
 from hercurles_chat import *
@@ -78,39 +77,30 @@ class Hercurles(BaseBert):
 
     @aliases('gettext', 'get_text', 'gt')
     @command
-    @handle_herberrors
-    def get_text(self, bot, update, args):
+    def get_text(self, args):
         """
         These functions expose the functionality of the submodule
         to the bot and are exported from this file
         """
-        _t_get_text(bot, update, args)
-
+        _t_get_text(self.bot, self.update, args)
 
     @aliases('getme', 'curl')
     @command
-    @handle_herberrors
-    def get(self, bot, update, args):
-        _t_get(bot, update, args)
-
+    def get(self, args):
+        _t_get(self.bot, self.update, args)
 
     @command
-    @handle_herberrors
-    def searchfor(self, bot, update, args):
-        _t_search_for(bot, update, args)
-
+    def searchfor(self, args):
+        _t_search_for(self.bot, self.update, args)
 
     @aliases('lookup')
     @command
-    @handle_herberrors
-    def searchforfirst(self, bot, update, args):
-        _t_search_for_first(bot, update, args)
-
+    def searchforfirst(self, args):
+        _t_search_for_first(self.bot, self.update, args)
 
     @callback(pattern='T.*')
     @_tx_callback
-    @handle_herberrors
-    def callback(self, bot, update, name, args):
+    def callback(self, name, args):
         """
         When clicking on a button, perform the appropriate event.
         This currently handles the following queries:
@@ -119,10 +109,10 @@ class Hercurles(BaseBert):
               Params: <url>
               Action: Replace the given message with the image found at <url>
         """
-        query = update.callback_query
+        query = self.update.callback_query
 
         if name == "T0":
-            bot.edit_message_media(
+            self.bot.edit_message_media(
                 chat_id=query.message.chat_id,
                 message_id=query.message.message_id,
                 media=_t_get_photo(args[0]),

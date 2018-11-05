@@ -1,9 +1,10 @@
 #!/usr/bin/python3.7
 
+from ast import literal_eval as parse_tuple
+from io import BytesIO
+
 from core import *
 from decorators import *
-
-from ast import literal_eval as parse_tuple
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 
@@ -29,7 +30,9 @@ class GameBert:
         if not self.game_running:
             raise Herberror('Not all players registered yet.')
 
-        draw_game(self.game).save('board.png')
+        fp = BytesIO()
+        draw_game(self.game).save(fp, format='PNG')
+        fp.seek(0)
         self.shown_board_message = bot.send_photo(
             update.callback_query.message.chat_id, open('board.png', 'rb'),
             reply_markup=self.game.render_keyboard(

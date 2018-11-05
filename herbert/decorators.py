@@ -39,7 +39,7 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True):
     """
     # Honestly, this is extremely bodgy ... sad kamal
     @wraps(bound_method)
-    def wrapped(bot, update, *args):
+    def wrapped(bot, update, *args, **kwargs):
         bound_method.__self__.bot = bot
         bound_method.__self__.update = update
         if pass_query:
@@ -48,7 +48,7 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True):
         if pass_update:
             args = (update, ) + args
 
-        return bound_method(*args)
+        return bound_method(*args, **kwargs)
 
     return wrapped
 
@@ -58,7 +58,6 @@ def command(arg=None, *, pass_args=True, pass_update=False, **kwargs):
     Generates a command decorator (see `command_decorator`).
     `**kwargs` will be passed to the dispatcher.
     When applied directly via `@command` it acts like the decorator it returns.
-
     """
     def command_decorator(method):
         """Adds an callable `handler` attribute to the method, which will return

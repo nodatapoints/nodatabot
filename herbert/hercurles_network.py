@@ -2,7 +2,7 @@ import urllib3
 import certifi
 import re
 
-from herbert_utils import Herberror
+from basebert import Herberror
 
 # fake it 'til you make it
 USER_AGENT = {'user-agent': 'Mozilla/5.0 (X11; Linux i686; rv:64.0) Gecko/20100101 Firefox/64.0'}

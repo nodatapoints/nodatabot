@@ -1,5 +1,6 @@
-
 from io import BytesIO
+
+__all__ = ['Herberror', 'BaseBert']
 
 
 class Herberror(Exception):
@@ -19,6 +20,10 @@ class BaseBert:
     def query(self):
         return self.update.callback_query
 
+    @property
+    def chat_id(self):
+        return self.message.chat_id
+
     @staticmethod
     def pil_image_to_fp(image, format):
         fp = BytesIO()
@@ -27,8 +32,11 @@ class BaseBert:
         return fp
 
     def send_message(self, *args, **kwargs):
-        return self.bot.send_message(self.message.chat_id, *args, **kwargs)
+        return self.bot.send_message(self.chat_id, *args, **kwargs)
 
-    def send_pil_image(self, image, *, format='PNG', **kwargs):
-        fp = self.pil_image_to_fp(format)
-        return self.bot.send_photo(self.message.chat_id, fp, **kwargs)
+    def send_pil_image(self, image, *, format='PNG', full=False, **kwargs):
+        fp = self.pil_image_to_fp(image, format)
+        if full:
+            return self.bot.send_document(self.chat_id, document=fp)
+
+        return self.bot.send_photo(self.chat_id, fp, **kwargs)

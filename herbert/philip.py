@@ -6,8 +6,7 @@ from PIL import Image, ImageOps
 from io import BytesIO
 
 from decorators import command, aliases
-from herbert_utils import *
-from hercurles_chat import _t_reply_filed_binary
+from basebert import BaseBert, Herberror
 from hercurles_network import _t_load_content
 
 
@@ -35,40 +34,29 @@ do_things_to_img = {
     TRANSPOSE: Image.TRANSPOSE
 }
 
+
 def atom_colors(entry):
     return white if WHITE in entry or INVERT in entry else black
 
-class PhilipBert:
+
+class PhilipBert(BaseBert):
     @aliases('wa', 'wolframalpha')
     @command
-    @bot_proxy
-    def wolfram(self, bot, update, args):
+    def wolfram(self, args, full=False):
         query = quote(''.join(args), safe='')
         url = f'https://api.wolframalpha.com/v1/simple?i={query}&appid=36GXXR-K5UA8L8XTY'
         _, data = _t_load_content(url)
-        
-        png = BytesIO()              
-        Image.open(BytesIO(data)).save(png, format='PNG')
-        png.seek(0)
-        bot.send_photo(update.message.chat_id, png)
+
+        image = Image.open(BytesIO(data))
+        self.send_pil_image(image, full)
 
     @aliases('hrwa')
     @command
-    @handle_herberrors
-    def highreswolfram(self, bot, update, args):
-        # TODO implement this properly to avoid writing the same code twice
-        query = quote(''.join(args), safe='')
-        url = f'https://api.wolframalpha.com/v1/simple?i={query}&appid=36GXXR-K5UA8L8XTY'
-        _, data = _t_load_content(url)
-        png = BytesIO()              
-        Image.open(BytesIO(data)).save(png, format='PNG')
-        png.seek(0)
-        bot.sendDocument(update.message.chat_id, document=png)
-
+    def highreswolfram(self, args):
+        self.wolfram(args, full=True)
 
     @command
-    @bot_proxy
-    def carpet(self, bot, update, args):
+    def carpet(self, args):
         scale, depth, width, height = map(int, args[:4])
         matrix = args[4:]
         if max(width, height)**depth > 5000:
@@ -78,10 +66,9 @@ class PhilipBert:
             raise Herberror("Angaben nicht valide")
 
         itmatrix = iter(matrix)
-        base = tuple(tuple(next(itmatrix) for x in range(width)) for y in range(height)) 
-        self.carpet_recursive(base, depth).save('carpet.png')
-        bot.send_photo(update.message.chat_id, open('carpet.png', 'rb'))
+        base = tuple(tuple(next(itmatrix) for x in range(width)) for y in range(height))
 
+        self.send_pil_image(self.carpet_recursive(base, depth))
 
     @lru_cache(256)
     def carpet_recursive(self, matrix, depth, entry=COPY):
@@ -108,30 +95,31 @@ class PhilipBert:
                 big_image.paste(img, (x * width, y * height))
 
         for s in entry:
-           method = do_things_to_img.get(s)
-           if method is not None:
-               big_image = big_image.transpose(method)
+            method = do_things_to_img.get(s)
+            if method is not None:
+                big_image = big_image.transpose(method)
 
         if INVERT in entry:
             ImageOps.invert(big_image)
 
         return big_image
 
-    
     @command
-    def math(self, bot, update, args):
+    def math(self, args):
         # is the operand valid?
         arg = args.pop(0)
         if arg == '+': res = 0
         elif arg == '*': res = 1
         else: 
-            raise Herberror(update.message.chat_id, text="kein valider Operator")
+            raise Herberror('kein valider Operator')
         # are all numbers really numbers?
         try:
             for x in range(len(args)): 
                 y = float(args[x])
                 if arg == '+': res += y
                 elif arg == '*': res *= y
+
         except ValueError:
-            raise Herberror(update.message.chat_id, text="keine validen Zahlen")
-        bot.send_message(update.message.chat_id, text=str(res))   
+            raise Herberror('keine validen Zahlen')
+
+        self.send_message(res)

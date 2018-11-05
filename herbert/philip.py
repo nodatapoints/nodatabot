@@ -100,7 +100,7 @@ class PhilipBert(BaseBert):
                 big_image = big_image.transpose(method)
 
         if INVERT in entry:
-            ImageOps.invert(big_image)
+            big_image = ImageOps.invert(big_image)
 
         return big_image
 

@@ -107,7 +107,7 @@ class PhilipBert(ImageBaseBert):
     @command
     def math(self, args):
         args = "".join(args)
-        allowed_chars = set('1234567890.+*-/xyz=()')
+        allowed_chars = set('1234567890.+*-/%=()')
         if set(args).issubset(allowed_chars):
             try:
                 self.send_message(eval(args), {}, {})

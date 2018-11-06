@@ -68,10 +68,10 @@ class PhilipBert(ImageBaseBert):
         itmatrix = iter(matrix)
         base = tuple(tuple(next(itmatrix) for x in range(width)) for y in range(height))
 
-        self.send_pil_image(self.carpet_recursive(base, depth))
+        self.send_pil_image(self.carpet_recursive(base, depth, scale))
 
     @lru_cache(256)
-    def carpet_recursive(self, matrix, depth, entry=COPY):
+    def carpet_recursive(self, matrix, depth, scale, entry=COPY):
         """
         Returns an Image object containing the corresponding carpet image.
 
@@ -80,10 +80,10 @@ class PhilipBert(ImageBaseBert):
 
         """     
         if depth == 0:
-            return Image.new('RGB', (1, 1), atom_colors(entry))
+            return Image.new('RGB', (scale, scale), atom_colors(entry))
 
-        width = len(matrix[0])**(depth - 1)
-        height = len(matrix)**(depth - 1)
+        width = len(matrix[0])**(depth - 1)*scale
+        height = len(matrix)**(depth - 1)*scale
 
         big_image = Image.new('RGB', (width * len(matrix[0]), height * len(matrix)), atom_colors(entry))
         if entry in (BLACK, WHITE):
@@ -91,7 +91,7 @@ class PhilipBert(ImageBaseBert):
 
         for y, row in enumerate(matrix):
             for x, new_entry in enumerate(row):
-                img = self.carpet_recursive(matrix, depth - 1, new_entry)
+                img = self.carpet_recursive(matrix, depth - 1, scale, new_entry)
                 big_image.paste(img, (x * width, y * height))
 
         for s in entry:
@@ -110,7 +110,7 @@ class PhilipBert(ImageBaseBert):
         allowed_chars = set('1234567890.+*-/%=()')
         if set(args).issubset(allowed_chars):
             try:
-                self.send_message(eval(args), {}, {})
+                self.send_message(eval(args, {}, {}))
             except Exception:
                 raise Herberror('not a working equation')
         else: raise Herberror('Dude, NO arbitrary code exec')

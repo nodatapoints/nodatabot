@@ -106,20 +106,11 @@ class PhilipBert(BaseBert):
 
     @command
     def math(self, args):
-        # is the operand valid?
-        arg = args.pop(0)
-        if arg == '+': res = 0
-        elif arg == '*': res = 1
-        else: 
-            raise Herberror('kein valider Operator')
-        # are all numbers really numbers?
-        try:
-            for x in range(len(args)): 
-                y = float(args[x])
-                if arg == '+': res += y
-                elif arg == '*': res *= y
-
-        except ValueError:
-            raise Herberror('keine validen Zahlen')
-
-        self.send_message(res)
+        args = "".join(args)
+        allowed_chars = set('1234567890.+*-/xyz=()')
+        if set(args).issubset(allowed_chars):
+            try:
+                self.send_message(eval(args), {}, {})
+            except Exception:
+                raise Herberror('not a working equation')
+        else: raise Herberror('Dude, NO arbitrary code exec')

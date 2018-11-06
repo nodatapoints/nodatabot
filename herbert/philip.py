@@ -6,7 +6,7 @@ from PIL import Image, ImageOps
 from io import BytesIO
 
 from decorators import command, aliases
-from basebert import BaseBert, Herberror
+from basebert import ImageBaseBert, Herberror
 from hercurles_network import _t_load_content
 
 
@@ -39,7 +39,7 @@ def atom_colors(entry):
     return white if WHITE in entry or INVERT in entry else black
 
 
-class PhilipBert(BaseBert):
+class PhilipBert(ImageBaseBert):
     @aliases('wa', 'wolframalpha')
     @command
     def wolfram(self, args, full=False):
@@ -48,7 +48,7 @@ class PhilipBert(BaseBert):
         _, data = _t_load_content(url)
 
         image = Image.open(BytesIO(data))
-        self.send_pil_image(image, full)
+        self.send_pil_image(image, full=full)
 
     @aliases('hrwa')
     @command

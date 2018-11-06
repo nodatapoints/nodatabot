@@ -112,14 +112,11 @@ def _t_make_callback(name, *args):
 
 def _tx_callback(handler):
     @wraps(handler)
-    def wrapper(self, bot, update, *args, **kwargs):
-        query = update.callback_query
-
+    def wrapper(self, query):
         stored_data = callback_data_store[query.data]
-
         name, *args = split(CALLBACK_ARGUMENT_SEPARATOR, stored_data)
 
-        handler(self, bot, update, name, args)
+        handler(self, query, args)
 
     return wrapper
 

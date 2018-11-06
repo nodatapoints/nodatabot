@@ -1,19 +1,18 @@
-#!/usr/bin/python3.7
-
 from ast import literal_eval as parse_tuple
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 
 from decorators import command, callback
-from basebert import BaseBert, Herberror
+from basebert import ImageBaseBert, Herberror
 from game import Game
 from render import draw_game
 
+names = '👍😂💯'
 
-class GameBert(BaseBert):
+class GameBert(ImageBaseBert):
     def __init__(self):
         super().__init__()
-        self.names = '👍😂💯'
+        self.names = names
         self.available_names = list(self.names)
         self.game = Game(self.names)
 
@@ -85,7 +84,7 @@ class GameBert(BaseBert):
                 InlineKeyboardMarkup, InlineKeyboardButton)
         )
 
-    @callback
+    @callback(pattern=f'[{names}]')
     def query_handler(self, query):
         if self.game_running:
             self.game_choice_handler(query)

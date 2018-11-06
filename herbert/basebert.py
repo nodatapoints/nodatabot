@@ -24,6 +24,16 @@ class BaseBert:
     def chat_id(self):
         return self.message.chat_id
 
+    def send_message(self, *args, parse_mode='MARKDOWN', **kwargs):
+        return self.bot.send_message(
+            self.chat_id,
+            *args,
+            parse_mode=parse_mode,
+            **kwargs
+        )
+
+
+class ImageBaseBert(BaseBert):
     @staticmethod
     def pil_image_to_fp(image, format):
         fp = BytesIO()
@@ -31,11 +41,8 @@ class BaseBert:
         fp.seek(0)
         return fp
 
-    def send_message(self, *args, **kwargs):
-        return self.bot.send_message(self.chat_id, *args, **kwargs)
-
     def send_pil_image(self, image, *, format='PNG', full=False, **kwargs):
-        fp = self.pil_image_to_fp(image, format)
+        fp = ImageBaseBert.pil_image_to_fp(image, format)
         if full:
             return self.bot.send_document(self.chat_id, document=fp)
 

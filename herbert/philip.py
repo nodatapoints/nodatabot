@@ -41,9 +41,9 @@ def atom_colors(entry):
 
 class PhilipBert(ImageBaseBert):
     @aliases('wa', 'wolframalpha')
-    @command
-    def wolfram(self, args, full=False):
-        query = quote(''.join(args), safe='')
+    @command(pass_string=True)
+    def wolfram(self, string, full=False):
+        query = quote(string, safe='')
         url = f'https://api.wolframalpha.com/v1/simple?i={query}&appid=36GXXR-K5UA8L8XTY'
         _, data = _t_load_content(url)
 
@@ -51,9 +51,9 @@ class PhilipBert(ImageBaseBert):
         self.send_pil_image(image, full=full)
 
     @aliases('hrwa')
-    @command
-    def highreswolfram(self, args):
-        self.wolfram(args, full=True)
+    @command(pass_string=True)
+    def highreswolfram(self, string):
+        self.wolfram(string, full=True)
 
     @command
     def carpet(self, args):
@@ -104,9 +104,8 @@ class PhilipBert(ImageBaseBert):
 
         return big_image
 
-    @command
-    def math(self, args):
-        args = "".join(args)
+    @command(pass_string=True)
+    def math(self, string):
         allowed_chars = set('1234567890.+*-/%=()')
         if set(args).issubset(allowed_chars):
             try:

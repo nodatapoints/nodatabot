@@ -11,6 +11,11 @@ from basebert import Herberror
 __all__ = ['command', 'aliases', 'callback']
 
 
+def pull_string(text):
+    _, _, string = text.partition(' ')
+    return string
+
+
 def handle_herberrors(method):
     """
     Catches `Herberror` and sends the argument of the exception as a message
@@ -32,7 +37,8 @@ def handle_herberrors(method):
     return wrapped
 
 
-def pull_bot_and_update(bound_method, pass_update=False, pass_query=True):
+def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
+                        pass_string=False):
     """
     Updates `bot` and `update` of the bot instance of the
     bound method before calling it.
@@ -48,17 +54,38 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True):
         if pass_update:
             args = (update, ) + args
 
+        if pass_string:
+            string = pull_string(bound_method.__self__.message.text)
+            args = (string, ) + args
+
         return bound_method(*args, **kwargs)
 
     return wrapped
 
 
-def command(arg=None, *, pass_args=True, pass_update=False, **kwargs):
+def command(arg=None, *, pass_args=None, pass_update=False,
+            pass_string=False, **kwargs):
     """
     Generates a command decorator (see `command_decorator`).
     `**kwargs` will be passed to the dispatcher.
     When applied directly via `@command` it acts like the decorator it returns.
+    `pass_args: bool`
+        Hands the decorated handler a tuple of the individual arguments of the
+        command message
+
+    `pass_update: bool`
+        Will pass the `telegram.Update` object of the message to the handler
+        as an argument.
+
+    `pass_string: bool`
+        Will pass the handler the original message string without the command and
+        the following whitespace.
+        Note that this will overwrite `pass_args` to `False`, unless explicitly
+        specified otherwise.
     """
+    if pass_args is None:
+        pass_args = False if pass_string else True
+
     def command_decorator(method):
         """Adds an callable `handler` attribute to the method, which will return
         appropriate handler for the dispatcher.
@@ -73,10 +100,12 @@ def command(arg=None, *, pass_args=True, pass_update=False, **kwargs):
         def handler(name, bound_method):
             callback = pull_bot_and_update(
                 bound_method,
-                pass_update,
-                pass_query=False
+                pass_update=pass_update,
+                pass_query=False,
+                pass_string=pass_string
             )
-            return CommandHandler(name, callback, pass_args=pass_args, **kwargs)
+            return CommandHandler(
+                name, callback, pass_args=pass_args, **kwargs)
 
         method._command_handler = handler
         method._commands = [method.__name__]
@@ -103,7 +132,8 @@ def aliases(*args):
 def callback(arg=None, *, pass_update=False, pass_query=True, **kwargs):
     def callback_decorator(method):
         def handler(bound_method):
-            callback = pull_bot_and_update(bound_method, pass_update, pass_query)
+            callback = pull_bot_and_update(
+                bound_method, pass_update, pass_query)
             return CallbackQueryHandler(callback, **kwargs)
 
         method._callback_query_handler = handler

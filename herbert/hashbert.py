@@ -22,29 +22,47 @@ __all__ = ["HashBert"]
 class HashBert(BaseBert):
     @command
     def md5(self, args):
+        """
+        Return the md5-hash of the given string
+        """
         self.send_message(hl.md5(_t_bytes(args)).hexdigest())
 
     @aliases('sha512', 'hash', 'sha')
     @command
     def sha512(self, args):
+        """
+        Return the sha512-hash of the given string
+        """
         self.send_message(hl.sha512(_t_bytes(args)).hexdigest())
 
     @command
     def b64enc(self, args):
+        """
+        Base64-encode the given string
+        """
         self.send_message(b64e(args))
 
     @command
     def b64dec(self, args):
+        """
+        Base64-decode the given string
+        """
         self.send_message(b64d(args))
 
     @command
     def hashit(self, args):
+        """
+        Run a string through all available hash-functions
+        """
         import telegram
         self.send_message(hash_all(_t_bytes(args)), parse_mode=telegram.ParseMode.MARKDOWN)
 
     @aliases('rotate', 'shift', 'ceasar')
     @command
     def rot(self, args):
+        """
+        Shift every letter of the string by <n> positions
+        """
         assert len(args) >= 2, "Not enough arguments: /rot <shift> <text>"
 
         shift, *rest = args

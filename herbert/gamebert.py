@@ -23,9 +23,8 @@ class GameBert(ImageBaseBert):
         self.shown_board_message = None
         self.naming_message = None
 
-    @aliases('show')
     @command(pass_args=False)
-    def show_game(self):
+    def show(self):
         if not self.game_running:
             raise Herberror('Not all players registered yet.')
 
@@ -71,7 +70,7 @@ class GameBert(ImageBaseBert):
         if len(self.users) == len(self.names):
             self.naming_message.delete()
             self.game_running = True
-            self.show_game()
+            self.show()
 
     def game_choice_handler(self, query):
         if query.data == 'invalid':

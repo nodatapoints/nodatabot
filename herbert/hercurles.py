@@ -75,27 +75,35 @@ def _t_search_for_first(bot, update, args):
 
 class Hercurles(BaseBert):
 
-    @aliases('gettext', 'get_text', 'gt')
+    @aliases('gt')
     @command
-    def get_text(self, args):
+    def gettext(self, args):
         """
-        These functions expose the functionality of the submodule
-        to the bot and are exported from this file
+        Retrieve the contents of the given url as text or a text file
         """
         _t_get_text(self.bot, self.update, args)
 
-    @aliases('getme', 'curl')
+    @aliases('g', 'getme', 'curl')
     @command
     def get(self, args):
+        """
+        Retrieve the contents of the given url
+        """
         _t_get(self.bot, self.update, args)
 
     @command
     def searchfor(self, args):
+        """
+        List the first few links the given string hits when searched for on DuckDuckGo
+        """
         _t_search_for(self.bot, self.update, args)
 
     @aliases('lookup')
     @command
     def searchforfirst(self, args):
+        """
+        Return the first link the given string hits when searched for on DuckDuckGo
+        """
         _t_search_for_first(self.bot, self.update, args)
 
     @callback(pattern='T.*')

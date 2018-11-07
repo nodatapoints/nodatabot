@@ -21,10 +21,15 @@ with open('token.txt', 'r') as fobj:
 
 updater = Updater(token)
 
+berts = []
+
+def get_berts():
+    return berts
 
 def register_bert(cls):
     """Adds a Bert to Herbert"""
     bot = cls()
+    berts.append(bot)
     for _, method in inspect.getmembers(bot, inspect.ismethod):
         if hasattr(method, '_command_handler'):
             for command in method._commands:

@@ -18,6 +18,7 @@ class HelpBert(BaseBert):
 
 
 def make_help_str():
+    global helpstr
     res = HELP_HEADER
     for bert in core.get_berts():
         res += make_bert_str(bert)
@@ -32,10 +33,11 @@ NEWLINE = "\n"
 DBLNEWLINE = "\n\n"
 SPACES = "\s+"
 
-def checkfor_(s):
-    assert not "_" in s, "UNTERSTRICHE SIND VERBOTEN!!!!!!"
 
-    
+def checkfor_(s):
+    assert "_" not in s, "UNTERSTRICHE SIND VERBOTEN!!!!!!"
+
+
 # this is bodgy, please fix (but without destroying it).
 def make_bert_str(bert):
     checkfor_(bert.__class__.__name__)
@@ -44,17 +46,17 @@ def make_bert_str(bert):
         if hasattr(method, '_command_handler'):
             name, *aliases = method._commands
             checkfor_(name + "".join(aliases))
-            res += f"/{name} `<args>` " # TODO somehow figure out args
-            res += f" {tuple(aliases)} " if aliases else "" 
+            res += f"/{name} `<args>` "  # TODO somehow figure out args
+            res += f" {tuple(aliases)} " if aliases else ""
             if method.__doc__:
                 checkfor_(method.__doc__)
                 res += f"- _{method.__doc__.split(DBLNEWLINE)[0].replace(SPACES, ' ').strip()}_\n"
             else:
                 res += "- (documentation is unavailable)\n"
-            
+
     res += "\n\n"
     res = res.replace(",)", ")").replace("'", "")
-    return res 
+    return res
 
 
 HELP_HEADER = """
@@ -72,4 +74,3 @@ a full description right now.
 
 
 """
-

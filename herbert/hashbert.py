@@ -5,11 +5,9 @@ Herbert Submodule
 Provides an interface to several
 Hashing algorithms
 """
-
-from core import *
 from decorators import *
 
-from hercurles_utils import *
+from common.hercurles_utils import *
 from basebert import BaseBert
 
 import hashlib as hl
@@ -25,7 +23,7 @@ class HashBert(BaseBert):
         """
         Return the md5-hash of the given string
         """
-        self.send_message(hl.md5(_t_bytes(args)).hexdigest())
+        self.send_message(hl.md5(t_arr_to_bytes(args)).hexdigest())
 
     @aliases('sha512', 'hash', 'sha')
     @command
@@ -33,7 +31,7 @@ class HashBert(BaseBert):
         """
         Return the sha512-hash of the given string
         """
-        self.send_message(hl.sha512(_t_bytes(args)).hexdigest())
+        self.send_message(hl.sha512(t_arr_to_bytes(args)).hexdigest())
 
     @command
     def b64enc(self, args):
@@ -55,7 +53,7 @@ class HashBert(BaseBert):
         Run a string through all available hash-functions
         """
         import telegram
-        self.send_message(hash_all(_t_bytes(args)), parse_mode=telegram.ParseMode.MARKDOWN)
+        self.send_message(hash_all(t_arr_to_bytes(args)), parse_mode=telegram.ParseMode.MARKDOWN)
 
     @aliases('rotate', 'shift', 'ceasar')
     @command
@@ -63,7 +61,7 @@ class HashBert(BaseBert):
         """
         Shift every letter of the string by <n> positions
         """
-        assert len(args) >= 2, "Not enough arguments: /rot <shift> <text>"
+        tx_assert(len(args) >= 2, "Not enough arguments: /rot <shift> <text>")
 
         shift, *rest = args
 
@@ -102,8 +100,8 @@ def hash_all(arg):
 
 
 def b64e(args):
-    return b64.b64encode(_t_bytes(args)).decode("utf-8")
+    return b64.b64encode(t_arr_to_bytes(args)).decode("utf-8")
 
 
 def b64d(args):
-    return b64.b64decode(_t_bytes(args)).decode("utf-8")
+    return b64.b64decode(t_arr_to_bytes(args)).decode("utf-8")

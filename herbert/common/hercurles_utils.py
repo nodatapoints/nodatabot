@@ -1,8 +1,9 @@
-import hercurles_network
+from common import hercurles_network
+from basebert import Herberror
 import xml.etree.ElementTree
 import re
 
-__all__ = ['load_xml', 'search_for', '_t_bytes']
+__all__ = ['tx_assert', 'load_xml', 'search_for', 't_arr_to_bytes']
 
 
 def load_xml(url):
@@ -20,6 +21,10 @@ def search_for(searchterm):
     return [elem.attrib['href'] for elem in elems]
 
 
-def _t_bytes(arr):
+def t_arr_to_bytes(arr):
     return bytes(" ".join(arr), encoding="utf-8")
 
+
+def tx_assert(condition, msg):
+    if not condition:
+        raise Herberror(msg)

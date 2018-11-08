@@ -13,13 +13,13 @@
 from basebert import *
 from decorators import *
 
-from hercurles_network import *
-from hercurles_utils import *
-from hercurles_chat import *
+from common.hercurles_network import *
+from common.hercurles_utils import *
+from common.hercurles_chat import *
 
 
 # EXPOSE MEMBERS
-__all__ = ["get_text", "get", "callback", "searchfor", "searchforfirst"]
+__all__ = ['Hercurles']
 
 
 ARG_COUNT_ERR = "This takes exactly 1 argument. Please try again."

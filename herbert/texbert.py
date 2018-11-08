@@ -1,6 +1,6 @@
 from subprocess import run, CalledProcessError
 
-from decorators import command
+from decorators import command, aliases
 from basebert import BaseBert, Herberror
 
 template = """
@@ -13,20 +13,22 @@ template = """
 
 \\usepackage[utf8]{{inputenc}}
 \\begin{{document}}
-{} % This is where the Code goes
+{} % This is where the code goes
 \\end{{document}}
 """
 
 
 class TexBert(BaseBert):
     @command(pass_string=True)
-    def tex(self, string):
-        code = template.format(string)
+    def texraw(self, string, invert=False):
+        args = ['./texit.zsh']
+        if invert:
+            args.append('-invert')
 
         try:
             result = run(
-                ('./texit.zsh'),
-                input=code,
+                args,
+                input=string,
                 text=True,
                 encoding='utf8',
                 capture_output=True,
@@ -37,3 +39,20 @@ class TexBert(BaseBert):
 
         except CalledProcessError:
             raise Herberror('Lern mal LaTeX 🙄')
+
+        except FileNotFoundError:
+            raise Herberror('`textit.zsh` ist immernoch kaputt 😢')
+
+    @command(pass_string=True)
+    def tex(self, string, invert=False):
+        self.texraw(template.format(string), invert)
+
+    @aliases('dtex')
+    @command(pass_string=True)
+    def displaytex(self, string):
+        self.tex(f'$\\displaystyle {string}$')
+
+    @aliases('itex')
+    @command(pass_string=True)
+    def inverttex(self, string):
+        self.tex(string, invert=True)

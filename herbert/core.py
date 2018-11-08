@@ -23,8 +23,10 @@ updater = Updater(token)
 
 berts = []
 
+
 def get_berts():
     return berts
+
 
 def register_bert(cls):
     """Adds a Bert to Herbert"""

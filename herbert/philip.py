@@ -7,7 +7,7 @@ from io import BytesIO
 
 from decorators import command, aliases
 from basebert import ImageBaseBert, Herberror
-from hercurles_network import _t_load_content
+from common.hercurles_network import _t_load_content
 
 
 black = 0, 0, 0

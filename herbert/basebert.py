@@ -1,6 +1,6 @@
 from io import BytesIO
 
-__all__ = ['Herberror', 'BaseBert']
+__all__ = ['Herberror', 'BaseBert', 'ImageBaseBert']
 
 
 class Herberror(Exception):

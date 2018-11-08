@@ -8,7 +8,7 @@ from telegram.ext import CommandHandler, CallbackQueryHandler
 
 from basebert import Herberror
 
-__all__ = ['command', 'aliases', 'callback']
+__all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback']
 
 
 def pull_string(text):

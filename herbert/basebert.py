@@ -32,6 +32,9 @@ class BaseBert:
             **kwargs
         )
 
+    def send_photo_from_file(self, path, **kwargs):
+        return self.bot.send_photo(self.chat_id, open(path, 'rb'), **kwargs)
+
 
 class ImageBaseBert(BaseBert):
     @staticmethod

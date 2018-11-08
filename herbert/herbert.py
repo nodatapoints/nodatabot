@@ -2,6 +2,7 @@
 
 from core import *
 from gamebert import GameBert
+from texbert import TexBert
 from ping import PingBert
 from hashbert import HashBert
 from hercurles import Hercurles
@@ -14,6 +15,7 @@ register_bert(Hercurles)
 register_bert(HashBert)
 register_bert(PhilipBert)
 register_bert(HelpBert)
+register_bert(TexBert)
 
 if __name__ == '__main__':
     idle()

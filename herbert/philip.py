@@ -107,9 +107,9 @@ class PhilipBert(ImageBaseBert):
     @command(pass_string=True)
     def math(self, string):
         allowed_chars = set('1234567890.+*-/%=()')
-        if set(args).issubset(allowed_chars):
+        if set(string).issubset(allowed_chars):
             try:
-                self.send_message(eval(args, {}, {}))
+                self.send_message(eval(string, {}, {}))
             except Exception:
                 raise Herberror('not a working equation')
         else: raise Herberror('Dude, NO arbitrary code exec')

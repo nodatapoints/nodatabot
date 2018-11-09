@@ -13,9 +13,9 @@
 from basebert import *
 from decorators import *
 
-from common.hercurles_network import *
+from common.network import *
 from common.hercurles_utils import *
-from common.hercurles_chat import *
+from common.chat import *
 
 
 # EXPOSE MEMBERS
@@ -37,7 +37,7 @@ def _t_get_text(bot, update, args):
 
     url = args[0]
 
-    _t_reply_large_utf8(bot, update, _t_load_str(url), name=_t_gen_filename(url))
+    _t_reply_large_utf8(bot, update, t_load_str(url), name=_t_gen_filename(url))
 
 
 def _t_get(bot, update, args):
@@ -45,30 +45,28 @@ def _t_get(bot, update, args):
 
     url = args[0]
 
-    data_type, data = _t_load_content(url)
+    data_type, data = t_load_content(url)
 
-    _t_reply_filed_binary(bot, update, data, _t_gen_filename(url, data_type),
-                          reply_markup=_t_make_keyboard(
+    t_reply_filed_binary(bot, update, data, _t_gen_filename(url, data_type),
+                         reply_markup=_t_make_keyboard(
                               {"Show as Photo": _t_make_callback("0", url)}
                           ) if _t_is_image(data_type) else None
-                          )
+                         )
 
 
-def _t_search_for(bot, update, args):
-    assert len(args) == 1, ARG_COUNT_ERR
+def _t_search_for(bot, update, query):
 
-    query_string = args[0]
-
-    results = "\n".join(search_for(query_string))
+    results = "\n".join(search_for(query))
 
     _t_reply_large_utf8(bot, update, results)
 
 
-def _t_search_for_first(bot, update, args):
+def _t_search_for_first(bot, update, query):
 
-    query_string = " ".join(args)
-
-    result = search_for(query_string)[0]
+    try:
+        result = search_for(query)[0]
+    except IndexError:
+        result = "No Link found."
 
     _t_reply_large_utf8(bot, update, result)
 
@@ -91,20 +89,20 @@ class Hercurles(BaseBert):
         """
         _t_get(self.bot, self.update, args)
 
-    @command
-    def searchfor(self, args):
+    @command(pass_string=True)
+    def searchfor(self, string):
         """
         List the first few links the given string hits when searched for on DuckDuckGo
         """
-        _t_search_for(self.bot, self.update, args)
+        _t_search_for(self.bot, self.update, string)
 
     @aliases('lookup')
-    @command
-    def searchforfirst(self, args):
+    @command(pass_string=True)
+    def searchforfirst(self, string):
         """
         Return the first link the given string hits when searched for on DuckDuckGo
         """
-        _t_search_for_first(self.bot, self.update, args)
+        _t_search_for_first(self.bot, self.update, string)
 
     @callback(pattern='T.*')
     @_tx_callback
@@ -113,5 +111,5 @@ class Hercurles(BaseBert):
         self.bot.edit_message_media(
             chat_id=query.message.chat_id,
             message_id=query.message.message_id,
-            media=_t_get_photo(args[0]),
+            media=t_get_photo(args[0]),
         )

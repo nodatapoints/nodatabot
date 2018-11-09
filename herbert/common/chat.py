@@ -30,10 +30,10 @@ def _t_reply_filed_utf8(bot, update, msg, name="default.txt", **kwargs):
     To avoid spamming the user, a lot of data can be
     packed in a file and then sent at once.
     """
-    _t_reply_filed_binary(bot, update, bytes(msg, encoding="utf-8"), name=name, **kwargs)
+    t_reply_filed_binary(bot, update, bytes(msg, encoding="utf-8"), name=name, **kwargs)
 
 
-def _t_reply_filed_binary(bot, update, data, name="default", **kwargs):
+def t_reply_filed_binary(bot, update, data, name="default", **kwargs):
     """
     To avoid spamming the user, a lot of data can be
     packed in a file and then sent at once.
@@ -88,7 +88,7 @@ def _t_make_keyboard(button_dict):
     )
 
 
-def _t_get_photo(param):
+def t_get_photo(param):
     """
     wrap the given param in a telegram bot object.
     can be a file or a url or a bytestream or something
@@ -121,6 +121,6 @@ def _tx_callback(handler):
     return wrapper
 
 
-__all__ = ['_t_reply', '_t_reply_filed_utf8', '_t_reply_filed_binary', '_t_reply_chunky',
-           '_t_reply_large_utf8', '_t_make_keyboard', '_t_make_callback', '_t_get_photo',
+__all__ = ['_t_reply', '_t_reply_filed_utf8', 't_reply_filed_binary', '_t_reply_chunky',
+           '_t_reply_large_utf8', '_t_make_keyboard', '_t_make_callback', 't_get_photo',
            '_tx_callback']

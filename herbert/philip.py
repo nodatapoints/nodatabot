@@ -7,7 +7,7 @@ from io import BytesIO
 
 from decorators import command, aliases
 from basebert import ImageBaseBert, Herberror
-from common.hercurles_network import _t_load_content
+from common.network import t_load_content
 
 
 black = 0, 0, 0
@@ -45,7 +45,7 @@ class PhilipBert(ImageBaseBert):
     def wolfram(self, string, full=False):
         query = quote(string, safe='')
         url = f'https://api.wolframalpha.com/v1/simple?i={query}&appid=36GXXR-K5UA8L8XTY'
-        _, data = _t_load_content(url)
+        _, data = t_load_content(url)
 
         image = Image.open(BytesIO(data))
         self.send_pil_image(image, full=full)

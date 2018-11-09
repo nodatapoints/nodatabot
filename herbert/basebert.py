@@ -35,6 +35,17 @@ class BaseBert:
     def send_photo_from_file(self, path, **kwargs):
         return self.bot.send_photo(self.chat_id, open(path, 'rb'), **kwargs)
 
+    def send_file(self, fname, data, **kwargs):
+        from common import chat
+        chat.t_reply_filed_binary(self.bot, self.update, data, name=fname, **kwargs)
+
+    def send_photo(self, data, **kwargs):
+        self.bot.send_photo(self.chat_id, data, **kwargs)
+
+    def wrap_in_file(self, data, fname):
+        f = BytesIO(data)
+        f.name = fname
+        return f
 
 class ImageBaseBert(BaseBert):
     @staticmethod

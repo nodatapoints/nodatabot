@@ -20,7 +20,7 @@ urllib3.disable_warnings()
 http = urllib3.PoolManager(10, USER_AGENT, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
 
-def _t_load(url):
+def t_load(url):
     """
     Interacts with urllib3 to send a GET request to a given URL.
 
@@ -48,8 +48,8 @@ def _t_load(url):
 # @throws a Herberror containing a description, if the
 #         lookup failed
 #
-def _t_load_str(url):
-    res = _t_load(url)
+def t_load_str(url):
+    res = t_load(url)
 
     assert res.status == HTTP_STAT_OK, \
         f"{RESPONSE_STAT_ERR}: {res.status}\nResponse Header: `{res.headers}`"
@@ -63,7 +63,7 @@ def _t_load_str(url):
         raise Herberror(NOT_TEXT_ERR)
 
 
-def _t_load_content(url):
+def t_load_content(url):
     """
     loads a webpage from url, figures out the content type
     and returns it together with the pure binary data
@@ -72,7 +72,7 @@ def _t_load_content(url):
     @param url the url to look up
     @returns a tuple of a content_type string and a binary data string
     """
-    res = _t_load(url)
+    res = t_load(url)
 
     assert res.status == HTTP_STAT_OK, \
         f"{RESPONSE_STAT_ERR}: {res.status}"
@@ -134,4 +134,4 @@ def _t_extract_charset(response_header):
         return None
 
 
-__all__ = ['_t_load', '_t_load_str', '_t_load_content', '_t_gen_filename', '_t_is_image']
+__all__ = ['t_load', 't_load_str', 't_load_content', '_t_gen_filename', '_t_is_image']

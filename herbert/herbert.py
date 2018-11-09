@@ -15,6 +15,8 @@ from hercurles import Hercurles
 from philip import PhilipBert
 from helpbert import HelpBert
 from interprert import InterpRert
+from xkcdert import XKCDert
+
 
 register_bert(GameBert)
 register_bert(PingBert)
@@ -24,6 +26,7 @@ register_bert(PhilipBert)
 register_bert(HelpBert)
 register_bert(TexBert)
 register_bert(InterpRert)
+register_bert(XKCDert)
 
 if __name__ == '__main__':
     idle()

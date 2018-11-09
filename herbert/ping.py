@@ -19,4 +19,7 @@ class PingBert(BaseBert):
 
     @command(pass_args=False, register_help=False)
     def pong(self):
+        """
+        Easter Egg
+        """
         self.send_message('So you think you\'re clever, huh?')

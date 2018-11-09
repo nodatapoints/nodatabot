@@ -1,4 +1,4 @@
-from decorators import command
+from decorators import command, aliases
 from basebert import BaseBert
 import inspect
 import core
@@ -9,6 +9,7 @@ helpstr = None
 
 
 class HelpBert(BaseBert):
+    @aliases('h')
     @command(pass_args=False)
     def help(self):
         """

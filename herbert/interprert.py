@@ -7,6 +7,9 @@ import time
 from ctypes import create_string_buffer as buf, cdll
 
 
+__all__ = ['InterpRert', 'h_bf']
+
+
 # TODO make other architectures available
 h_bf = cdll.LoadLibrary('ext/brainfuck/libbf_x86_64-linux-gnu.so')
 

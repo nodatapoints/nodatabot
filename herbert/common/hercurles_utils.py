@@ -8,7 +8,8 @@ __all__ = ['tx_assert', 'load_xml', 'search_for', 't_arr_to_bytes']
 
 def load_xml(url):
     res = hercurles_network._t_load_str(url)
-    res = re.sub("xmlns=\".*?\"", "", res)
+    if re.match("xmlns", res):
+      res = re.sub("xmlns=\".*?\"", "", res)
     return xml.etree.ElementTree.fromstring(res)
 
 

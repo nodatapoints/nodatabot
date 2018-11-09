@@ -6,7 +6,7 @@ from io import BytesIO
 
 from decorators import command, aliases
 from basebert import ImageBaseBert, Herberror
-from common.hercurles_network import _t_load_content
+from common.network import t_load_content
 
 '''
 Meine Datei zum berechenen/bearbeiten von queries

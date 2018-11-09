@@ -1,5 +1,5 @@
 #!/usr/bin/python3.7
-# Beep boop ich bin eingentlich bloß die liste aller berts die was am doen sind
+# Beep boop ich bin eigentlich bloß die liste aller berts die was am doen sind
 
 # change pwd to consistent location
 import os

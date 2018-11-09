@@ -64,7 +64,7 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
 
 
 def command(arg=None, *, pass_args=None, pass_update=False,
-            pass_string=False, **kwargs):
+            pass_string=False, register_help=True, **kwargs):
     """
     Generates a command decorator (see `command_decorator`).
     `**kwargs` will be passed to the dispatcher.
@@ -108,6 +108,7 @@ def command(arg=None, *, pass_args=None, pass_update=False,
                 name, callback, pass_args=pass_args, **kwargs)
 
         method._command_handler = handler
+        method._register_help = register_help
         method._commands = [method.__name__]
         return handle_herberrors(method)
 

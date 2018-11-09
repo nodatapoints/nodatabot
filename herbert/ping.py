@@ -16,3 +16,7 @@ class PingBert(BaseBert):
         Whatever you say.
         """
         self.send_message(string)
+
+    @command(pass_args=False, register_help=False)
+    def pong(self):
+        self.send_message('So you think you\'re clever, huh?')

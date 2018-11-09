@@ -56,3 +56,8 @@ class TexBert(BaseBert):
     @command(pass_string=True)
     def inverttex(self, string):
         self.tex(string, invert=True)
+
+    @aliases('idtex')
+    @command(pass_string=True)
+    def invertdisplaytex(self, string):
+        self.tex(f'$\\displaystyle {string}$', invert=True)

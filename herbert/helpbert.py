@@ -44,6 +44,9 @@ def make_bert_str(bert):
     res = f"*{bert.__class__.__name__}*:\n"
     for _, method in inspect.getmembers(bert, inspect.ismethod):
         if hasattr(method, '_command_handler'):
+            if not method._register_help:
+                continue
+
             name, *aliases = method._commands
             checkfor_(name + "".join(aliases))
             res += f"/{name} `<args>` "  # TODO somehow figure out args

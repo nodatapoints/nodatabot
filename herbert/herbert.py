@@ -1,5 +1,11 @@
 #!/usr/bin/python3.7
 
+# change pwd to consistent location
+import os
+import pathlib
+herbert_path = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
+os.chdir(herbert_path)
+
 from core import *
 from gamebert import GameBert
 from texbert import TexBert

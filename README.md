@@ -2,9 +2,9 @@
 This is the repository for a Telegram Bot which does miscellaneous stuff.  
 End of the Story.
   
-Well not really. His Name is herbert (Yes, lowercase! I also don't know why a proper name is writen in lowercase,
+Well not really. His Name is herbert (Yes, lowercase! I also don't know why a proper name is written in lowercase,
 but I guess you'll have to ask the original creator @nodatapoints about this, because I still got no answer after asking
-him a third time, so I'm not positive i'll ever get to konw why.)
+him a third time, so I'm not positive i'll ever get to know why.)
 
 And he was created because we, @nodatapoints, @AlcedoAttis and @CVTTSD2SI, all frequent botusers,
 were itching for something more personal, more customizable and herbert is our take on that.
@@ -38,8 +38,8 @@ with the publication and documentation of new and existing feaures. The user cur
 for this task and can be held accountable for nondisclosure and late updates.
 
 All work is protected under Copyright and -left; meaning that you can copy it from all sides
-(at least the horizontal ones, copyup is currently dicussed in our legal dvision under David Rauh
-(who will probably start working at 11pm for 1 hour and will still be leagues better than me tomorrow moning in the legal,
+(at least the horizontal ones, copyup is currently dicussed in our legal division under David Rauh
+(who will probably start working at 11pm for 1 hour and will still be leagues better than me tomorrow morning in the legal,
 economics and law discussion D: ))
 
 - edited and written by @AlcedoAttis

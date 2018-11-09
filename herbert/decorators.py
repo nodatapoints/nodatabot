@@ -19,7 +19,7 @@ def pull_string(text):
 def handle_herberrors(method):
     """
     Catches `Herberror` and sends the argument of the exception as a message
-    to the user. When an exception of any other type is catched, it will send
+    to the user. When an exception of any other type is caught, it will send
     a default error message to the user and raise it again.
     """
     @wraps(method)

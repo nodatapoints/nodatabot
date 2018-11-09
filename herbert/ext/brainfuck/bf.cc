@@ -13,7 +13,7 @@ struct stack : protected std::vector<T> {
 // instr -> c-style string with bf instructions
 // out -> stdout fake, c-style mutable char buf
 // max_it -> int, max commands to process
-extern "C" int execute(const char* instr, char* out, int max_it) {
+extern "C" int execute(const char* instr, char* out, const unsigned int out_size, int max_it) {
   const int BUF_SIZE = 512;
   unsigned char buf[BUF_SIZE] = {0};
   int ptr = BUF_SIZE/2;
@@ -53,10 +53,11 @@ extern "C" int execute(const char* instr, char* out, int max_it) {
           loop.pop_back();
         break;
       case '.':
-        out[out_ptr++] = buf[ptr]; 
+        if(out_ptr < out_size)
+          out[out_ptr++] = buf[ptr]; 
         break;
       case ',':
-        buf[ptr] = std::getchar();
+        // buf[ptr] = std::getchar(); # no way to easily provide input
         break;
       case '\0':
         return 3 * !loop.empty();

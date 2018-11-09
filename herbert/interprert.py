@@ -21,18 +21,27 @@ class InterpRert(BaseBert):
         self.send_message(run_bf(bytes(string, encoding="utf-8")) or "(No decodable output)", parse_mode=None)
 
 
-def run_bf(prog):
-    b = buf(512)
+def has_invalid_bytes(bytestr):
+    for bt in bytestr:
+        if bt <= 31 or bt >= 127:
+            return True
 
-    result = h_bf.execute(prog, b, 1000000)
+    return False
+
+
+def run_bf(prog):
+    OUT_SIZE = 512
+
+    b = buf(OUT_SIZE)
+    result = h_bf.execute(prog, b, OUT_SIZE, 1000000)
 
     if result is 1:
         raise Herberror("Wow, that _timed out_. Good job...")
     elif result is 3:
         raise Herberror("Well, this is certainly not even valid in brainfuck.")
     else:
-        try:
-            return b.value.decode("utf-8")
-        except UnicodeError:
+        if has_invalid_bytes(b.value):
             return str(b.value)
+        else:
+            return b.value.decode("utf-8")
 

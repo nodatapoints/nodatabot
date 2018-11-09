@@ -70,11 +70,12 @@ HELP_HEADER = """
 | __ / -_) '_| '_ \/ -_) '_|  _|
 |_||_\___|_| |_.__/\___|_|  \__|
 ```
-This is the one and only Bert.
-But i cant be bothered to write
-a full description right now.
 
-# TODO
-
-
+Herbert,
+the Herr of the Berts & the Heer of Berts.
+for everything you ever want to do,
+you just ask Herbert and multiple
+Subberts he gives you easy access to
+can and will offer help to you.
+You just have to ask them by their name:
 """

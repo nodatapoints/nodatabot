@@ -8,3 +8,5 @@ venv
 *.sublime-project
 *.sublime-workspace
 *.pyc
+*.so
+*.o

@@ -16,9 +16,13 @@ The game is playable by 1 to n players on a 3^mx3^m board (the implementation is
 because it fit our needs the best.), ending when someone wins the game with the lowest depth.
 
 herbert also features
-- a renderer for julia sets (currently not implemented)
-- echoing capabilities      (currently not implemented)
-- greetings when joining    (currently not implemented)
+- pinging
+- html/png/gif/... files of Website contents
+- WolframAlpha answers
+- hashing
+- calculations
+- fractal carpets
+- LaTeX
 
 Arguably the best currently implemented feature and an absolute insider tip for everyone using this bot is the amazing
 household math capability of herbert, impressing everyone from the layman to the current President (even if thats not that hard

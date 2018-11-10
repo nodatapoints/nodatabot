@@ -17,5 +17,10 @@ if [[ $1 != '-invert' ]]; then
 else
 	dvipng -D 900 main.dvi -bg 'rgb 0 0 0' -fg 'rgb 1 1 1' &>/dev/null
 fi
+
 convert	main*.png -bordercolor ${BORDERCOLOR:-black} -border x20% -resize x500 main.png
-echo $working_dir/main.png
+
+cp "$working_dir/main.png" "$old_dir/ext/main.png"
+echo "$old_dir/ext/main.png"
+rm -r "$working_dir"
+

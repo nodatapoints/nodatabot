@@ -1,12 +1,11 @@
 from functools import lru_cache
-from urllib.parse import quote
 
 from PIL import Image, ImageOps
 from io import BytesIO
 
 from decorators import command, aliases
 from basebert import ImageBaseBert, Herberror
-from common.network import t_load_content
+from common.network import t_load_content, t_load_str, _t_url_save_string
 
 '''
 Meine Datei zum berechenen/bearbeiten von queries
@@ -14,6 +13,11 @@ Meine Datei zum berechenen/bearbeiten von queries
 '''
 
 class KalcBert(ImageBaseBert):
+    @aliases('wttr')
+    @command
+    def weather(self, args):
+        if len(args) == 0: args = ['Greifswald']
+        self.send_message('```'+t_load_str(f"wttr.in/{_t_url_save_string(args[0])}?T&q&0&n", fake_ua=False)+'```')
 
     @aliases('wa', 'wolframalpha')
     @command(pass_string=True)
@@ -21,9 +25,9 @@ class KalcBert(ImageBaseBert):
         """
         Show a WolframAlpha generated informationsheet based on the given string
         """
-        query = quote(string, safe='')
+        query = _t_url_save_string(string)
         url = f'https://api.wolframalpha.com/v1/simple?i={query}&appid=36GXXR-K5UA8L8XTY'
-        _, data = _t_load_content(url)
+        _, data = t_load_content(url)
 
         image = Image.open(BytesIO(data))
         self.send_pil_image(image, full=full)
@@ -44,7 +48,7 @@ class KalcBert(ImageBaseBert):
         """
         # higly susceptible to fails if WolframAlphas output xml changes
         # but no scrapy so usable in python 3.7
-        query = quote(string, safe='')
+        query = _t_url_save_string(string)
         url = f'http://api.wolframalpha.com/v2/query?appid=36GXXR-K5UA8L8XTY&input={query}&podstate=Step-by-step%20solution&format=image'
         _, xdatax = _t_load_content(url) # XML website
         xdatax = str(xdatax)
@@ -56,7 +60,7 @@ class KalcBert(ImageBaseBert):
         data, *_ = datax.replace("&amp;", "&").split("'")
         # check if it worked and a url is found
         if data[:4] == "http":
-            _, realdata = _t_load_content(data)
+            _, realdata = t_load_content(data)
 
             image = Image.open(BytesIO(realdata))
             self.send_pil_image(image, full=False)

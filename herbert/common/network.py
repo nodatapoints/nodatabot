@@ -2,6 +2,8 @@ import urllib3
 import certifi
 import re
 
+from urllib.parse import quote
+
 from basebert import Herberror
 
 # fake it 'til you make it
@@ -139,5 +141,8 @@ def _t_extract_charset(response_header):
     except IndexError:
         return None
 
+def _t_url_save_string(inn):
+    return quote(inn, safe='')
 
-__all__ = ['t_load', 't_load_str', 't_load_content', '_t_gen_filename', '_t_is_image']
+
+__all__ = ['t_load', 't_load_str', 't_load_content', '_t_gen_filename', '_t_is_image', '_t_url_save_string']

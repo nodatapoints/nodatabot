@@ -8,8 +8,8 @@ parser = etree.XMLParser(recover=True)
 __all__ = ['tx_assert', 'load_xml', 'search_for', 't_arr_to_bytes']
 
 
-def load_xml(url):
-    res = network.t_load_str(url)
+def load_xml(url, **kwargs):
+    res = network.t_load_str(url, **kwargs)
     res = re.sub('xmlns=".*?"', " ", res)
     try:
         return etree.fromstring(res, parser=parser)

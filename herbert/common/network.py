@@ -54,8 +54,8 @@ def t_load(url, fake_ua=True):
 # @throws a Herberror containing a description, if the
 #         lookup failed
 #
-def t_load_str(url):
-    res = t_load(url)
+def t_load_str(url, **kwargs):
+    res = t_load(url, **kwargs)
 
     assert res.status == HTTP_STAT_OK, \
         f"{RESPONSE_STAT_ERR}: {res.status}\nResponse Header: `{res.headers}`"
@@ -69,7 +69,7 @@ def t_load_str(url):
         raise Herberror(NOT_TEXT_ERR)
 
 
-def t_load_content(url):
+def t_load_content(url, **kwargs):
     """
     loads a webpage from url, figures out the content type
     and returns it together with the pure binary data
@@ -78,7 +78,7 @@ def t_load_content(url):
     @param url the url to look up
     @returns a tuple of a content_type string and a binary data string
     """
-    res = t_load(url)
+    res = t_load(url, **kwargs)
 
     assert res.status == HTTP_STAT_OK, \
         f"{RESPONSE_STAT_ERR}: {res.status}"

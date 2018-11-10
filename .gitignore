@@ -10,3 +10,7 @@ venv
 *.pyc
 *.so
 *.o
+*.whl
+*.aria2
+*.old
+*.err.txt

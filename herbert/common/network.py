@@ -6,6 +6,7 @@ from basebert import Herberror
 
 # fake it 'til you make it
 USER_AGENT = {'user-agent': 'Mozilla/5.0 (X11; Linux i686; rv:64.0) Gecko/20100101 Firefox/64.0'}
+USER_AGENT_CURL = {'user-agent': 'curl/7.58.0'}
 
 # CONSTANTS
 RESPONSE_STAT_ERR = "Invalid Response status"
@@ -19,8 +20,10 @@ REQUEST_TYPE_GET = "GET"
 urllib3.disable_warnings()
 http = urllib3.PoolManager(10, USER_AGENT, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
+httpplain = urllib3.PoolManager(10, USER_AGENT_CURL, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
-def t_load(url):
+
+def t_load(url, fake_ua=True):
     """
     Interacts with urllib3 to send a GET request to a given URL.
 
@@ -32,7 +35,10 @@ def t_load(url):
             lookup failed
     """
     try:
-        return http.request(REQUEST_TYPE_GET, url, retries=2)
+        if fake_ua:
+          return http.request(REQUEST_TYPE_GET, url, retries=2)
+        else:
+          return httpplain.request(REQUEST_TYPE_GET, url, retries=2)
 
     except urllib3.exceptions.HTTPError:
         raise Herberror(NO_RESPONSE_ERR)

@@ -42,10 +42,12 @@ class BaseBert:
     def send_photo(self, data, **kwargs):
         self.bot.send_photo(self.chat_id, data, **kwargs)
 
-    def wrap_in_file(self, data, fname):
+    @staticmethod
+    def wrap_in_file(data, fname):
         f = BytesIO(data)
         f.name = fname
         return f
+
 
 class ImageBaseBert(BaseBert):
     @staticmethod

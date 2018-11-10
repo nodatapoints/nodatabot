@@ -16,6 +16,9 @@ class KalcBert(ImageBaseBert):
     @aliases('wttr')
     @command
     def weather(self, args):
+        """
+        Take a look at the weather all over the world (asciistyle)
+        """
         if len(args) == 0: args = ['Greifswald']
         self.send_message('```'+t_load_str(f"wttr.in/{_t_url_save_string(args[0])}?T&q&0&n", fake_ua=False)+'```')
 
@@ -50,7 +53,7 @@ class KalcBert(ImageBaseBert):
         # but no scrapy so usable in python 3.7
         query = _t_url_save_string(string)
         url = f'http://api.wolframalpha.com/v2/query?appid=36GXXR-K5UA8L8XTY&input={query}&podstate=Step-by-step%20solution&format=image'
-        _, xdatax = _t_load_content(url) # XML website
+        _, xdatax = t_load_content(url) # XML website
         xdatax = str(xdatax)
         # check if it worked
         # find unique point in String relating to the giflink and go on from there to start of link [magic number 44] later
@@ -80,3 +83,9 @@ class KalcBert(ImageBaseBert):
             except Exception:
                 raise Herberror('not a working equation')
         else: raise Herberror('Dude, NO arbitrary code exec')
+
+    @command(pass_args=False, register_help=False)
+    def rng(self):
+        self.send_message("4") # chosen by fair dice roll
+                               # guaranteed to be random
+

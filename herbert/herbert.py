@@ -1,13 +1,18 @@
 #!/usr/bin/python3.7
 # Beep boop ich bin eigentlich bloß die liste aller berts die was am doen sind
 
-# change pwd to consistent location
-import os
 import pathlib
-herbert_path = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
-os.chdir(herbert_path)
+import sys
+from inspect import getmembers, isclass
+from os import path, chdir
+
+# change pwd to consistent location
+herbert_path = pathlib.Path(path.dirname(path.abspath(__file__)))
+chdir(herbert_path)
 
 from core import *
+from basebert import BaseBert
+
 from gamebert import GameBert
 from texbert import TexBert
 from ping import PingBert
@@ -15,21 +20,17 @@ from hashbert import HashBert
 from hercurles import Hercurles
 from kalcbert import KalcBert
 from diamaltbert import DiaMaltBert
-from helpbert import HelpBert
 from interprert import InterpRert
 from xkcdert import XKCDert
+from helpbert import HelpBert
 
 
-register_bert(GameBert)
-register_bert(PingBert)
-register_bert(Hercurles)
-register_bert(HashBert)
-register_bert(KalcBert)
-register_bert(DiaMaltBert)
-register_bert(HelpBert)
-register_bert(TexBert)
-register_bert(InterpRert)
-register_bert(XKCDert)
+# Autoregister the included Berts
+for _, c in getmembers(sys.modules[__name__], isclass):
+    if issubclass(c, BaseBert):
+        register_bert(c)
+
 
 if __name__ == '__main__':
     idle()
+

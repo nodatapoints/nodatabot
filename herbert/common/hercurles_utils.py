@@ -13,17 +13,20 @@ def load_xml(url):
     return xml.etree.ElementTree.fromstring(res)
 
 
-def search_for(searchterm):
+SPACES = "\\s+"
+PLUS = "+"
+
+
+def search_for(query):
     # TODO properly escape this query
-    SPACES = "\\s+"
-    PLUS = "+"
-    query = f"https://duckduckgo.com/html/?q={re.sub(SPACES, PLUS, searchterm)}"
-    print(query)
-    root = load_xml(query)
 
-    elems = root.findall(".//a[@class='result__snippet']")
+    url = f"https://duckduckgo.com/html/?q={re.sub(SPACES, PLUS, query)}"
+    print(url)
+    root = load_xml(url)
 
-    return [elem.attrib['href'] for elem in elems]
+    elements = root.findall(".//a[@class='result__snippet']")
+
+    return [elem.attrib['href'] for elem in elements]
 
 
 def t_arr_to_bytes(arr):

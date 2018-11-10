@@ -41,10 +41,22 @@ def atom_colors(entry):
     return white if WHITE in entry or INVERT in entry else black    
 
 class DiaMaltBert(ImageBaseBert):
+    @aliases('hrrule', 'hrr')
     @command
-    def rule(self, args):
+    def higresrule(self, args):
+        """
+        Sends the high resolution time diagram as a file
+        """
+        self.rule(args, full=True)
+
+    @command
+    def rule(self, args, full=False):
+        """
+        Draws a time diagram of a 1D cellular Automaton
+        """
         # /rule {r,0,1,2,3,...,255?} {width} {r,[a1,a2,a3,...,awidth}
         # possible TODO: allow larger rules
+        if args[1] == 'r': args[1] = random.randint(0,255)
         try:
             scale, num, width, time = map(int, args[:4])
             if args[4] == 'r':
@@ -55,7 +67,6 @@ class DiaMaltBert(ImageBaseBert):
                     raise Herberror('Not a valid setup')
             if num >= 2**(2**3):
                 raise Herberror("first number must be smaller than 256")
-            if num == 'r': num = randint(0,255)
         except Exception as e:
             if issubclass(e.__class__, Herberror):
                 raise e
@@ -91,7 +102,7 @@ class DiaMaltBert(ImageBaseBert):
                 for sx in range(scale):
                     for sy in range(scale):
                         pixels[bx*scale+sx,by*scale+sy] = color
-        self.send_pil_image(img)
+        self.send_pil_image(img, full=full)
 
     def do_rule(_, last, subrules): 
         current = []

@@ -24,7 +24,7 @@ class KalcBert(ImageBaseBert):
 
     @aliases('wa', 'wolframalpha')
     @command(pass_string=True)
-    def wolfram(self, string, full=False, steps=False):
+    def wolfram(self, string, full=False):
         """
         Show a WolframAlpha generated informationsheet based on the given string
         """
@@ -41,7 +41,7 @@ class KalcBert(ImageBaseBert):
         """
         Send a high resolution WolframAlpha generated informationsheet based on the given string as a file
         """
-        self.wolfram(string, full=True, steps=False)
+        self.wolfram(string, full=True)
 
     @aliases('stepbystep', 'sbs')
     @command(pass_string=True)

@@ -1,0 +1,13 @@
+`        Stuff to do:`
+`  tex1: `_dpi scaling for tex_
+`  tex2: `_[kamal] raw tex with /texraw_
+` ttoy1: `_add a turtle toy like (orteil.dashnet.org/lsystem)_
+` ttoy2: `_add parametric cuves to the turtle toy_
+`clock1: `_add a clock that reminds you at a specific time_
+`gnazi1: `_fix open parenthesis_
+`  gol1: `_add the game of life and rules_
+`tttoe1: `_Add some files that safe your gameprogress_
+` carp1: `_add colors to carpet_
+` carp2: `_send carpets as files if wanted_
+`gnazi2: `_improve asciimath by converting it to tex_
+` Wttr1: `_Wttr integration mit "/weather" für den letzten angefragten Ort, "/weather <Place>" und "/weather <Place> <Date>" wie: "/weather Berlin today"_

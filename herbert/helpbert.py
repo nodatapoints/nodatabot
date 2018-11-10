@@ -1,5 +1,5 @@
 from decorators import command, aliases
-from basebert import BaseBert
+from basebert import BaseBert, Herberror
 import inspect
 import core
 
@@ -17,6 +17,49 @@ class HelpBert(BaseBert):
         """
         self.send_message(helpstr or make_help_str())
 
+    @aliases('td')
+    @command
+    def todo(self, args):
+        """
+        Return a formatted list of all the open requests
+        """
+        file = open('todo.txt', 'r')
+        output = "" 
+        for element in file: # TODO better python way   
+            output += element
+        self.send_message(output)
+        file.close()
+
+    @aliases('+todo', 'td+')
+    @command
+    def addtodo(self, args):
+        """
+        Add an additional keyspecified element to the open requests 
+        """
+        file = open('todo.txt', 'a')
+        key = '{:>6.6}'.format(args[0])
+        door = ' '.join(args[1:]) # wohoo format strings
+        if '_' in key or '_' in door or '*' in key or '*' in door:
+            raise Herberror('Markup Characters cause Fuckups, please use alternatives')
+        file.write(f'`{key}: `_{door}_\n')
+        file.close();
+        self.send_message(f'Your request was added to the list.')
+
+    @aliases('-todo', 'td-')
+    @command
+    def removetodo(self, args):
+        """
+        Remove the keyspecified element from the open requests
+        """
+        file = open('todo.txt', 'r')
+        lines = file.readlines()
+        file.close()
+        file = open('todo.txt', 'w')
+        for element in lines:
+            if element[:10].find(args[0]+": `") == -1:
+                file.write(element)
+            else:
+                self.send_message(f'Thank you for finishing:\n"{element[:-1]}"')
 
 def make_help_str():
     global helpstr

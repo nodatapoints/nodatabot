@@ -42,7 +42,6 @@ Meine Datei zum malen von coolen Sachen
 
 
 class DiaMaltBert(ImageBaseBert):
-
 	@command
 	def carpet(self, args):
 		"""

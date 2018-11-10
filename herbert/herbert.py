@@ -27,7 +27,7 @@ from helpbert import HelpBert
 
 # Autoregister the included Berts
 for _, c in getmembers(sys.modules[__name__], isclass):
-    if issubclass(c, BaseBert):
+    if issubclass(c, BaseBert) and c is not BaseBert:
         register_bert(c)
 
 

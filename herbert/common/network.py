@@ -3,10 +3,14 @@ import certifi
 import re
 
 from urllib.parse import quote
-
 from basebert import Herberror
 
 # fake it 'til you make it
+from common.basic_utils import tx_assert
+
+__all__ = ['t_load', 't_load_str', 't_load_content', 't_gen_filename_from_url', 't_is_image_content_type',
+           'NetworkError']
+
 USER_AGENT = {'user-agent': 'Mozilla/5.0 (X11; Linux i686; rv:64.0) Gecko/20100101 Firefox/64.0'}
 USER_AGENT_CURL = {'user-agent': 'curl/7.58.0'}
 
@@ -22,7 +26,11 @@ REQUEST_TYPE_GET = "GET"
 urllib3.disable_warnings()
 http = urllib3.PoolManager(10, USER_AGENT, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
-httpplain = urllib3.PoolManager(10, USER_AGENT_CURL, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+http_plain = urllib3.PoolManager(10, USER_AGENT_CURL, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+
+
+class NetworkError(Herberror):
+    """ Signal that some connection or request went wrong """
 
 
 def t_load(url, fake_ua=True):
@@ -31,38 +39,41 @@ def t_load(url, fake_ua=True):
 
     @brief retrieve the contents of a given website
     @param url the url to look up
+    @param fake_ua if set to true (default), use a firefox user-agent string
     @returns a response obj containing the data, if the lookup
              was successful
-    @throws a Herberror containing a description, if the
+    @throws a NetworkError containing a description, if the
             lookup failed
     """
     try:
         if fake_ua:
-          return http.request(REQUEST_TYPE_GET, url, retries=2)
+            return http.request(REQUEST_TYPE_GET, url, retries=2)
         else:
-          return httpplain.request(REQUEST_TYPE_GET, url, retries=2)
+            return http_plain.request(REQUEST_TYPE_GET, url, retries=2)
 
     except urllib3.exceptions.HTTPError:
-        raise Herberror(NO_RESPONSE_ERR)
+        raise NetworkError(NO_RESPONSE_ERR)
 
 
-#
-# loads a webpage and tries to convert it to text
-#
-# @brief make a string from load()
-# @param url the url to look up
-# @returns a string containing the data, if the lookup
-#          was successful
-# @throws a Herberror containing a description, if the
-#         lookup failed
-#
 def t_load_str(url, **kwargs):
+    """"
+    loads a web page and tries to convert it to text
+
+    @brief make a string from load()
+    @param url the url to look up
+    @returns a string containing the data, if the lookup
+             was successful
+    @throws a NetworkError containing a description, if the
+            lookup failed
+
+    """
     res = t_load(url, **kwargs)
 
-    assert res.status == HTTP_STAT_OK, \
-        f"{RESPONSE_STAT_ERR}: {res.status}\nResponse Header: `{res.headers}`"
+    tx_assert(res.status == HTTP_STAT_OK,
+              f"{RESPONSE_STAT_ERR}: {res.status}\nResponse Header: `{res.headers}`",
+              err_class=NetworkError)
 
-    charset = _t_extract_charset(res.headers)
+    charset = t_response_extract_charset(res.headers)
 
     try:
         return res.data.decode(charset or 'utf-8')
@@ -73,7 +84,7 @@ def t_load_str(url, **kwargs):
 
 def t_load_content(url, **kwargs):
     """
-    loads a webpage from url, figures out the content type
+    loads a web page from url, figures out the content type
     and returns it together with the pure binary data
 
     @brief get data and data type of a web page
@@ -82,8 +93,7 @@ def t_load_content(url, **kwargs):
     """
     res = t_load(url, **kwargs)
 
-    assert res.status == HTTP_STAT_OK, \
-        f"{RESPONSE_STAT_ERR}: {res.status}"
+    tx_assert(res.status == HTTP_STAT_OK, f"{RESPONSE_STAT_ERR}: {res.status}", err_class=NetworkError)
 
     content_type = res.headers.get("Content-Type")
     content_type = re.split(";", content_type)[0]
@@ -91,7 +101,7 @@ def t_load_content(url, **kwargs):
     return content_type, res.data
 
 
-def _t_is_image(content_type):
+def t_is_image_content_type(content_type):
     """
     @brief Checks whether content_type is the content type of an image
     @param content_type a utf8 encoded string
@@ -106,9 +116,9 @@ _ending = {
 }
 
 
-def _t_gen_filename(url, content_type="text/plain"):
+def t_gen_filename_from_url(url, content_type="text/plain"):
     """
-    When replying with a file (@see _t_reply_filed),
+    When replying with a file (@see t_reply_filed),
     the file needs to get a name. in this context,
     the filename should reflect the original request
     url. This function encodes the url to allow it
@@ -116,13 +126,15 @@ def _t_gen_filename(url, content_type="text/plain"):
 
     @brief Converts a url to a filename
     @param url some url string
+    @param content_type the content_type string from
+           an http-header. used to determine filename suffixes.
     @returns an arbitrary string meant to reflect the
              url and represent a file.
     """
     return re.sub("[:/ \t\n]", "_", url) + "." + _ending.get(content_type, re.split("/", content_type)[1])
 
 
-def _t_extract_charset(response_header):
+def t_response_extract_charset(response_header):
     """
     figure out the response character encoding from an http-
     header, if any.
@@ -141,8 +153,6 @@ def _t_extract_charset(response_header):
     except IndexError:
         return None
 
-def _t_url_save_string(inn):
+
+def t_url_save_string(inn):
     return quote(inn, safe='')
-
-
-__all__ = ['t_load', 't_load_str', 't_load_content', '_t_gen_filename', '_t_is_image', '_t_url_save_string']

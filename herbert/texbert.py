@@ -36,7 +36,7 @@ class TexBert(BaseBert):
                 encoding='utf8',
                 capture_output=True,
                 check=True
-            )
+            )  # FIXME unexpected arguments
             image_path = result.stdout.strip()
             self.send_photo_from_file(image_path)
 

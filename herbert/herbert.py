@@ -23,6 +23,7 @@ from diamaltbert import DiaMaltBert
 from interprert import InterpRert
 from xkcdert import XKCDert
 from helpbert import HelpBert
+from asciimath import AsciiBert
 
 
 # Autoregister the included Berts

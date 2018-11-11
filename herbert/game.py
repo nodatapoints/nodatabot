@@ -59,7 +59,7 @@ class Level:
     @property
     def terminated(self):
         if self.atom:
-            return (self.winner is not None)
+            return self.winner is not None
 
         if self.winner is not None:
             return True
@@ -84,7 +84,7 @@ class Game:
 
             parent = level
 
-        return i, level
+        return i, level  # FIXME level might be referenced before assignment!
 
     def level_queue(self):
         yield from self.follow_path(self.choice_queue)

@@ -2,11 +2,9 @@ from functools import lru_cache
 import random
 
 from PIL import Image, ImageOps
-from io import BytesIO
 
 from decorators import command, aliases
 from basebert import ImageBaseBert, Herberror
-from common.network import t_load_content
 
 '''
 Meine Datei zum malen von coolen Sachen
@@ -37,8 +35,10 @@ do_things_to_img = {
     TRANSPOSE: Image.TRANSPOSE
 }
 
+
 def atom_colors(entry):
-    return white if WHITE in entry or INVERT in entry else black    
+    return white if WHITE in entry or INVERT in entry else black
+
 
 class DiaMaltBert(ImageBaseBert):
     #todo game of life
@@ -60,7 +60,6 @@ class DiaMaltBert(ImageBaseBert):
         # /rule {t(orus), b(lack), w(hite)} {scale} {r,0,1,2,3,...,255?} {width} {time} {r,[a1,a2,a3,...,awidth} 
         # possible TODO: allow larger rules
         edge = args.pop(0);
-
         if args[1] == 'r':
             args[1] = random.randint(0,255)
             self.send_message(args[1])
@@ -68,8 +67,9 @@ class DiaMaltBert(ImageBaseBert):
             scale, num, width, time = map(int, args[:4])
             if scale < 5: raise Herberror('too small')
             if args[4] == 'r':
-                setup = [random.randint(0,1) for _ in range(width)]
-            else: _, _, _, _, *setup = map(int, args) # map(int, args[3:]) funkt nicht
+                setup = [random.randint(0, 1) for _ in range(width)]
+            else:
+                _, _, _, _, *setup = map(int, args)  # map(int, args[3:]) funkt nicht
             for s in setup:
                 if s is not 0 and s is not 1:
                     raise Herberror('Not a valid setup')
@@ -91,13 +91,13 @@ class DiaMaltBert(ImageBaseBert):
             subrules += [tru]
         subrules = list(reversed(subrules))
 
-        tsteps = [None] * time # meh :/
+        tsteps = [None] * time  # meh :/
         tsteps[0] = setup
         for tstep in range(time-1):
             tsteps[tstep+1] = self.do_rule(tsteps[tstep], subrules, edge)
 
         img = Image.new('RGB', (width*scale, time*scale))
-        pixels = img.load() # create the pixel map
+        pixels = img.load()  # create the pixel map
 
         # Ja, aua, mach halt besser
         # hier geht nich so schön rekursiv
@@ -109,10 +109,11 @@ class DiaMaltBert(ImageBaseBert):
                     color = white
                 for sx in range(scale):
                     for sy in range(scale):
-                        pixels[bx*scale+sx,by*scale+sy] = color
+                        pixels[bx*scale+sx, by*scale+sy] = color
         self.send_pil_image(img, full=full)
 
-    def do_rule(_, last, subrules, edge): 
+    @staticmethod
+    def do_rule(last, subrules, edge):
         current = []
 
         for element in range(len(last)):
@@ -147,12 +148,11 @@ class DiaMaltBert(ImageBaseBert):
         if max(width, height)**depth > 5000:
             raise Herberror("zu dick, keinen Bock")
 
-
         if len(matrix) != width*height:
             raise Herberror("Angaben nicht valide")
 
         itmatrix = iter(matrix)
-        base = tuple(tuple(next(itmatrix) for x in range(width)) for y in range(height))
+        base = tuple(tuple(next(itmatrix) for _ in range(width)) for _ in range(height))
 
         self.send_pil_image(self.carpet_recursive(base, depth, scale))
 
@@ -163,7 +163,7 @@ class DiaMaltBert(ImageBaseBert):
 
         matrix: 2D-List of dimensions n*m containing the recursive structure
                 encoded in entries of either 0, 1, 2, or 3
-        """     
+        """
         if depth == 0:
             return Image.new('RGB', (scale, scale), atom_colors(entry))
 
@@ -179,6 +179,7 @@ class DiaMaltBert(ImageBaseBert):
                 img = self.carpet_recursive(matrix, depth - 1, scale, new_entry)
                 big_image.paste(img, (x * width, y * height))
 
+        method = None
         for s in entry:
             method = do_things_to_img.get(s)
         if method is not None:

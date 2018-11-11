@@ -18,14 +18,14 @@ class HelpBert(BaseBert):
         self.send_message(helpstr or make_help_str())
 
     @aliases('td')
-    @command
-    def todo(self, args):
+    @command(pass_args=False)
+    def todo(self):
         """
         Return a formatted list of all the open requests
         """
         file = open('todo.txt', 'r')
         output = "" 
-        for element in file: # TODO better python way   
+        for element in file:  # TODO better python way
             output += element
         self.send_message(output)
         file.close()
@@ -38,11 +38,11 @@ class HelpBert(BaseBert):
         """
         file = open('todo.txt', 'a')
         key = '{:>6.6}'.format(args[0])
-        door = ' '.join(args[1:]) # wohoo format strings
+        door = ' '.join(args[1:])  # wohoo format strings
         if '_' in key or '_' in door or '*' in key or '*' in door:
             raise Herberror('Markup Characters cause Fuckups, please use alternatives')
         file.write(f'`{key}: `_{door}_\n')
-        file.close();
+        file.close()
         self.send_message(f'Your request was added to the list.')
 
     @aliases('-todo', 'td-')
@@ -60,6 +60,7 @@ class HelpBert(BaseBert):
                 file.write(element)
             else:
                 self.send_message(f'Thank you for finishing:\n"{element[:-1]}"')
+
 
 def make_help_str():
     global helpstr
@@ -87,14 +88,14 @@ def make_bert_str(bert):
     checkfor_(bert.__class__.__name__)
     res = f"*{bert.__class__.__name__}*:\n"
     for _, method in inspect.getmembers(bert, inspect.ismethod):
-        if hasattr(method, '_command_handler'):
-            if not method._register_help:
+        if hasattr(method, 'command_handler'):
+            if not method.register_help:
                 continue
 
-            name, *aliases = method._commands
-            checkfor_(name + "".join(aliases))
+            name, *cmd_aliases = method.commands
+            checkfor_(name + "".join(cmd_aliases))
             res += f"/{name} `<args>` "  # TODO somehow figure out args
-            res += f" {tuple(aliases)} " if aliases else ""
+            res += f" {tuple(cmd_aliases)} " if cmd_aliases else ""
             if method.__doc__:
                 checkfor_(method.__doc__)
                 res += f"- _{method.__doc__.split(DBLNEWLINE)[0].replace(SPACES, ' ').strip()}_\n"

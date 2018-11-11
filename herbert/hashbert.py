@@ -5,9 +5,9 @@ Herbert Submodule
 Provides an interface to several
 Hashing algorithms
 """
+from common.basic_utils import t_arr_to_bytes, tx_assert
 from decorators import *
 
-from common.hercurles_utils import *
 from basebert import BaseBert
 
 import hashlib as hl
@@ -93,7 +93,7 @@ def hash_all(arg):
             h = hl.new(name)
             h.update(arg)
             res += f"{re.sub('_', '-', name)}: ```{h.hexdigest()}```\n\n"
-        except:
+        except TypeError:
             pass
 
     return res

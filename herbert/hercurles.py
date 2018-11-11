@@ -37,7 +37,7 @@ def _t_get_text(bot, update, args):
 
     url = args[0]
 
-    _t_reply_large_utf8(bot, update, t_load_str(url), name=_t_gen_filename(url))
+    _t_reply_large_utf8(bot, update, t_load_str(url), name=t_gen_filename_from_url(url))
 
 
 def _t_get(bot, update, args):
@@ -47,10 +47,10 @@ def _t_get(bot, update, args):
 
     data_type, data = t_load_content(url)
 
-    t_reply_filed_binary(bot, update, data, _t_gen_filename(url, data_type),
+    t_reply_filed_binary(bot, update, data, t_gen_filename_from_url(url, data_type),
                          reply_markup=_t_make_keyboard(
                               {"Show as Photo": _t_make_callback("0", url)}
-                          ) if _t_is_image(data_type) else None
+                          ) if t_is_image_content_type(data_type) else None
                          )
 
 

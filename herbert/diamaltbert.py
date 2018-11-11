@@ -1,9 +1,15 @@
 from functools import lru_cache
+import random
 
 from PIL import Image, ImageOps
 
-from decorators import command
+from decorators import command, aliases
 from basebert import ImageBaseBert, Herberror
+
+'''
+Meine Datei zum malen von coolen Sachen
+- Philip
+'''
 
 black = 0, 0, 0
 gray = 123, 123, 123
@@ -34,13 +40,88 @@ def atom_colors(entry):
     return white if WHITE in entry or INVERT in entry else black
 
 
-'''
-Meine Datei zum malen von coolen Sachen
-- Philip
-'''
-
-
 class DiaMaltBert(ImageBaseBert):
+    @aliases('hrrule', 'hrr')
+    @command
+    def higresrule(self, args):
+        """
+        Sends the high resolution time diagram as a file
+        """
+        self.rule(args, full=True)
+
+    @command
+    def rule(self, args, full=False):
+        """
+        Draws a time diagram of a 1D cellular Automaton
+        """
+        # /rule {r,0,1,2,3,...,255?} {width} {r,[a1,a2,a3,...,awidth}
+        # possible TODO: allow larger rules
+        if args[1] == 'r':
+            args[1] = random.randint(0, 255)
+        try:
+            scale, num, width, time = map(int, args[:4])
+            if args[4] == 'r':
+                setup = [random.randint(0, 1) for _ in range(width)]
+            else:
+                _, _, _, _, *setup = map(int, args)  # map(int, args[3:]) funkt nicht
+            for s in setup:
+                if s is not 0 and s is not 1:
+                    raise Herberror('Not a valid setup')
+            if num >= 2**(2**3):
+                raise Herberror("first number must be smaller than 256")
+        except Exception as e:
+            if issubclass(e.__class__, Herberror):
+                raise e
+            raise Herberror("Not a valid input\ngehdsch vergrabn")
+
+        # maybe make this a bit nicer
+        # its only the binary rep of num in a list
+        subrules = []
+        i = 2**(2**3)
+        while i > 1:
+            i = int(i/2)
+            tru = int(num/i)
+            num -= tru*i
+            subrules += [tru]
+        subrules = list(reversed(subrules))
+
+        tsteps = [None] * time  # meh :/
+        tsteps[0] = setup
+        for tstep in range(time-1):
+            tsteps[tstep+1] = self.do_rule(tsteps[tstep], subrules)
+
+        img = Image.new('RGB', (width*scale, time*scale))
+        pixels = img.load()  # create the pixel map
+
+        # Ja, aua, mach halt besser
+        # hier geht nich so schön rekursiv
+        # ggf iwas mit x in tsteps oder so
+        for bx in range(width):
+            for by in range(time):
+                color = black
+                if tsteps[by][bx] == 0:
+                    color = white
+                for sx in range(scale):
+                    for sy in range(scale):
+                        pixels[bx*scale+sx, by*scale+sy] = color
+        self.send_pil_image(img, full=full)
+
+    @staticmethod
+    def do_rule(last, subrules):
+        current = []
+
+        for element in range(len(last)):
+            # todo, more abstraction
+            # %len(last): blame python that -10 is allowed, but not len+9
+            tempel = element
+            rl = last[(tempel+1) % len(last)] + 2*last[tempel] + 4*last[tempel-1]
+            if subrules[rl] is 1:
+                current += [1]
+            else:
+                current += [0]
+
+        return current
+
     @command
     def carpet(self, args):
         """
@@ -48,14 +129,14 @@ class DiaMaltBert(ImageBaseBert):
         """
         scale, depth, width, height = map(int, args[:4])
         matrix = args[4:]
-        if max(width, height) ** depth > 5000:
+        if max(width, height)**depth > 5000:
             raise Herberror("zu dick, keinen Bock")
 
-        if len(matrix) != width * height:
+        if len(matrix) != width*height:
             raise Herberror("Angaben nicht valide")
 
         itmatrix = iter(matrix)
-        base = tuple(tuple(next(itmatrix) for x in range(width)) for y in range(height))
+        base = tuple(tuple(next(itmatrix) for _ in range(width)) for _ in range(height))
 
         self.send_pil_image(self.carpet_recursive(base, depth, scale))
 
@@ -70,8 +151,8 @@ class DiaMaltBert(ImageBaseBert):
         if depth == 0:
             return Image.new('RGB', (scale, scale), atom_colors(entry))
 
-        width = len(matrix[0]) ** (depth - 1) * scale
-        height = len(matrix) ** (depth - 1) * scale
+        width = len(matrix[0])**(depth - 1)*scale
+        height = len(matrix)**(depth - 1)*scale
 
         big_image = Image.new('RGB', (width * len(matrix[0]), height * len(matrix)), atom_colors(entry))
         if entry in (BLACK, WHITE):

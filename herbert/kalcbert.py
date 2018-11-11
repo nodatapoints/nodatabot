@@ -1,11 +1,9 @@
-from urllib.parse import quote
-
 from PIL import Image
 from io import BytesIO
 
 from decorators import command, aliases
 from basebert import ImageBaseBert, Herberror
-from common.network import t_load_content
+from common.network import t_load_content, t_load_str, t_url_save_string
 
 '''
 Meine Datei zum berechenen/bearbeiten von queries
@@ -14,14 +12,23 @@ Meine Datei zum berechenen/bearbeiten von queries
 
 
 class KalcBert(ImageBaseBert):
+    @aliases('wttr')
+    @command
+    def weather(self, args):
+        """
+        Take a look at the weather all over the world (asciistyle)
+        """
+        if len(args) == 0:
+            args = ['Greifswald']
+        self.send_message('```'+t_load_str(f"wttr.in/{t_url_save_string(args[0])}?T&q&0&n", fake_ua=False)+'```')
 
     @aliases('wa', 'wolframalpha')
     @command(pass_string=True)
-    def wolfram(self, string, full=False, steps=False):  # FIXME this function gets steps=False and throws it away
+    def wolfram(self, string, full=False):
         """
         Show a WolframAlpha generated informationsheet based on the given string
         """
-        query = quote(string, safe='')
+        query = t_url_save_string(string)
         url = f'https://api.wolframalpha.com/v1/simple?i={query}&appid=36GXXR-K5UA8L8XTY'
         _, data = t_load_content(url)
 
@@ -34,7 +41,7 @@ class KalcBert(ImageBaseBert):
         """
         Send a high resolution WolframAlpha generated informationsheet based on the given string as a file
         """
-        self.wolfram(string, full=True, steps=False)
+        self.wolfram(string, full=True)
 
     @aliases('stepbystep', 'sbs')
     @command(pass_string=True)
@@ -44,7 +51,7 @@ class KalcBert(ImageBaseBert):
         """
         # higly susceptible to fails if WolframAlphas output xml changes
         # but no scrapy so usable in python 3.7
-        query = quote(string, safe='')
+        query = t_url_save_string(string)
         url = f'http://api.wolframalpha.com/v2/query' + \
               f'?appid=36GXXR-K5UA8L8XTY&input={query}&podstate=Step-by-step%20solution&format=image'
         _, xdatax = t_load_content(url)  # XML website
@@ -78,3 +85,8 @@ class KalcBert(ImageBaseBert):
                 raise Herberror('not a working equation')
         else:
             raise Herberror('Dude, NO arbitrary code exec')
+
+    @command(pass_args=False, register_help=False)
+    def rng(self):
+        self.send_message("4")  # chosen by fair dice roll
+        pass                    # guaranteed to be random

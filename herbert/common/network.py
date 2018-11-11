@@ -2,6 +2,7 @@ import urllib3
 import certifi
 import re
 
+from urllib.parse import quote
 from basebert import Herberror
 
 # fake it 'til you make it
@@ -152,3 +153,7 @@ def t_response_extract_charset(response_header):
 
     except IndexError:
         return None
+
+
+def t_url_save_string(inn):
+    return quote(inn, safe='')

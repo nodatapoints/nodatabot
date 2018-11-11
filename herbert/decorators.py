@@ -34,6 +34,9 @@ def handle_herberrors(method):
         except telegram.error.TimedOut as e:
             print("Timed out:", e)
 
+        except telegram.error.NetworkError as e:
+            print("Connection Failed:", e)
+
         except Exception:
             self.send_message('Oops, something went wrong! 😱')
             raise

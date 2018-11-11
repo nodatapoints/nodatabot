@@ -6,8 +6,7 @@ from urllib.parse import quote
 from basebert import Herberror
 
 # fake it 'til you make it
-from common.hercurles_utils import tx_assert
-
+from common.basic_utils import tx_assert
 
 __all__ = ['t_load', 't_load_str', 't_load_content', 't_gen_filename_from_url', 't_is_image_content_type',
            'NetworkError']

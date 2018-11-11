@@ -9,7 +9,7 @@ from common.network import NetworkError
 
 parser = etree.XMLParser(recover=True)
 
-__all__ = ['tx_assert', 'load_xml', 'search_for', 't_arr_to_bytes']
+__all__ = ['load_xml', 'search_for']
 
 
 def load_xml(url, **kwargs):
@@ -34,12 +34,3 @@ def search_for(query):
     elements = root.findall(".//a[@class='result__snippet']")
 
     return [elem.attrib['href'] for elem in elements]
-
-
-def t_arr_to_bytes(arr):
-    return bytes(" ".join(arr), encoding="utf-8")
-
-
-def tx_assert(condition, msg, err_class=Herberror):
-    if not condition:
-        raise err_class(msg)

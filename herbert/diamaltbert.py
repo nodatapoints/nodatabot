@@ -41,6 +41,9 @@ def atom_colors(entry):
     return white if WHITE in entry or INVERT in entry else black    
 
 class DiaMaltBert(ImageBaseBert):
+    #todo game of life
+    # kp wann
+
     @aliases('hrrule', 'hrr')
     @command
     def higresrule(self, args):
@@ -54,11 +57,16 @@ class DiaMaltBert(ImageBaseBert):
         """
         Draws a time diagram of a 1D cellular Automaton
         """
-        # /rule {r,0,1,2,3,...,255?} {width} {r,[a1,a2,a3,...,awidth}
+        # /rule {t(orus), b(lack), w(hite)} {scale} {r,0,1,2,3,...,255?} {width} {time} {r,[a1,a2,a3,...,awidth} 
         # possible TODO: allow larger rules
-        if args[1] == 'r': args[1] = random.randint(0,255)
+        edge = args.pop(0);
+
+        if args[1] == 'r':
+            args[1] = random.randint(0,255)
+            self.send_message(args[1])
         try:
             scale, num, width, time = map(int, args[:4])
+            if scale < 5: raise Herberror('too small')
             if args[4] == 'r':
                 setup = [random.randint(0,1) for _ in range(width)]
             else: _, _, _, _, *setup = map(int, args) # map(int, args[3:]) funkt nicht
@@ -86,7 +94,7 @@ class DiaMaltBert(ImageBaseBert):
         tsteps = [None] * time # meh :/
         tsteps[0] = setup
         for tstep in range(time-1):
-            tsteps[tstep+1] = self.do_rule(tsteps[tstep], subrules)
+            tsteps[tstep+1] = self.do_rule(tsteps[tstep], subrules, edge)
 
         img = Image.new('RGB', (width*scale, time*scale))
         pixels = img.load() # create the pixel map
@@ -104,14 +112,24 @@ class DiaMaltBert(ImageBaseBert):
                         pixels[bx*scale+sx,by*scale+sy] = color
         self.send_pil_image(img, full=full)
 
-    def do_rule(_, last, subrules): 
+    def do_rule(_, last, subrules, edge): 
         current = []
 
         for element in range(len(last)):
             # todo, more abstraction
             # %len(last): blame python that -10 is allowed, but not len+9
             tempel = element
-            rl = last[(tempel+1)%len(last)] + 2*last[tempel] + 4*last[tempel-1]
+
+            # todo make nicer   
+            if edge is "t": rl = last[(tempel+1)%len(last)] + 2*last[(tempel)%len(last)] + 4*last[(tempel-1)%len(last)]
+            elif tempel is 0:
+                if edge is "b": rl = last[(tempel+1)%len(last)] + 2*last[(tempel)%len(last)] + 4
+                else: rl = last[(tempel+1)%len(last)] + 2*last[(tempel)%len(last)]
+            elif tempel is len(last)-1:
+                if edge is "b": rl = 1 + 2*last[(tempel)%len(last)] + 4*last[(tempel-1)%len(last)]
+                else: rl = 2*last[(tempel)%len(last)] + 4*last[(tempel-1)%len(last)]
+            else: rl = last[(tempel+1)%len(last)] + 2*last[(tempel)%len(last)] + 4*last[(tempel-1)%len(last)]
+
             if subrules[rl] is 1:
                 current += [1]
             else:

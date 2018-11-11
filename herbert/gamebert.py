@@ -2,7 +2,7 @@ from ast import literal_eval as parse_tuple
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 
-from decorators import command, callback, aliases
+from decorators import command, callback
 from basebert import ImageBaseBert, Herberror
 from game import Game
 from render import draw_game
@@ -82,7 +82,7 @@ class GameBert(ImageBaseBert):
         choice = parse_tuple(query.data)
         self.game.push_choice(choice)
 
-        fp = self.pil_image_to_fp(draw_game(self.game), format='PNG')
+        fp = self.pil_image_to_fp(draw_game(self.game), img_format='PNG')
         self.shown_board_message.edit_media(
             media=InputMediaPhoto(fp),
             reply_markup=self.game.render_keyboard(

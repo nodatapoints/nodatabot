@@ -5,6 +5,7 @@ Define all the decorators!
 from functools import wraps
 
 from telegram.ext import CommandHandler, CallbackQueryHandler
+import telegram.error
 
 from basebert import Herberror
 
@@ -30,9 +31,12 @@ def handle_herberrors(method):
         except Herberror as error:
             self.send_message(*error.args)
 
-        except Exception as e:
+        except telegram.error.TimedOut as e:
+            print("Timed out:", e)
+
+        except Exception:
             self.send_message('Oops, something went wrong! 😱')
-            raise e
+            raise
 
     return wrapped
 
@@ -98,18 +102,18 @@ def command(arg=None, *, pass_args=None, pass_update=False,
             raise ValueError(f'{method} not callable. Did you use @command()?')
 
         def handler(name, bound_method):
-            callback = pull_bot_and_update(
+            inner_callback = pull_bot_and_update(
                 bound_method,
                 pass_update=pass_update,
                 pass_query=False,
                 pass_string=pass_string
             )
             return CommandHandler(
-                name, callback, pass_args=pass_args, **kwargs)
+                name, inner_callback, pass_args=pass_args, **kwargs)
 
-        method._command_handler = handler
-        method._register_help = register_help
-        method._commands = [method.__name__]
+        method.command_handler = handler
+        method.register_help = register_help
+        method.commands = [method.__name__]
         return handle_herberrors(method)
 
     if callable(arg):
@@ -121,7 +125,7 @@ def command(arg=None, *, pass_args=None, pass_update=False,
 def aliases(*args):
     def decorator(method):
         try:
-            method._commands.extend(args)
+            method.commands.extend(args)
             return method
 
         except AttributeError:
@@ -133,11 +137,11 @@ def aliases(*args):
 def callback(arg=None, *, pass_update=False, pass_query=True, **kwargs):
     def callback_decorator(method):
         def handler(bound_method):
-            callback = pull_bot_and_update(
+            inner_callback = pull_bot_and_update(
                 bound_method, pass_update, pass_query)
-            return CallbackQueryHandler(callback, **kwargs)
+            return CallbackQueryHandler(inner_callback, **kwargs)
 
-        method._callback_query_handler = handler
+        method.callback_query_handler = handler
         return handle_herberrors(method)
 
     if callable(arg):

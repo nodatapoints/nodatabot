@@ -51,14 +51,14 @@ class BaseBert:
 
 class ImageBaseBert(BaseBert):
     @staticmethod
-    def pil_image_to_fp(image, format):
+    def pil_image_to_fp(image, img_format):
         fp = BytesIO()
-        image.save(fp, format)
+        image.save(fp, img_format)
         fp.seek(0)
         return fp
 
-    def send_pil_image(self, image, *, format='PNG', full=False, **kwargs):
-        fp = ImageBaseBert.pil_image_to_fp(image, format)
+    def send_pil_image(self, image, *, img_format='PNG', full=False, **kwargs):
+        fp = ImageBaseBert.pil_image_to_fp(image, img_format)
         if full:
             return self.bot.send_document(self.chat_id, document=fp)
 

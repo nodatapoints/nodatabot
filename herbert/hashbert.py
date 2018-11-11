@@ -93,7 +93,7 @@ def hash_all(arg):
             h = hl.new(name)
             h.update(arg)
             res += f"{re.sub('_', '-', name)}: ```{h.hexdigest()}```\n\n"
-        except:
+        except TypeError:
             pass
 
     return res

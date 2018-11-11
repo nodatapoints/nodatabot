@@ -29,7 +29,7 @@ def antialias(draw_func):
     return antialiased
 
 
-def draw_level(level, highlights={}):
+def draw_level(level, highlights={}):  # FIXME default argument value is mutable
     # Drawing the lines by not drawing them
     if level.atom:
         image = Image.new('RGB', (atom_size, atom_size), background)
@@ -79,6 +79,6 @@ def draw_game(game):
         for level in game.follow_path(queue[i:]):
             pass
 
-        highlights[level] = colors[player] + (highlight_alpha, )
+        highlights[level] = colors[player] + (highlight_alpha, )  # FIXME local variable level mb ref. before asg.
 
     return draw_level(game.root_level, highlights=highlights)

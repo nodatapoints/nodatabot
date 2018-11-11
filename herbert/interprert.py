@@ -1,9 +1,6 @@
 from decorators import *
 from basebert import *
 
-import multiprocessing
-import time
-
 from ctypes import create_string_buffer as buf, cdll
 
 
@@ -32,9 +29,10 @@ def has_invalid_bytes(bytestr):
     return False
 
 
-def run_bf(prog):
-    OUT_SIZE = 512
+OUT_SIZE = 512
 
+
+def run_bf(prog):
     b = buf(OUT_SIZE)
     result = h_bf.execute(prog, b, OUT_SIZE, 1000000)
 

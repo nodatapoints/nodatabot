@@ -17,7 +17,7 @@ def _t_reply_chunky(bot, update, msg, parse_mode=None, **kwargs):
     The telegram message length is limited to MSG_CHUNK.
     To send more than that amount of bytes, it needs
     to be split into several messages. On retrieving
-    webpages, this might happen, so this function
+    web pages, this might happen, so this function
     takes care of that.
     """
     while msg:
@@ -86,6 +86,24 @@ def _t_make_keyboard(button_dict):
          if type(val) is dict else [telegram.InlineKeyboardButton(key, callback_data=val)]
          for key, val in button_dict.items()]
     )
+
+
+def t_reply_photo(bot, update, image_data, **kwargs):
+    """
+    Forward the given data as an image
+    """
+    bot.send_photo(update.message.chat_id, image_data, **kwargs)
+
+
+def t_reply_image(bot, update, image_data, filename="image.png", high_res=False, **kwargs):
+    """
+    Send Image data. Use high_res=... to decide wheter to send it compressed
+    or as a file.
+    """
+    if high_res:
+        t_reply_filed_binary(bot, update, image_data, filename, **kwargs)
+    else:
+        t_reply_photo(bot, update, image_data, **kwargs)
 
 
 def t_get_photo(param):

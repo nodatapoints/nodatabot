@@ -6,21 +6,24 @@ import re
 import texbert
 
 
+EXPR = "(-?[\w\d]+|[{(].+?[})])"
+
+
 _substitutions = {
     "\s+": " ",  # first, remove regular whitespace
     "\s*([+*-/,.)(<>=])\s*": "\\1",  # then, around operators
     "->": "\\\\rightarrow ",
     "<=>": "\\\\iff ",
     "=>": "\\\\implies ",
-    "in": "\\\\in ",
+    "inf": "\\\\infty ",
+    "\\sin\\s": "\\\\in ",
     "N": "\\\\mathbb{N}",
     "R": "\\\\mathbb{R}",
     "Q": "\\\\mathbb{Q}",
-    "(-?[\w\d]+|\(.+\))/([\w\d]+|\(.+\))": "\\\\frac{\\1}{\\2}",
-    "(-?[\w\d]+|\(.+\))\\^([\w\d]+|\(.+\))": "{\\1}^{\\2}",
+    EXPR + "\\^" + EXPR: "{{\\1}^{\\2}}",
+    EXPR + "/" + EXPR: "{\\\\frac{\\1}{\\2}}",
+    "lim\\s*" + EXPR: "{\\\\lim_{\\1}}",
     "\\*": "\\\\cdot ",
-    "inf": "\\\\infty ",
-    "lim ([\w\d]+|\(.+\))": "\\\\lim_{\\1}",
     "O": "\\\\mathcal{O}",
     "P": "\\\\mathcal{P}",
     "\\(": "\\\\left(",
@@ -39,4 +42,4 @@ class AsciiBert(BaseBert):
         tech.bot, tech.update = self.bot, self.update  # PLEASE provide renderTex() as a nonmember
         tech.displaytex(string)  # oh god it hurts so much
 
-        # DEBUG self.send_message(string, parse_mode=None)
+        self.send_message(string, parse_mode=None)

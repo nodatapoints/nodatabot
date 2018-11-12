@@ -1,15 +1,13 @@
-from basebert import BaseBert
-from decorators import command, aliases
-from subprocess import CalledProcessError
-
 import re
-import texbert
+
+from texbert import TexBert
+from decorators import command, aliases
 
 
 EXPR = "(-?[\w\d]+|[{(].+?[})])"
 
 
-_substitutions = {
+substitutions = {
     "\s+": " ",  # first, remove regular whitespace
     "\s*([+*-/,.)(<>=])\s*": "\\1",  # then, around operators
     "->": "\\\\rightarrow ",
@@ -31,15 +29,12 @@ _substitutions = {
 }
 
 
-class AsciiBert(BaseBert):
+class AsciiBert(TexBert):
     @aliases('am')
     @command(pass_string=True)
     def asciimath(self, string):
-        for m in _substitutions:
-            string = re.sub(m, _substitutions[m], string)
+        for pattern, subst in substitutions.items():
+            string = re.sub(pattern, subst, string)
 
-        tech = texbert.TexBert()  # this is wrong on so many levels
-        tech.bot, tech.update = self.bot, self.update  # PLEASE provide renderTex() as a nonmember
-        tech.displaytex(string)  # oh god it hurts so much
-
+        self.displaytex(string)
         self.send_message(string, parse_mode=None)

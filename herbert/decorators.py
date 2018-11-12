@@ -3,6 +3,7 @@ Define all the decorators!
 """
 
 from functools import wraps
+import logging
 
 from telegram.ext import CommandHandler, CallbackQueryHandler
 import telegram.error
@@ -28,14 +29,14 @@ def handle_herberrors(method):
         try:
             return method(self, *args, **kwargs)
 
-        except Herberror as error:
-            self.send_message(*error.args)
+        except Herberror as e:
+            self.send_message(*e.args)
 
         except telegram.error.TimedOut as e:
-            print("Timed out:", e)
+            logging.warning('Timed out: {e}', e)
 
         except telegram.error.NetworkError as e:
-            print("Connection Failed:", e)
+            logging.warning('Connection Failed: {e}', e)
 
         except Exception:
             self.send_message('Oops, something went wrong! 😱')

@@ -34,7 +34,6 @@ for _, c in getmembers(sys.modules[__name__], isclass):
     if issubclass(c, BaseBert) and c is not BaseBert:
         register_bert(c)
 
-
 if __name__ == '__main__':
     idle()
 

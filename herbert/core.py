@@ -86,19 +86,6 @@ def handle_inline_query(bot, update, line=None):
 updater.dispatcher.add_handler(InlineQueryHandler(handle_inline_query))
 
 
-# ############# TEMP #############
-def unknown_command(bot, update):
-    bot.send_message(chat_id=update.message.chat_id, text="WTF do you mean?")
-
-
-from telegram.ext import MessageHandler, Filters
-
-updater.dispatcher.add_handler(MessageHandler(Filters.command, unknown_command))
-
-
-# ########### END TEMP ###########
-
-
 def idle():
     updater.start_polling()
     updater.idle()

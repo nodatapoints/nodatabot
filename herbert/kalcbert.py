@@ -18,9 +18,10 @@ class KalcBert(ImageBaseBert):
         """
         Take a look at the weather all over the world (asciistyle)
         """
-        if len(args) == 0:
-            args = ['Greifswald']
-        self.send_message('```'+t_load_str(f"wttr.in/{t_url_save_string(args[0])}?T&q&0&n", fake_ua=False)+'```')
+        args = args or ('Greifswald', )
+
+        wttr_string = t_load_str(f'wttr.in/{t_url_save_string(args[0])}?T&q&0&n', fake_ua=False)
+        self.send_message(f'```{wttr_string}```')
 
     @aliases('wa', 'wolframalpha')
     @command(pass_string=True)
@@ -52,15 +53,15 @@ class KalcBert(ImageBaseBert):
         # higly susceptible to fails if WolframAlphas output xml changes
         # but no scrapy so usable in python 3.7
         query = t_url_save_string(string)
-        url = f'http://api.wolframalpha.com/v2/query' + \
-              f'?appid=36GXXR-K5UA8L8XTY&input={query}&podstate=Step-by-step%20solution&format=image'
+        url = f'http://api.wolframalpha.com/v2/query\
+?appid=36GXXR-K5UA8L8XTY&input={query}&podstate=Step-by-step%20solution&format=image'
         _, xdatax = t_load_content(url)  # XML website
         xdatax = str(xdatax)
         # check if it worked
         # find unique point in String relating to the giflink
         # and go on from there to start of link [magic number 44] later
         # cut string at start of link
-        datax = xdatax[(xdatax.find('Possible intermediate steps')+44):] 
+        datax = xdatax[(xdatax.find('Possible intermediate steps')+44):]
         # delete xml artifacts and cut string at end of link
         data, *_ = datax.replace("&amp;", "&").split("'")
         # check if it worked and a url is found
@@ -77,7 +78,7 @@ class KalcBert(ImageBaseBert):
         """
         Evaluate a simple mathematical expression and return the result
         """
-        allowed_chars = set('1234567890.+*-/%=()')
+        allowed_chars = set('1234567890.+*-/%=() ')
         if set(string).issubset(allowed_chars):
             try:
                 self.send_message(eval(string, {}, {}))

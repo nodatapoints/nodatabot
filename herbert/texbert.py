@@ -1,7 +1,9 @@
 from subprocess import run, CalledProcessError
 
+from PIL import Image, ImageOps
+
 from decorators import command, aliases
-from basebert import BaseBert, Herberror
+from basebert import ImageBaseBert, Herberror
 
 template = """
 \\documentclass[preview, margin=1mm]{{standalone}}
@@ -17,20 +19,18 @@ template = """
 \\end{{document}}
 """
 
+min_dimension = 100  # pixels
 
-class TexBert(BaseBert):
+
+class TexBert(ImageBaseBert):
     @command(pass_string=True)
-    def texraw(self, string, invert=False):
+    def texraw(self, string, resolution=900, invert=False):
         """
         Render LaTeX
         """
-        args = ['./texit.zsh']
-        if invert:
-            args.append('-invert')
-
         try:
             result = run(
-                args,
+                ('./texit.zsh', f'{resolution:d}'),
                 input=string,
                 text=True,
                 encoding='utf8',
@@ -38,20 +38,32 @@ class TexBert(BaseBert):
                 check=True
             )  # FIXME unexpected arguments
             image_path = result.stdout.strip()
-            self.send_photo_from_file(image_path)
+            img = Image.open(image_path)
+            if min(img.width, img.height) < min_dimension:
+                self.texraw(
+                    string,
+                    resolution=2*resolution,
+                    invert=invert
+                )
+                return
+
+            if invert:
+                img = ImageOps.invert(img)
+
+            self.send_pil_image(img)
 
         except CalledProcessError:
             raise Herberror('Lern mal LaTeX 🙄')
 
         except FileNotFoundError:
-            raise Herberror('`textit.zsh` ist immernoch kaputt 😢')
+            raise Herberror('`texit.zsh` ist immernoch kaputt 😢')
 
     @command(pass_string=True)
     def tex(self, string, invert=False):
         """
         Render LaTeX. Implies a minimal preamble.
         """
-        self.texraw(template.format(string), invert)
+        self.texraw(template.format(string), invert=invert)
 
     @aliases('dtex')
     @command(pass_string=True)
@@ -74,5 +86,5 @@ class TexBert(BaseBert):
     def invertdisplaytex(self, string):
         """
         Render LaTeX like /displaytex, but invert the colors.
-        """ 
+        """
         self.tex(f'$\\displaystyle {string}$', invert=True)

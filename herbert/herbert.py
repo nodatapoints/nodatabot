@@ -13,18 +13,20 @@ chdir(herbert_path)
 from core import *
 from basebert import BaseBert
 
-from gamebert import GameBert
-from texbert import TexBert
-from ping import PingBert
-from hashbert import HashBert
-from hercurles import Hercurles
-from kalcbert import KalcBert
+from asciimath import AsciiBert
 from diamaltbert import DiaMaltBert
+from gamebert import GameBert
+from hashbert import HashBert
+from helpbert import HelpBert
+from hercurles import Hercurles
 from interprert import InterpRert
+from kalcbert import KalcBert
+from ping import PingBert
+from texbert import TexBert
+from todobert import TodoBert
 from xkcdert import XKCDert
 from helpbert import HelpBert
 from asciimath import AsciiBert
-from testbert import TestBert
 
 
 # Autoregister the included Berts

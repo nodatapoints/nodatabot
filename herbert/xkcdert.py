@@ -1,13 +1,13 @@
 import json
 
-from basebert import BaseBert, Herberror
+from basebert import InlineBaseBert, Herberror
 from common import network, hercurles_utils
 from decorators import command
 import re
 
 
-class XKCDert(BaseBert):
-    @command(pass_string=True)
+class XKCDert(InlineBaseBert):
+    @command(pass_string=True, allow_inline=True)
     def xkcd(self, string):
         """
         Retrieve a comic from www.xkcd.com, referenced by number or search query.
@@ -29,7 +29,7 @@ class XKCDert(BaseBert):
         url = f'www.xkcd.com/{num}/info.0.json'
         try:
             info_json = json.loads(network.t_load(url).data)
-            self.send_photo(
+            self.reply_photo_url(
                 info_json.get('img'),
                 caption=f"{info_json.get('title')}\n\n{info_json.get('alt')}"
             )

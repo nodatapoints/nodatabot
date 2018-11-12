@@ -1,5 +1,5 @@
 from io import BytesIO
-from telegram import InlineQueryResultArticle, InputTextMessageContent
+from telegram import InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultPhoto
 import hashlib
 from common.basic_utils import arr_to_bytes
 
@@ -38,7 +38,6 @@ class BaseBert:
         else:
             return ""
 
-
     @property
     def query(self):
         return self.update.callback_query
@@ -68,14 +67,16 @@ class BaseBert:
     # reply_ methods are a unified way to respond
     # both @inline and /directly.
     def reply_str(self, string):
-        if self.inline and issubclass(self.__class__, InlineBaseBert):
-            self.inline_answer_string(string)
-        elif self.inline and self.inline_query:
+        if self.inline:
             InlineBaseBert._inl_send_str_list([string], self.inline_query)
-        elif self.inline:
-            raise Exception("Something is deeply broken: Inline Query handler missing inline query.")
         else:
             self.send_message(string)
+
+    def reply_photo_url(self, url, title="", caption=""):
+        if self.inline:
+            InlineBaseBert._inl_send_photo_url_list([(url, title, caption)], self.inline_query)
+        else:
+            self.send_photo(url, title=title, caption=caption)
 
     @staticmethod
     def wrap_in_file(data, fname):
@@ -95,7 +96,7 @@ class InlineBaseBert(BaseBert):
     def _inl_send_str_list(str_list, inline_query):
         result = [
             InlineQueryResultArticle(
-                id=f"inline{i}-{InlineBaseBert._gen_id(str_list)}",
+                id=f"inline{i}-{InlineBaseBert.gen_id(str_list)}",
                 title=string,
                 input_message_content=InputTextMessageContent(string)
             )
@@ -104,8 +105,29 @@ class InlineBaseBert(BaseBert):
 
         inline_query.answer(result)
 
+    def inline_answer_photo_url(self, url, title="", caption=""):
+        self.inline_answer_photo_urls([(url, title, caption)])
+
+    def inline_answer_photo_urls(self, url_list):
+        InlineBaseBert._inl_send_photo_url_list(url_list, self.inline_query)
+
     @staticmethod
-    def _gen_id(array):
+    def _inl_send_photo_url_list(url_list, inline_query):
+        result = [
+            InlineQueryResultPhoto(
+                id=f"photo{i}-{InlineBaseBert.gen_id(url_list)}",
+                photo_url=url,
+                title=title,
+                caption=desc,
+                thumb_url=url
+            )
+            for i, (url, title, desc) in enumerate(url_list)
+        ]
+
+        inline_query.answer(result)
+
+    @staticmethod
+    def gen_id(array):
         return hashlib.md5(arr_to_bytes(array))
 
 

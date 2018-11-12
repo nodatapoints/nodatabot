@@ -11,7 +11,7 @@ def arr_to_bytes(arr):
     "Converts" an array to a sequence of bytes by joining
     using byte 10d and then applying the unicode-encoding
     """
-    return str_to_bytes(" ".join(arr))
+    return str_to_bytes(" ".join([str(x) for x in arr]))
 
 
 def str_to_bytes(string):

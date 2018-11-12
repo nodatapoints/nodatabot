@@ -1,5 +1,8 @@
 from functools import lru_cache
 import random
+from contextlib import suppress
+from math import log
+from itertools import islice
 
 from PIL import Image, ImageOps
 
@@ -57,86 +60,71 @@ class DiaMaltBert(ImageBaseBert):
         """
         Draws a time diagram of a 1D cellular Automaton
         """
-        # /rule {t(orus), b(lack), w(hite)} {scale} {r,0,1,2,3,...,255?} {width} {time} {r,[a1,a2,a3,...,awidth} 
-        # possible TODO: allow larger rules
-        edge = args.pop(0);
-        if args[1] == 'r':
-            args[1] = random.randint(0,255)
-            self.send_message(args[1])
-        try:
-            scale, num, width, time = map(int, args[:4])
-            if scale < 5: raise Herberror('too small')
-            if args[4] == 'r':
-                setup = [random.randint(0, 1) for _ in range(width)]
-            else:
-                _, _, _, _, *setup = map(int, args)  # map(int, args[3:]) funkt nicht
-            for s in setup:
-                if s is not 0 and s is not 1:
-                    raise Herberror('Not a valid setup')
-            if num >= 2**(2**3):
-                raise Herberror("first number must be smaller than 256")
-        except Exception as e:
-            if issubclass(e.__class__, Herberror):
-                raise e
-            raise Herberror("Not a valid input\ngehdsch vergrabn")
+        # /rule {r, t(orus), b(lack), w(hite)} {scale} {r,0,1,2,3,...,255?} {width} {time} {r,[a1,a2,a3,...,awidth} 
+        
+        # args to parameters
+        for to_int in range(len(args)):
+            with suppress(ValueError):
+                args[to_int] = int(args[to_int])
+        edge, scale, num, width, time, *setup = args
 
-        # maybe make this a bit nicer
-        # its only the binary rep of num in a list
-        subrules = []
-        i = 2**(2**3)
-        while i > 1:
-            i = int(i/2)
-            tru = int(num/i)
-            num -= tru*i
-            subrules += [tru]
-        subrules = list(reversed(subrules))
+        # handle random queries and catch input errors
+        if edge is 'r':             edge = random.choice([t,b,w])
+        if num is 'r':              num = random.randint(0,255)
+        elif num < 0:               raise Herberror('Not a valid rule') 
+        if setup[0] is 'r':         setup = [random.randint(0, 1) for _ in range(width)]
+        elif len(setup) != width:   raise Herberror('Not a valid setup')
+        else: 
+            for s, _ in enumerate(setup):
+                if setup[s] not in [0,1]:  
+                                    raise Herberror('Not a valid setup')
 
-        tsteps = [None] * time  # meh :/
+        # gets the binary representation of the String, meh
+        rulelength = max(3, int(log(log(max(num,255),2),2))+1)  # how many cells are affecting the next
+        subrules = list(f'{num:b}'[::-1])                       # create needed rules
+        subrules.extend([0] * (2**rulelength - len(subrules)))  # 0-pad up to the needed size
+        subrules = list(map(int,subrules))                      # turn to number[] from string[]
+
+        tsteps = [None]*(time)
         tsteps[0] = setup
-        for tstep in range(time-1):
-            tsteps[tstep+1] = self.do_rule(tsteps[tstep], subrules, edge)
+        for i in range(time-1):
+            tsteps[i+1] = self.do_rule(tsteps[i], subrules, rulelength, edge)
 
         img = Image.new('RGB', (width*scale, time*scale))
-        pixels = img.load()  # create the pixel map
-
-        # Ja, aua, mach halt besser
-        # hier geht nich so schön rekursiv
-        # ggf iwas mit x in tsteps oder so
-        for bx in range(width):
-            for by in range(time):
-                color = black
-                if tsteps[by][bx] == 0:
-                    color = white
-                for sx in range(scale):
-                    for sy in range(scale):
-                        pixels[bx*scale+sx, by*scale+sy] = color
+        for y, ey in enumerate(tsteps):
+            for x, ex in enumerate(ey):
+                if ex is 0: color = white
+                else:       color = black
+                subimg = Image.new('RGB', (scale, scale), color)
+                img.paste(subimg, (x * scale, y * scale))
         self.send_pil_image(img, full=full)
 
-    @staticmethod
-    def do_rule(last, subrules, edge):
+    def do_rule(self, last, subrules, rulelength, edge):
+        Δx = -(rulelength//2) 
         current = []
 
-        for element in range(len(last)):
-            # todo, more abstraction
-            # %len(last): blame python that -10 is allowed, but not len+9
-            tempel = element
-
-            # todo make nicer   
-            if edge is "t": rl = last[(tempel+1)%len(last)] + 2*last[(tempel)%len(last)] + 4*last[(tempel-1)%len(last)]
-            elif tempel is 0:
-                if edge is "b": rl = last[(tempel+1)%len(last)] + 2*last[(tempel)%len(last)] + 4
-                else: rl = last[(tempel+1)%len(last)] + 2*last[(tempel)%len(last)]
-            elif tempel is len(last)-1:
-                if edge is "b": rl = 1 + 2*last[(tempel)%len(last)] + 4*last[(tempel-1)%len(last)]
-                else: rl = 2*last[(tempel)%len(last)] + 4*last[(tempel-1)%len(last)]
-            else: rl = last[(tempel+1)%len(last)] + 2*last[(tempel)%len(last)] + 4*last[(tempel-1)%len(last)]
-
-            if subrules[rl] is 1:
-                current += [1]
-            else:
-                current += [0]
-
+        for index, element in enumerate(last):
+            current += [self.do_step(index, last, Δx, rulelength, edge, subrules)]
         return current
+
+    @staticmethod
+    def do_step(index, last, Δx, rulelength, edge, subrules):
+        pow_of_2 = 1
+        output = 0;
+        listmax = len(last)
+        listmin = 0
+        for i in reversed(range(rulelength)):
+            if i+index+Δx >= listmin and i+index+Δx < listmax:
+                temp_value = last[i+index+Δx]
+            else:
+                if edge is 't':     temp_value = last[(i+index+Δx)%listmax]
+                elif edge is 'w':   temp_value = 0
+                elif edge is 'b':   temp_value = 1
+                else:               raise Herberror('not a vadid edge-identifier')
+            output += pow_of_2 * temp_value
+            pow_of_2 *= 2
+        return subrules[output]
+
 
     @command
     def carpet(self, args):

@@ -77,7 +77,7 @@ class KalcBert(ImageBaseBert):
         """
         Evaluate a simple mathematical expression and return the result
         """
-        allowed_chars = set('1234567890.+*-/%=()')
+        allowed_chars = set('1234567890.+*-/%=() ')
         if set(string).issubset(allowed_chars):
             try:
                 self.send_message(eval(string, {}, {}))

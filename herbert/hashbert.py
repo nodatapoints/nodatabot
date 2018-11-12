@@ -5,10 +5,11 @@ Herbert Submodule
 Provides an interface to several
 Hashing algorithms
 """
-from common.basic_utils import t_arr_to_bytes, tx_assert
+from common.basic_utils import str_to_bytes
+from common.herbert_utils import tx_assert
 from decorators import *
 
-from basebert import BaseBert
+from basebert import InlineBaseBert
 
 import hashlib as hl
 import base64 as b64
@@ -17,46 +18,46 @@ import re
 __all__ = ["HashBert"]
 
 
-class HashBert(BaseBert):
-    @command
-    def md5(self, args):
+class HashBert(InlineBaseBert):
+    @command(pass_string=True, allow_inline=True)
+    def md5(self, string):
         """
         Return the md5-hash of the given string
         """
-        self.send_message(hl.md5(t_arr_to_bytes(args)).hexdigest())
+        self.reply_str(hl.md5(str_to_bytes(string)).hexdigest())
 
     @aliases('sha512', 'hash', 'sha')
-    @command
-    def sha512(self, args):
+    @command(pass_string=True, allow_inline=True)
+    def sha512(self, string):
         """
         Return the sha512-hash of the given string
         """
-        self.send_message(hl.sha512(t_arr_to_bytes(args)).hexdigest())
+        self.reply_str(hl.sha512(str_to_bytes(string)).hexdigest())
 
-    @command
-    def b64enc(self, args):
+    @command(pass_string=True, allow_inline=True)
+    def b64enc(self, string):
         """
         Base64-encode the given string
         """
-        self.send_message(b64e(args))
+        self.reply_str(b64e(string))
 
-    @command
-    def b64dec(self, args):
+    @command(pass_string=True, allow_inline=True)
+    def b64dec(self, string):
         """
         Base64-decode the given string
         """
-        self.send_message(b64d(args))
+        self.reply_str(b64d(string))
 
-    @command
-    def hashit(self, args):
+    @command(pass_string=True)
+    def hashit(self, string):
         """
         Run a string through all available hash-functions
         """
         import telegram
-        self.send_message(hash_all(t_arr_to_bytes(args)), parse_mode=telegram.ParseMode.MARKDOWN)
+        self.send_message(hash_all(str_to_bytes(string)), parse_mode=telegram.ParseMode.MARKDOWN)
 
     @aliases('rotate', 'shift', 'ceasar')
-    @command
+    @command(allow_inline=True)
     def rot(self, args):
         """
         Shift every letter of the string by <n> positions
@@ -67,7 +68,7 @@ class HashBert(BaseBert):
 
         res = rotate(int(float(shift)), " ".join(rest))
 
-        self.send_message(res)
+        self.reply_str(res)
 
 
 def rotate_char(shift, char, low, high):
@@ -100,8 +101,8 @@ def hash_all(arg):
 
 
 def b64e(args):
-    return b64.b64encode(t_arr_to_bytes(args)).decode("utf-8")
+    return b64.b64encode(str_to_bytes(args)).decode("utf-8")
 
 
 def b64d(args):
-    return b64.b64decode(t_arr_to_bytes(args)).decode("utf-8")
+    return b64.b64decode(str_to_bytes(args)).decode("utf-8")

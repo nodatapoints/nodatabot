@@ -1,8 +1,8 @@
 from decorators import command
-from basebert import BaseBert
+from basebert import InlineBaseBert
 
 
-class PingBert(BaseBert):
+class PingBert(InlineBaseBert):
     @command(pass_args=False)
     def ping(self):
         """
@@ -10,12 +10,12 @@ class PingBert(BaseBert):
         """
         self.send_message('pong')
 
-    @command(pass_args=False, pass_string=True)
+    @command(pass_string=True, allow_inline=True)
     def echo(self, string):
         """
         Whatever you say.
         """
-        self.send_message(string)
+        self.reply_str(string)
 
     @command(pass_args=False, register_help=False)
     def pong(self):

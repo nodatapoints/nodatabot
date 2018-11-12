@@ -24,6 +24,7 @@ from interprert import InterpRert
 from xkcdert import XKCDert
 from helpbert import HelpBert
 from asciimath import AsciiBert
+from testbert import TestBert
 
 
 # Autoregister the included Berts

@@ -1,6 +1,9 @@
 from io import BytesIO
+from telegram import InlineQueryResultArticle, InputTextMessageContent
+import hashlib
+from common.basic_utils import arr_to_bytes
 
-__all__ = ['Herberror', 'BaseBert', 'ImageBaseBert']
+__all__ = ['Herberror', 'BaseBert', 'ImageBaseBert', 'InlineBaseBert']
 
 
 class Herberror(Exception):
@@ -11,10 +14,30 @@ class BaseBert:
     def __init__(self):
         self.bot = None
         self.update = None
+        self.inline = False
+        self.inline_query = None
+        self.inline_args = []
 
     @property
     def message(self):
-        return self.update.message or self.update.callback_query.message
+        if self.update.message:
+            return self.update.message
+        elif self.update.callback_query and self.update.callback_query.message:
+            return self.update.callback_query.message
+        else:
+            return None
+
+    @property
+    def message_text(self):
+        if self.message:
+            return self.message.text
+
+        elif self.inline_query:
+            return self.inline_query.query
+
+        else:
+            return ""
+
 
     @property
     def query(self):
@@ -42,11 +65,48 @@ class BaseBert:
     def send_photo(self, data, **kwargs):
         self.bot.send_photo(self.chat_id, data, **kwargs)
 
+    # reply_ methods are a unified way to respond
+    # both @inline and /directly.
+    def reply_str(self, string):
+        if self.inline and issubclass(self.__class__, InlineBaseBert):
+            self.inline_answer_string(string)
+        elif self.inline and self.inline_query:
+            InlineBaseBert._inl_send_str_list([string], self.inline_query)
+        elif self.inline:
+            raise Exception("Something is deeply broken: Inline Query handler missing inline query.")
+        else:
+            self.send_message(string)
+
     @staticmethod
     def wrap_in_file(data, fname):
         f = BytesIO(data)
         f.name = fname
         return f
+
+
+class InlineBaseBert(BaseBert):
+    def inline_answer_string(self, string):
+        self.inline_answer_strings([string])
+
+    def inline_answer_strings(self, str_list):
+        InlineBaseBert._inl_send_str_list(str_list, self.inline_query)
+
+    @staticmethod
+    def _inl_send_str_list(str_list, inline_query):
+        result = [
+            InlineQueryResultArticle(
+                id=f"inline{i}-{InlineBaseBert._gen_id(str_list)}",
+                title=string,
+                input_message_content=InputTextMessageContent(string)
+            )
+            for i, string in enumerate(str_list)
+        ]
+
+        inline_query.answer(result)
+
+    @staticmethod
+    def _gen_id(array):
+        return hashlib.md5(arr_to_bytes(array))
 
 
 class ImageBaseBert(BaseBert):

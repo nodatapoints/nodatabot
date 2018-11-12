@@ -1,10 +1,22 @@
-from basebert import Herberror
+"""
+Here go utility functions, which cannot
+be classified AND have no dependencies
+on libraries or other code not in this
+exact module.
+"""
 
 
-def t_arr_to_bytes(arr):
-    return bytes(" ".join(arr), encoding="utf-8")
+def arr_to_bytes(arr):
+    """
+    "Converts" an array to a sequence of bytes by joining
+    using byte 10d and then applying the unicode-encoding
+    """
+    return str_to_bytes(" ".join(arr))
 
 
-def tx_assert(condition, msg, err_class=Herberror):
-    if not condition:
-        raise err_class(msg)
+def str_to_bytes(string):
+    """
+    Convert a string to its python-byte representation using
+    the utf-8 character encoding
+    """
+    return bytes(string, encoding="utf-8")

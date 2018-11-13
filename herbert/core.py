@@ -23,6 +23,7 @@ updater = Updater(token)
 
 berts = []
 inline_methods = {}
+inline_aliases = {}
 
 
 def get_berts():
@@ -31,6 +32,10 @@ def get_berts():
 
 def get_inline_methods():
     return inline_methods
+
+
+def get_inline_aliases():
+    return inline_aliases
 
 
 def register_bert(cls):
@@ -42,6 +47,8 @@ def register_bert(cls):
         if hasattr(method, 'inline'):
             if method.inline:
                 inline_methods[method.__name__] = method.get_inner(method)
+                for command in method.commands:
+                    inline_aliases[command] = method.__name__
 
         if hasattr(method, 'command_handler'):
             for command in method.commands:
@@ -60,9 +67,9 @@ def handle_inline_query(bot, update, line=None):
 
     command, *args = query.split(" ")
 
-    for method in get_inline_methods():
-        if command == method:
-            get_inline_methods()[method](
+    for alias, name in get_inline_aliases().items():
+        if command == alias:
+            get_inline_methods()[name](
                 bot,
                 update,
                 inline=True,

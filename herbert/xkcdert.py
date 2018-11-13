@@ -14,7 +14,7 @@ class XKCDert(InlineBaseBert):
         """
         num = None
         try:
-            num = int(float(string))  # ich lasse das einfach mal
+            num = int(float(string))
         except ValueError:
             results = hercurles_utils.search_for('xkcd ' + string)
             for res in results:

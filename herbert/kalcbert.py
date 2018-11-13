@@ -3,7 +3,7 @@ from io import BytesIO
 
 from decorators import command, aliases
 from basebert import ImageBaseBert, Herberror
-from common.network import t_load_content, t_load_str, t_url_save_string
+from common.network import load_content, load_str, get_url_safe_string
 
 '''
 Meine Datei zum berechenen/bearbeiten von queries
@@ -20,7 +20,7 @@ class KalcBert(ImageBaseBert):
         """
         args = args or ('Greifswald', )
 
-        wttr_string = t_load_str(f'wttr.in/{t_url_save_string(args[0])}?T&q&0&n', fake_ua=False)
+        wttr_string = load_str(f'wttr.in/{get_url_safe_string(args[0])}?T&q&0&n', fake_ua=False)
         self.send_message(f'```{wttr_string}```')
 
     @aliases('wa', 'wolframalpha')
@@ -29,9 +29,9 @@ class KalcBert(ImageBaseBert):
         """
         Show a WolframAlpha generated informationsheet based on the given string
         """
-        query = t_url_save_string(string)
+        query = get_url_safe_string(string)
         url = f'https://api.wolframalpha.com/v1/simple?i={query}&appid=36GXXR-K5UA8L8XTY'
-        _, data = t_load_content(url)
+        _, data = load_content(url)
 
         image = Image.open(BytesIO(data))
         self.send_pil_image(image, full=full)
@@ -52,10 +52,10 @@ class KalcBert(ImageBaseBert):
         """
         # higly susceptible to fails if WolframAlphas output xml changes
         # but no scrapy so usable in python 3.7
-        query = t_url_save_string(string)
+        query = get_url_safe_string(string)
         url = f'http://api.wolframalpha.com/v2/query\
 ?appid=36GXXR-K5UA8L8XTY&input={query}&podstate=Step-by-step%20solution&format=image'
-        _, xdatax = t_load_content(url)  # XML website
+        _, xdatax = load_content(url)  # XML website
         xdatax = str(xdatax)
         # check if it worked
         # find unique point in String relating to the giflink
@@ -66,7 +66,7 @@ class KalcBert(ImageBaseBert):
         data, *_ = datax.replace("&amp;", "&").split("'")
         # check if it worked and a url is found
         if data[:4] == "http":
-            _, realdata = t_load_content(data)
+            _, realdata = load_content(data)
 
             image = Image.open(BytesIO(realdata))
             self.send_pil_image(image, full=False)

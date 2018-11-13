@@ -6,6 +6,7 @@ Submodules
 
 import inspect
 import logging
+import path
 
 from telegram.ext import Updater, InlineQueryHandler
 from telegram import InlineQueryResultArticle, InputTextMessageContent
@@ -16,14 +17,20 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-with open('token.txt', 'r') as fobj:
-    token = fobj.read().strip()
-
-updater = Updater(token)
-
 berts = []
 inline_methods = {}
 inline_aliases = {}
+
+
+def init():
+    global updater, token
+
+    path.change_path()
+
+    with open('token.txt', 'r') as fobj:
+        token = fobj.read().strip()
+
+    updater = Updater(token)
 
 
 def get_berts():
@@ -90,7 +97,8 @@ def handle_inline_query(bot, update, line=None):
     return False
 
 
-updater.dispatcher.add_handler(InlineQueryHandler(handle_inline_query))
+def register_inline_handler():
+    updater.dispatcher.add_handler(InlineQueryHandler(handle_inline_query))
 
 
 def idle():

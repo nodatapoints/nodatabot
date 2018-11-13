@@ -13,7 +13,7 @@ __all__ = ['load_xml', 'search_for']
 
 
 def load_xml(url, **kwargs):
-    res = network.t_load_str(url, **kwargs)
+    res = network.load_str(url, **kwargs)
     res = re.sub('xmlns=".*?"', " ", res)
     return etree.fromstring(res, parser=parser)
 

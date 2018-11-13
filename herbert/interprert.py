@@ -1,11 +1,14 @@
 from decorators import *
 from basebert import *
 
+import path
+
 from ctypes import create_string_buffer as buf, cdll
 
 
 __all__ = ['InterpRert', 'h_bf']
 
+path.change_path()
 
 # TODO make other architectures available
 try:

@@ -1,17 +1,11 @@
 #!/usr/bin/python3.7
 # Beep boop ich bin eigentlich bloß die liste aller berts die was am doen sind
 
-import pathlib
 import sys
 from inspect import getmembers, isclass
-from os import path, chdir
 
-# change pwd to consistent location
-herbert_path = pathlib.Path(path.dirname(path.abspath(__file__)))
-chdir(herbert_path)
-
-from core import *
-from basebert import BaseBert
+import core
+import basebert
 
 from asciimath import AsciiBert
 from diamaltbert import DiaMaltBert
@@ -29,11 +23,18 @@ from helpbert import HelpBert
 from asciimath import AsciiBert
 
 
-# Autoregister the included Berts
-for _, c in getmembers(sys.modules[__name__], isclass):
-    if issubclass(c, BaseBert) and c is not BaseBert:
-        register_bert(c)
+def start_bot():
+    core.init()
 
-if __name__ == '__main__':
-    idle()
+    # Autoregister the included Berts
+    for _, c in getmembers(sys.modules[__name__], isclass):
+        if issubclass(c, basebert.BaseBert) and c is not basebert.BaseBert:
+            core.register_bert(c)
 
+    core.register_inline_handler()
+
+    if __name__ == '__main__':
+        core.idle()
+
+
+start_bot()

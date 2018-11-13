@@ -23,8 +23,10 @@ class BaseBert:
     def message(self):
         if self.update.message:
             return self.update.message
+
         elif self.update.callback_query and self.update.callback_query.message:
             return self.update.callback_query.message
+
         else:
             return None
 
@@ -60,7 +62,7 @@ class BaseBert:
 
     def send_file(self, fname, data, **kwargs):
         from common import chat
-        chat.t_reply_filed_binary(self.bot, self.update, data, name=fname, **kwargs)
+        chat.reply_filed_binary(self.bot, self.update, data, name=fname, **kwargs)
 
     def send_photo(self, data, **kwargs):
         self.bot.send_photo(self.chat_id, data, **kwargs)

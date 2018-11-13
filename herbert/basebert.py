@@ -1,5 +1,6 @@
 from io import BytesIO
 from telegram import InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultPhoto
+import telegram.error
 import hashlib
 from common.basic_utils import arr_to_bytes
 
@@ -103,7 +104,7 @@ class InlineBaseBert(BaseBert):
             for i, string in enumerate(str_list)
         ]
 
-        inline_query.answer(result)
+        InlineBaseBert._inl_send(result, inline_query)
 
     def inline_answer_photo_url(self, url, title="", caption=""):
         self.inline_answer_photo_urls([(url, title, caption)])
@@ -124,11 +125,19 @@ class InlineBaseBert(BaseBert):
             for i, (url, title, desc) in enumerate(url_list)
         ]
 
-        inline_query.answer(result)
+        InlineBaseBert._inl_send(result, inline_query)
 
     @staticmethod
     def gen_id(array):
         return hashlib.md5(arr_to_bytes(array))
+
+    @staticmethod
+    def _inl_send(result, inline_query):
+        try:
+            inline_query.answer(result)
+        except telegram.error.BadRequest:
+            # took too long to answer
+            pass
 
 
 class ImageBaseBert(BaseBert):

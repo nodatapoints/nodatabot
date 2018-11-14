@@ -1,29 +1,36 @@
 from decorators import *
 from basebert import *
 
+import path
+
 from ctypes import create_string_buffer as buf, cdll
 
 
 __all__ = ['InterpRert', 'h_bf']
 
+path.change_path()
 
 # TODO make other architectures available
-h_bf = cdll.LoadLibrary('ext/brainfuck/libbf_x86_64-linux-gnu.so')
+try:
+    h_bf = cdll.LoadLibrary('ext/brainfuck/libbf_x86_64-linux-gnu.so')
+except Exception:
+    print("Warning: cdll could not find libbf.so. Did you `make`?")
+    raise
 
 
 class InterpRert(BaseBert):
     @aliases('bf')
-    @command(pass_args=False, pass_string=True)
+    @command(pass_args=False, pass_string=True, allow_inline=True)
     def brainfuck(self, string):
         """
         Interpret the message as brainfuck-code
         """
-        self.send_message(run_bf(bytes(string, encoding="utf-8")) or "(No decodable output)", parse_mode=None)
+        self.reply_str(run_bf(bytes(string, encoding="utf-8")) or "(No decodable output)", parse_mode=None)
 
 
-def has_invalid_bytes(bytestr):
-    for bt in bytestr:
-        if bt <= 31 or bt >= 127:
+def has_invalid_bytes(byte_str):
+    for bt in byte_str:
+        if (bt <= 31 or bt >= 127) and bt != 10:
             return True
 
     return False

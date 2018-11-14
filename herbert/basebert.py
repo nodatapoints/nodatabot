@@ -1,6 +1,10 @@
 from io import BytesIO
+from telegram import InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultPhoto
+import telegram.error
+import hashlib
+from common.basic_utils import arr_to_bytes
 
-__all__ = ['Herberror', 'BaseBert', 'ImageBaseBert']
+__all__ = ['Herberror', 'BaseBert', 'ImageBaseBert', 'InlineBaseBert']
 
 
 class Herberror(Exception):
@@ -11,10 +15,31 @@ class BaseBert:
     def __init__(self):
         self.bot = None
         self.update = None
+        self.inline = False
+        self.inline_query = None
+        self.inline_args = []
 
     @property
     def message(self):
-        return self.update.message or self.update.callback_query.message
+        if self.update.message:
+            return self.update.message
+
+        elif self.update.callback_query and self.update.callback_query.message:
+            return self.update.callback_query.message
+
+        else:
+            return None
+
+    @property
+    def message_text(self):
+        if self.message:
+            return self.message.text
+
+        elif self.inline_query:
+            return self.inline_query.query
+
+        else:
+            return ""
 
     @property
     def query(self):
@@ -37,16 +62,84 @@ class BaseBert:
 
     def send_file(self, fname, data, **kwargs):
         from common import chat
-        chat.t_reply_filed_binary(self.bot, self.update, data, name=fname, **kwargs)
+        chat.reply_filed_binary(self.bot, self.update, data, name=fname, **kwargs)
 
     def send_photo(self, data, **kwargs):
         self.bot.send_photo(self.chat_id, data, **kwargs)
+
+    # reply_ methods are a unified way to respond
+    # both @inline and /directly.
+    def reply_str(self, string):
+        if self.inline:
+            InlineBaseBert._inl_send_str_list([string], self.inline_query)
+        else:
+            self.send_message(string)
+
+    def reply_photo_url(self, url, title="", caption=""):
+        if self.inline:
+            InlineBaseBert._inl_send_photo_url_list([(url, title, caption)], self.inline_query)
+        else:
+            self.send_photo(url, title=title, caption=caption)
 
     @staticmethod
     def wrap_in_file(data, fname):
         f = BytesIO(data)
         f.name = fname
         return f
+
+
+class InlineBaseBert(BaseBert):
+    def inline_answer_string(self, string):
+        self.inline_answer_strings([string])
+
+    def inline_answer_strings(self, str_list):
+        InlineBaseBert._inl_send_str_list(str_list, self.inline_query)
+
+    @staticmethod
+    def _inl_send_str_list(str_list, inline_query):
+        result = [
+            InlineQueryResultArticle(
+                id=f"inline{i}-{InlineBaseBert.gen_id(str_list)}",
+                title=string,
+                input_message_content=InputTextMessageContent(string)
+            )
+            for i, string in enumerate(str_list)
+        ]
+
+        InlineBaseBert._inl_send(result, inline_query)
+
+    def inline_answer_photo_url(self, url, title="", caption=""):
+        self.inline_answer_photo_urls([(url, title, caption)])
+
+    def inline_answer_photo_urls(self, url_list):
+        InlineBaseBert._inl_send_photo_url_list(url_list, self.inline_query)
+
+    @staticmethod
+    def _inl_send_photo_url_list(url_list, inline_query):
+        result = [
+            InlineQueryResultPhoto(
+                id=f"photo{i}-{InlineBaseBert.gen_id(url_list)}",
+                photo_url=url,
+                title=title,
+                caption=desc,
+                thumb_url=url
+            )
+            for i, (url, title, desc) in enumerate(url_list)
+        ]
+
+        InlineBaseBert._inl_send(result, inline_query)
+
+    @staticmethod
+    def gen_id(array):
+        return hashlib.md5(arr_to_bytes(array))
+
+    @staticmethod
+    def _inl_send(result, inline_query):
+        try:
+            inline_query.answer(result)
+        except telegram.error.BadRequest:
+            # took too long to answer
+            pass
 
 
 class ImageBaseBert(BaseBert):

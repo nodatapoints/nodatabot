@@ -6,9 +6,9 @@ from urllib.parse import quote
 from basebert import Herberror
 
 # fake it 'til you make it
-from common.basic_utils import tx_assert
+from common.herbert_utils import tx_assert
 
-__all__ = ['t_load', 't_load_str', 't_load_content', 't_gen_filename_from_url', 't_is_image_content_type',
+__all__ = ['load', 'load_str', 'load_content', 'gen_filename_from_url', 'is_image_content_type',
            'NetworkError']
 
 USER_AGENT = {'user-agent': 'Mozilla/5.0 (X11; Linux i686; rv:64.0) Gecko/20100101 Firefox/64.0'}
@@ -33,7 +33,7 @@ class NetworkError(Herberror):
     """ Signal that some connection or request went wrong """
 
 
-def t_load(url, fake_ua=True):
+def load(url, fake_ua=True):
     """
     Interacts with urllib3 to send a GET request to a given URL.
 
@@ -55,7 +55,7 @@ def t_load(url, fake_ua=True):
         raise NetworkError(NO_RESPONSE_ERR)
 
 
-def t_load_str(url, **kwargs):
+def load_str(url, **kwargs):
     """"
     loads a web page and tries to convert it to text
 
@@ -67,13 +67,13 @@ def t_load_str(url, **kwargs):
             lookup failed
 
     """
-    res = t_load(url, **kwargs)
+    res = load(url, **kwargs)
 
     tx_assert(res.status == HTTP_STAT_OK,
               f"{RESPONSE_STAT_ERR}: {res.status}\nResponse Header: `{res.headers}`",
               err_class=NetworkError)
 
-    charset = t_response_extract_charset(res.headers)
+    charset = response_extract_charset(res.headers)
 
     try:
         return res.data.decode(charset or 'utf-8')
@@ -82,7 +82,7 @@ def t_load_str(url, **kwargs):
         raise Herberror(NOT_TEXT_ERR)
 
 
-def t_load_content(url, **kwargs):
+def load_content(url, **kwargs):
     """
     loads a web page from url, figures out the content type
     and returns it together with the pure binary data
@@ -91,7 +91,7 @@ def t_load_content(url, **kwargs):
     @param url the url to look up
     @returns a tuple of a content_type string and a binary data string
     """
-    res = t_load(url, **kwargs)
+    res = load(url, **kwargs)
 
     tx_assert(res.status == HTTP_STAT_OK, f"{RESPONSE_STAT_ERR}: {res.status}", err_class=NetworkError)
 
@@ -101,7 +101,7 @@ def t_load_content(url, **kwargs):
     return content_type, res.data
 
 
-def t_is_image_content_type(content_type):
+def is_image_content_type(content_type):
     """
     @brief Checks whether content_type is the content type of an image
     @param content_type a utf8 encoded string
@@ -116,7 +116,7 @@ _ending = {
 }
 
 
-def t_gen_filename_from_url(url, content_type="text/plain"):
+def gen_filename_from_url(url, content_type="text/plain"):
     """
     When replying with a file (@see t_reply_filed),
     the file needs to get a name. in this context,
@@ -134,7 +134,7 @@ def t_gen_filename_from_url(url, content_type="text/plain"):
     return re.sub("[:/ \t\n]", "_", url) + "." + _ending.get(content_type, re.split("/", content_type)[1])
 
 
-def t_response_extract_charset(response_header):
+def response_extract_charset(response_header):
     """
     figure out the response character encoding from an http-
     header, if any.
@@ -154,5 +154,5 @@ def t_response_extract_charset(response_header):
         return None
 
 
-def t_url_save_string(inn):
+def get_url_safe_string(inn):
     return quote(inn, safe='')

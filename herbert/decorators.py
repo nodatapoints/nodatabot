@@ -13,24 +13,32 @@ from basebert import Herberror
 __all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback']
 
 
-def pull_string(text):
+def pull_string(text):  # FIXME requires documentation
     _, _, string = text.partition(' ')
     return string
 
 
+ERROR_FAILED = 'Oops, something went wrong! 😱'
+
+
 def handle_herberrors(method):
     """
+    Returns a wrapper around `method`, which in turn
     Catches `Herberror` and sends the argument of the exception as a message
     to the user. When an exception of any other type is caught, it will send
     a default error message to the user and raise it again.
     """
     @wraps(method)
     def wrapped(self, *args, **kwargs):
+        """
+        Functional wrapper to handle errors a command_handler
+        might throw as well as errors that are entirely unexpected
+        """
         try:
             return method(self, *args, **kwargs)
 
         except Herberror as e:
-            self.send_message(*e.args)
+            self.reply_str(*e.args)
 
         except telegram.error.TimedOut as e:
             logging.warning('Timed out: {e}', e)
@@ -39,23 +47,41 @@ def handle_herberrors(method):
             logging.warning('Connection Failed: {e}', e)
 
         except Exception:
-            self.send_message('Oops, something went wrong! 😱')
+            self.reply_str(ERROR_FAILED)
+
             raise
 
     return wrapped
 
 
 def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
-                        pass_string=False):
+                        pass_string=False, pass_args=False):
     """
-    Updates `bot` and `update` of the bot instance of the
-    bound method before calling it.
+    Returns a wrapper around bound_method, configured as per
+    the **kwargs to this function. The wrapper will
+    update `bot` and `update` of the bot instance of the
+    bound method before calling it. It will also provide
+    - an argument string, iff pass_string is true
+    - an update-object, iff pass_update is true
+    - a callback-query object, if such object exists and
+        pass_query is true
+    - an argument array, iff pass_args is true
+    When the wrapper is called with inline=True, it will additionally
+    provide access to the objects required to reply to an inline
+    query.
     """
-    # Honestly, this is extremely bodgy ... sad kamal
     @wraps(bound_method)
-    def wrapped(bot, update, *args, **kwargs):
+    def wrapped(bot, update, *args, inline=False, inline_query=None,
+                inline_args=[], **kwargs):
+
         bound_method.__self__.bot = bot
         bound_method.__self__.update = update
+        bound_method.__self__.inline = inline
+        bound_method.__self__.inline_query = inline_query
+
+        if pass_args and inline:
+            args = (inline_args, )
+
         if pass_query:
             args = (update.callback_query, ) + args
 
@@ -63,7 +89,8 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
             args = (update, ) + args
 
         if pass_string:
-            string = pull_string(bound_method.__self__.message.text)
+            string = pull_string(bound_method.__self__.message_text)
+
             args = (string, ) + args
 
         return bound_method(*args, **kwargs)
@@ -71,12 +98,20 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
     return wrapped
 
 
-def command(arg=None, *, pass_args=None, pass_update=False,
-            pass_string=False, register_help=True, **kwargs):
+def command(arg=None, *, pass_args=None, pass_update=False, pass_string=False,
+            register_help=True, allow_inline=False, **kwargs):
     """
     Generates a command decorator (see `command_decorator`).
-    `**kwargs` will be passed to the dispatcher.
-    When applied directly via `@command` it acts like the decorator it returns.
+    All **kwargs are for either
+        - configuring of the decorator generation
+        - configuring of the function wrapped by the decorator
+        - configuring of the telegram.Dispatcher, which will
+            finally call the wrapped function
+
+    Can be used directly as `@command`, in which case the argument to this
+    meta-wrapper (which will be the callable itself, instead of any actual
+    arguments) will be forwarded to `command_decorator`
+
     `pass_args: bool`
         Hands the decorated handler a tuple of the individual arguments of the
         command message
@@ -95,9 +130,22 @@ def command(arg=None, *, pass_args=None, pass_update=False,
         pass_args = False if pass_string else True
 
     def command_decorator(method):
-        """Adds an callable `handler` attribute to the method, which will return
-        appropriate handler for the dispatcher.
         """
+        Decorate `method` by adding
+            - a callable `handler` attribute to the method, which will take
+                a `bound_method`, wrap it in yet another layer of meta-decoration,
+                which will in turn create the appropriate handler for the dispatcher.
+            - a callable `get_inner`, which takes a `bound_method` and creates
+                the internal callable for said dispatchable.
+            - some data members to reflect the type of command
+
+        And finally
+            - wrapping `method` in the `handle_herberrors` decorator
+
+        """
+        # FIXME/NOTE that said, i still do not get why get_inner doesn't just use `method`?
+        # there is no reason afaik to duplicate the callable for each alias
+
         # This is necessary because the method itself is called as
         # `cls.method(self, *args)`, but the callback wants the bound method
         # that only takes `*args`. The bound method can only be constructed
@@ -105,19 +153,25 @@ def command(arg=None, *, pass_args=None, pass_update=False,
         if not callable(method):
             raise ValueError(f'{method} not callable. Did you use @command()?')
 
-        def handler(name, bound_method):
+        def get_inner(bound_method):
             inner_callback = pull_bot_and_update(
                 bound_method,
                 pass_update=pass_update,
                 pass_query=False,
-                pass_string=pass_string
+                pass_string=pass_string,
+                pass_args=pass_args
             )
-            return CommandHandler(
-                name, inner_callback, pass_args=pass_args, **kwargs)
+            return inner_callback
 
+        def handler(name, bound_method):
+            return CommandHandler(
+                name, get_inner(bound_method), pass_args=pass_args, **kwargs)
+
+        method.get_inner = get_inner
         method.command_handler = handler
         method.register_help = register_help
         method.commands = [method.__name__]
+        method.inline = allow_inline
         return handle_herberrors(method)
 
     if callable(arg):
@@ -127,7 +181,16 @@ def command(arg=None, *, pass_args=None, pass_update=False,
 
 
 def aliases(*args):
+    """
+    Creates a decorator for adding propertied to a function
+    decorated by `@command`.
+    """
     def decorator(method):
+        """
+        Push the arguments passed to `aliases` in
+        the commands-list created by the command-
+        decorator
+        """
         try:
             method.commands.extend(args)
             return method

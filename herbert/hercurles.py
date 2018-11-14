@@ -37,7 +37,7 @@ def _t_get_text(bot, update, args):
 
     url = args[0]
 
-    _t_reply_large_utf8(bot, update, t_load_str(url), name=t_gen_filename_from_url(url))
+    reply_large_utf8(bot, update, load_str(url), name=gen_filename_from_url(url))
 
 
 def _t_get(bot, update, args):
@@ -45,20 +45,20 @@ def _t_get(bot, update, args):
 
     url = args[0]
 
-    data_type, data = t_load_content(url)
+    data_type, data = load_content(url)
 
-    t_reply_filed_binary(bot, update, data, t_gen_filename_from_url(url, data_type),
-                         reply_markup=_t_make_keyboard(
-                              {"Show as Photo": _t_make_callback("0", url)}
-                          ) if t_is_image_content_type(data_type) else None
-                         )
+    reply_filed_binary(bot, update, data, gen_filename_from_url(url, data_type),
+                       reply_markup=make_keyboard(
+                              {"Show as Photo": make_callback("0", url)}
+                          ) if is_image_content_type(data_type) else None
+                       )
 
 
 def _t_search_for(bot, update, query):
 
     results = "\n".join(search_for(query))
 
-    _t_reply_large_utf8(bot, update, results)
+    reply_large_utf8(bot, update, results)
 
 
 def _t_search_for_first(bot, update, query):
@@ -68,7 +68,7 @@ def _t_search_for_first(bot, update, query):
     except IndexError:
         result = "No Link found."
 
-    _t_reply_large_utf8(bot, update, result)
+    reply_large_utf8(bot, update, result)
 
 
 class Hercurles(BaseBert):
@@ -105,11 +105,11 @@ class Hercurles(BaseBert):
         _t_search_for_first(self.bot, self.update, string)
 
     @callback(pattern='T.*')
-    @_tx_callback
+    @make_tx_callback
     def callback_fix(self, query, args):
         # I have no idea what I am doing. :)
         self.bot.edit_message_media(
             chat_id=query.message.chat_id,
             message_id=query.message.message_id,
-            media=t_get_photo(args[0]),
+            media=get_photo(args[0]),
         )

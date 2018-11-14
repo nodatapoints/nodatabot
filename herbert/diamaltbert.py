@@ -170,8 +170,8 @@ class DiaMaltBert(ImageBaseBert):
         method = None
         for s in entry:
             method = do_things_to_img.get(s)
-        if method is not None:
-            big_image = big_image.transpose(method)
+            if method is not None:
+                big_image = big_image.transpose(method)
 
         if INVERT in entry:
             big_image = ImageOps.invert(big_image)

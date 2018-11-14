@@ -15,3 +15,5 @@ venv
 *.aria2
 *.old
 *.err.txt
+test.py
+testbert.py

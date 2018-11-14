@@ -14,18 +14,19 @@ substitutions = {
     r'<=>': r'\\iff ',
     r'=>': r'\\implies ',
     r'inf': r'\\infty ',
-    r'\\sin\s': r'\\in ',
+    r'\\sin\s': r'\\sin ',
+    r'in\s': r'\\in ',
     r'N': r'\\mathbb{N}',
     r'R': r'\\mathbb{R}',
     r'Q': r'\\mathbb{Q}',
-    EXPR + r'\^' + EXPR: r'{{\1}\^{\2}}',
-    EXPR + '/' + EXPR: r'r{\\frac{\1}{\2}}',
-    r'lim\s*' + EXPR: r'r{\\lim_{\1}}',
+    EXPR + r'\^' + EXPR: r'{{\1}^{\2}}',
+    EXPR + '/' + EXPR: r'{\\frac{\1}{\2}}',
+    r'lim\s*' + EXPR: r'{\\lim_{\1}}',
     r'\*': r'\\cdot ',
     r'O': r'\\mathcal{O}',
     r'P': r'\\mathcal{P}',
     r'\(': r'\\left(',
-    r'\)': '\\right)'
+    r'\)': r'\\right)'
 }
 
 

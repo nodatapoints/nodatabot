@@ -31,9 +31,9 @@ def make_help_str():
 
 # no idea why f"" has problems with those,
 # when other single-quoted strings are ok.
-NEWLINE = "\n"
-DBLNEWLINE = "\n\n"
-SPACES = "\s+"
+NEWLINE = '\n'
+DBLNEWLINE = '\n\n'
+SPACES = r'\s+'
 
 
 def checkfor_(s):

@@ -10,6 +10,9 @@ template = """
 \\usepackage{{amsmath}}
 \\usepackage{{amssymb}}
 \\usepackage{{wasysym}}
+\\usepackage{{marvosym}}
+\\usepackage{{mathtools}}
+
 \\usepackage{{amsfonts}}
 \\usepackage[ngerman]{{babel}}
 

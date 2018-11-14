@@ -33,18 +33,6 @@ def init():
     updater = Updater(token)
 
 
-def get_berts():
-    return berts
-
-
-def get_inline_methods():
-    return inline_methods
-
-
-def get_inline_aliases():
-    return inline_aliases
-
-
 def register_bert(cls):
     """Adds a Bert to Herbert"""
     bot = cls()
@@ -74,9 +62,9 @@ def handle_inline_query(bot, update, line=None):
 
     command, *args = query.split(" ")
 
-    for alias, name in get_inline_aliases().items():
+    for alias, name in inline_aliases.items():
         if command == alias:
-            get_inline_methods()[name](
+            inline_methods[name](
                 bot,
                 update,
                 inline=True,

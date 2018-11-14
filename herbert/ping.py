@@ -15,7 +15,7 @@ class PingBert(InlineBaseBert):
         """
         Whatever you say.
         """
-        self.reply_str(string)
+        self.reply_text(string)
 
     @command(pass_args=False, register_help=False)
     def pong(self):

@@ -38,16 +38,18 @@ def handle_herberrors(method):
             return method(self, *args, **kwargs)
 
         except Herberror as e:
-            self.reply_str(*e.args)
+            self.reply_text(*e.args)
+            msg, = e.args
+            logging.debug(f'Herberror: "{msg}"')
 
-        except telegram.error.TimedOut as e:
-            logging.warning('Timed out: {e}', e)
+        except telegram.error.TimedOut:
+            logging.info('Timed out')
 
-        except telegram.error.NetworkError as e:
-            logging.warning('Connection Failed: {e}', e)
+        except telegram.error.NetworkError:
+            logging.info('Connection Failed')
 
         except Exception:
-            self.reply_str(ERROR_FAILED)
+            self.reply_text(ERROR_FAILED)
 
             raise
 

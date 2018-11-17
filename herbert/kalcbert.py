@@ -23,17 +23,28 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         self.reply_str(f'```{wttr_string}```', args[0])
 
     @aliases('wa', 'wolframalpha')
-    @command(pass_string=True)
+    @command(pass_string=True, allow_inline=True)
     def wolfram(self, string, full=False):
         """
         Show a WolframAlpha generated informationsheet based on the given string
         """
         query = get_url_safe_string(string)
         url = f'https://api.wolframalpha.com/v1/simple?i={query}&appid=36GXXR-K5UA8L8XTY'
-        _, data = load_content(url)
+        
+        ###
+        ### TODO GIF INLINE SUPPORT
+        ###
+        if full or not full: 
+            # high resolution file
+            _, data = load_content(url)
+            image = Image.open(BytesIO(data))
+            self.send_pil_image(image, full=full)
+        else:
+            # simple image
+            self.reply_photo_url(
+                url, caption='caption', title='title'
+            )
 
-        image = Image.open(BytesIO(data))
-        self.send_pil_image(image, full=full)
 
     @aliases('hrwa')
     @command(pass_string=True)
@@ -52,8 +63,7 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         # higly susceptible to fails if WolframAlphas output xml changes
         # but no scrapy so usable in python 3.7
         query = get_url_safe_string(string)
-        url = f'http://api.wolframalpha.com/v2/query\
-?appid=36GXXR-K5UA8L8XTY&input={query}&podstate=Step-by-step%20solution&format=image'
+        url = f'http://api.wolframalpha.com/v2/query?appid=36GXXR-K5UA8L8XTY&input={query}&podstate=Step-by-step%20solution&format=image'
         _, xdatax = load_content(url)  # XML website
         xdatax = str(xdatax)
         # check if it worked

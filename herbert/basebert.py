@@ -69,12 +69,12 @@ class BaseBert:
 
     # reply_ methods are a unified way to respond
     # both @inline and /directly.
-    def reply_str(self, string, title=""):
+    def reply_str(self, string, title="", **kwargs):
         title = title or string
         if self.inline:
             InlineBaseBert._inl_send_str_list([(string, title)], self.inline_query)
         else:
-            self.send_message(string)
+            self.send_message(string, **kwargs)
 
     def reply_photo_url(self, url, title="", caption=""):
         if self.inline:

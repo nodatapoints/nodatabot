@@ -3,6 +3,7 @@ Define all the decorators!
 """
 
 from functools import wraps
+from datetime import datetime, timedelta
 import logging
 
 from telegram.ext import CommandHandler, CallbackQueryHandler
@@ -11,6 +12,8 @@ import telegram.error
 from basebert import Herberror
 
 __all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback']
+
+reply_timeout = timedelta(seconds=30)
 
 
 def pull_string(text):  # FIXME requires documentation
@@ -80,6 +83,11 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
         bound_method.__self__.update = update
         bound_method.__self__.inline = inline
         bound_method.__self__.inline_query = inline_query
+
+        delta = datetime.now() - update.message.date
+        if delta > reply_timeout:
+            logging.info(f'Command "{update.message.text}" timed out ({delta.seconds:.1f}s > {reply_timeout.seconds:.1f}s)')
+            return
 
         if pass_args and inline:
             args = (inline_args, )

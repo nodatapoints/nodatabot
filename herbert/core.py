@@ -13,6 +13,7 @@ from telegram import InlineQueryResultArticle, InputTextMessageContent
 
 logging.basicConfig(
     style='{',
+    datefmt='%d.%m. %H:%M:%S',
     format='{asctime} [{levelname:5}] {message}',
     level=logging.INFO
 )

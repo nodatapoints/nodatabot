@@ -69,15 +69,20 @@ class DiaMaltBert(ImageBaseBert):
         edge, scale, num, width, time, *setup = args
 
         # handle random queries and catch input errors
-        if edge is 'r':             edge = random.choice([t,b,w])
-        if num is 'r':              num = random.randint(0,255)
-        elif num < 0:               raise Herberror('Not a valid rule') 
-        if setup[0] is 'r':         setup = [random.randint(0, 1) for _ in range(width)]
-        elif len(setup) != width:   raise Herberror('Not a valid setup')
+        if edge is 'r':             
+            edge = random.choice([t,b,w])
+        if num is 'r':              
+            num = random.randint(0,255)
+        elif num < 0:               
+            raise Herberror('Not a valid rule') 
+        if setup[0] is 'r':         
+            setup = [random.randint(0, 1) for _ in range(width)]
+        elif len(setup) != width:   
+            raise Herberror('Not a valid setup')
         else: 
             for s, _ in enumerate(setup):
                 if setup[s] not in [0,1]:  
-                                    raise Herberror('Not a valid setup')
+                    raise Herberror('Not a valid setup')
 
         # gets the binary representation of the String, meh
         rulelength = max(3, int(log(log(max(num,255),2),2))+1)  # how many cells are affecting the next
@@ -93,34 +98,40 @@ class DiaMaltBert(ImageBaseBert):
         img = Image.new('RGB', (width*scale, time*scale))
         for y, ey in enumerate(tsteps):
             for x, ex in enumerate(ey):
-                if ex is 0: color = white
-                else:       color = black
+                if ex is 0: 
+                    color = white
+                else:       
+                    color = black
                 subimg = Image.new('RGB', (scale, scale), color)
                 img.paste(subimg, (x * scale, y * scale))
         self.send_pil_image(img, full=full)
 
     def do_rule(self, last, subrules, rulelength, edge):
-        Δx = -(rulelength//2) 
+        delta_x = -(rulelength//2) 
         current = []
 
-        for index, element in enumerate(last):
-            current += [self.do_step(index, last, Δx, rulelength, edge, subrules)]
+        for index,_ in enumerate(last):
+            current += [self.do_step(index, last, delta_x, rulelength, edge, subrules)]
         return current
 
     @staticmethod
-    def do_step(index, last, Δx, rulelength, edge, subrules):
+    def do_step(index, last, delta_x, rulelength, edge, subrules):
         pow_of_2 = 1
         output = 0;
         listmax = len(last)
         listmin = 0
         for i in reversed(range(rulelength)):
-            if i+index+Δx >= listmin and i+index+Δx < listmax:
-                temp_value = last[i+index+Δx]
+            if i+index+delta_x >= listmin and i+index+delta_x < listmax:
+                temp_value = last[i+index+delta_x]
             else:
-                if edge is 't':     temp_value = last[(i+index+Δx)%listmax]
-                elif edge is 'w':   temp_value = 0
-                elif edge is 'b':   temp_value = 1
-                else:               raise Herberror('not a vadid edge-identifier')
+                if edge is 't':
+                    temp_value = last[(i+index+delta_x)%listmax]
+                elif edge is 'w':
+                    temp_value = 0
+                elif edge is 'b':   
+                    temp_value = 1
+                else:               
+                    raise Herberror('not a valid edge-identifier')
             output += pow_of_2 * temp_value
             pow_of_2 *= 2
         return subrules[output]

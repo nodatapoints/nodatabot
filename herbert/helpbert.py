@@ -22,7 +22,7 @@ class HelpBert(BaseBert):
 def make_help_str():
     global helpstr
     res = HELP_HEADER
-    for bert in core.get_berts():
+    for bert in core.berts:
         res += make_bert_str(bert)
 
     helpstr = res

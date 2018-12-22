@@ -21,6 +21,7 @@ from todobert import TodoBert
 from xkcdert import XKCDert
 from helpbert import HelpBert
 from asciimath import AsciiBert
+from urbanbert import UrbanBert
 
 
 def start_bot():

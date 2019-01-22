@@ -31,6 +31,8 @@ class TexBert(ImageBaseBert):
         """
         Render LaTeX
         """
+        if string == "":
+            raise Herberror('Keine leeren Inputs')
         try:
             result = run(
                 ('./texit.zsh', f'{resolution:d}'),

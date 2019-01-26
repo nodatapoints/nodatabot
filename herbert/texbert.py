@@ -12,6 +12,8 @@ template = """
 \\usepackage{{wasysym}}
 \\usepackage{{marvosym}}
 \\usepackage{{mathtools}}
+\\usepackage{{etoolbox}}
+\\usepackage{{tikz}}
 
 \\usepackage{{amsfonts}}
 \\usepackage[ngerman]{{babel}}

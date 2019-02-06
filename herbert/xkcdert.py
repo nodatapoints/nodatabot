@@ -1,7 +1,7 @@
-import json
+import json.decoder
 
 from basebert import InlineBaseBert, Herberror
-from common import network, hercurles_utils
+from common import hercurles_utils
 from decorators import command
 import re
 
@@ -28,7 +28,7 @@ class XKCDert(InlineBaseBert):
 
         url = f'www.xkcd.com/{num}/info.0.json'
         try:
-            info_json = json.loads(network.load(url).data)
+            info_json = hercurles_utils.load_json(url)
             self.reply_photo_url(
                 info_json.get('img'),
                 caption=f"{info_json.get('title')}\n\n{info_json.get('alt')}"

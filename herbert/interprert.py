@@ -25,7 +25,7 @@ class InterpRert(BaseBert):
         """
         Interpret the message as brainfuck-code
         """
-        self.reply_str(run_bf(bytes(string, encoding="utf-8")) or "(No decodable output)", parse_mode=None)
+        self.reply_text(run_bf(bytes(string, encoding="utf-8")) or "(No decodable output)", parse_mode=None)
 
 
 def has_invalid_bytes(byte_str):

@@ -1,3 +1,4 @@
+import datetime
 from decorators import command
 from basebert import InlineBaseBert
 
@@ -15,7 +16,7 @@ class PingBert(InlineBaseBert):
         """
         Whatever you say.
         """
-        self.reply_str(string)
+        self.reply_text(string)
 
     @command(pass_args=False, register_help=False)
     def pong(self):
@@ -23,3 +24,7 @@ class PingBert(InlineBaseBert):
         Easter Egg
         """
         self.send_message('So you think you\'re clever, huh?')
+
+    @command(pass_args=False)
+    def time(self):
+      self.send_message(str(datetime.datetime.now()))

@@ -24,7 +24,7 @@ class HashBert(InlineBaseBert):
         """
         Return the md5-hash of the given string
         """
-        self.reply_str(hl.md5(str_to_bytes(string)).hexdigest())
+        self.reply_text(hl.md5(str_to_bytes(string)).hexdigest())
 
     @aliases('sha512', 'hash', 'sha')
     @command(pass_string=True, allow_inline=True)
@@ -32,21 +32,21 @@ class HashBert(InlineBaseBert):
         """
         Return the sha512-hash of the given string
         """
-        self.reply_str(hl.sha512(str_to_bytes(string)).hexdigest())
+        self.reply_text(hl.sha512(str_to_bytes(string)).hexdigest())
 
     @command(pass_string=True, allow_inline=True)
     def b64enc(self, string):
         """
         Base64-encode the given string
         """
-        self.reply_str(b64e(string))
+        self.reply_text(b64e(string))
 
     @command(pass_string=True, allow_inline=True)
     def b64dec(self, string):
         """
         Base64-decode the given string
         """
-        self.reply_str(b64d(string))
+        self.reply_text(b64d(string))
 
     @command(pass_string=True)
     def hashit(self, string):
@@ -68,7 +68,7 @@ class HashBert(InlineBaseBert):
 
         res = rotate(int(float(shift)), " ".join(rest))
 
-        self.reply_str(res)
+        self.reply_text(res)
 
 
 def rotate_char(shift, char, low, high):

@@ -10,6 +10,12 @@ template = """
 \\usepackage{{amsmath}}
 \\usepackage{{amssymb}}
 \\usepackage{{wasysym}}
+\\usepackage{{marvosym}}
+\\usepackage{{mathtools}}
+\\usepackage{{etoolbox}}
+\\usepackage{{tikz}}
+\\usepackage{{physics}}
+
 \\usepackage{{amsfonts}}
 \\usepackage[ngerman]{{babel}}
 
@@ -28,6 +34,10 @@ class TexBert(ImageBaseBert):
         """
         Render LaTeX
         """
+        if resolution > 1e6:
+            raise Herberror('Rescaling is broken, bitte bei Kamal beschweren')
+        if string == "":
+            raise Herberror('Keine leeren Inputs')
         try:
             result = run(
                 ('./texit.zsh', f'{resolution:d}'),
@@ -72,6 +82,14 @@ class TexBert(ImageBaseBert):
         Render LaTeX in math-mode. Implies an environment for typesetting math.
         """
         self.tex(f'$\\displaystyle {string}$')
+
+    @aliases('atex')
+    @command(pass_string=True)
+    def aligntex(self, string):
+        """
+        Render LaTeX in aligned math-mode. Implies an environment for typesetting math.
+        """
+        self.displaytex(f'\\begin{{aligned}} {string} \\end{{aligned}}')
 
     @aliases('itex')
     @command(pass_string=True)

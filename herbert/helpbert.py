@@ -22,7 +22,7 @@ class HelpBert(BaseBert):
 def make_help_str():
     global helpstr
     res = HELP_HEADER
-    for bert in core.get_berts():
+    for bert in core.berts:
         res += make_bert_str(bert)
 
     helpstr = res
@@ -31,9 +31,9 @@ def make_help_str():
 
 # no idea why f"" has problems with those,
 # when other single-quoted strings are ok.
-NEWLINE = "\n"
-DBLNEWLINE = "\n\n"
-SPACES = "\s+"
+NEWLINE = '\n'
+DBLNEWLINE = '\n\n'
+SPACES = r'\s+'
 
 
 def checkfor_(s):

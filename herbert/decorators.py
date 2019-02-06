@@ -3,6 +3,7 @@ Define all the decorators!
 """
 
 from functools import wraps
+from datetime import datetime, timedelta
 import logging
 
 from telegram.ext import CommandHandler, CallbackQueryHandler
@@ -11,6 +12,8 @@ import telegram.error
 from basebert import Herberror
 
 __all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback']
+
+reply_timeout = timedelta(seconds=30)
 
 
 def pull_string(text):  # FIXME requires documentation
@@ -38,16 +41,18 @@ def handle_herberrors(method):
             return method(self, *args, **kwargs)
 
         except Herberror as e:
-            self.reply_str(*e.args)
+            self.reply_text(*e.args)
+            msg, = e.args
+            logging.debug(f'Herberror: "{msg}"')
 
-        except telegram.error.TimedOut as e:
-            logging.warning('Timed out: {e}', e)
+        except telegram.error.TimedOut:
+            logging.info('Timed out')
 
-        except telegram.error.NetworkError as e:
-            logging.warning('Connection Failed: {e}', e)
+        except telegram.error.NetworkError:
+            logging.info('Connection Failed')
 
         except Exception:
-            self.reply_str(ERROR_FAILED)
+            self.reply_text(ERROR_FAILED)
 
             raise
 
@@ -78,6 +83,11 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
         bound_method.__self__.update = update
         bound_method.__self__.inline = inline
         bound_method.__self__.inline_query = inline_query
+
+        delta = datetime.now() - update.message.date
+        if delta > reply_timeout:
+            logging.info(f'Command "{update.message.text}" timed out ({delta.seconds:.1f}s > {reply_timeout.seconds:.1f}s)')
+            return
 
         if pass_args and inline:
             args = (inline_args, )

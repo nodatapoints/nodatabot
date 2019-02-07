@@ -5,7 +5,7 @@ from urllib.parse import quote
 from decorators import *
 from basebert import Herberror, BaseBert
 
-    
+
 class UrbanBert(BaseBert):
     @aliases('urban', 'dict')
     @command(pass_string=True)
@@ -18,7 +18,6 @@ class UrbanBert(BaseBert):
         response = requests.get(url)
         site = HtmlResponse(url=response.url, body=response.content)
 
-
         def join_chunked(xpath):
             div = site.xpath(xpath)[0]
             chunks = div.xpath('.//text()').extract()
@@ -30,18 +29,3 @@ class UrbanBert(BaseBert):
 
         outp = (f'`{title}:`\n{meaning}\n_{example}_')
         self.reply_text(outp)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

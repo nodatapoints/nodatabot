@@ -27,4 +27,5 @@ class PingBert(InlineBaseBert):
 
     @command(pass_args=False)
     def time(self):
-      self.send_message(str(datetime.datetime.now()))
+        """prints the current time and date"""
+        self.send_message(str(datetime.datetime.now()))

@@ -5,7 +5,7 @@ from telegram import InlineQueryResultArticle, InputTextMessageContent, InlineQu
 import telegram.error
 
 from common.basic_utils import arr_to_bytes
-from common import chat
+from common import chat, chatformat
 
 __all__ = ['Herberror', 'BadHerberror', 'BaseBert', 'ImageBaseBert', 'InlineBaseBert']
 
@@ -56,7 +56,7 @@ class BaseBert:
     def chat_id(self):
         return self.message.chat_id
 
-    def send_message(self, *args, parse_mode='MARKDOWN', **kwargs):
+    def send_message(self, *args, parse_mode=chatformat.get_parse_mode(), **kwargs):
         return self.bot.send_message(
             self.chat_id,
             *args,

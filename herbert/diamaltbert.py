@@ -47,24 +47,24 @@ class DiaMaltBert(ImageBaseBert):
     @command
     def higresrule(self, args):
         """
-        Sends the high resolution time diagram as a file\
-        \
-        This utility exists to draw the 1D "rule" cellular automaton invented by stephen Wolfram in 1985
+        Sends the high resolution time diagram as a file
+
+        This utility exists to draw the 1D "rule" cellular automaton invented by stephen Wolfram in 1985\
         and to send the high resolution file of the generated image.
-        It starts with a line of 1's (black) and 0's (white) at the top of the image and applies the given rule on
-        the current row in every timestep to create the next row.\
-        More info on "http://mathworld.wolfram.com/ElementaryCellularAutomaton.html"\
-        \
-        The command structure is given by:\
-        `/rule <edge> <scale> <#rule> <width> <height> <1st>`\
-        \
-        `<edge> ∊ {r(andom), t(orus), b(lack), w(hite)}` \
-        `<scale> ∊ [1, ∞[ `the size of 1 cell in pixels \
-        `<#rule> ∊ [0, 255] `the rule you want to see\
-        `<width> ∊ [1, ∞[` the number of cells\
-        `<height> ∊ [1, ∞[` the number of timesteps\
-        `<height> ∊ {r, [all states like 0 1 1 ...]}`\
-        \
+        It starts with a line of 1's (black) and 0's (white) at the top of the image and applies the given rule on\
+        the current row in every timestep to create the next row.
+        More info on "http://mathworld.wolfram.com/ElementaryCellularAutomaton.html"
+
+        The command structure is given by:
+        `/rule <edge> <scale> <#rule> <width> <height> <1st>`
+
+        `<edge>   ∊ {r(andom), t(orus), b(lack), w(hite)}`
+        `<scale>  ∊ [1, ∞[ `the size of 1 cell in pixels
+        `<#rule>  ∊ [0, 255] `the rule you want to see
+        `<width>  ∊ [1, ∞[` the number of cells
+        `<height> ∊ [1, ∞[` the number of timesteps
+        `<height> ∊ {r, [all states like 0 1 1 ...]}`
+
         e.g: `/rule b 25 73 200 200 r`
         """
         self.rule(args, full=True)
@@ -72,23 +72,23 @@ class DiaMaltBert(ImageBaseBert):
     @command
     def rule(self, args, full=False):
         """
-        Draws a time diagram of a 1D cellular Automaton\
-        \
-        This utility exists to draw the 1D "rule" cellular automaton invented by stephen Wolfram in 1985.
-        It starts with a line of 1's (black) and 0's (white) at the top of the image and applies the given rule on
-        the current row in every timestep to create the next row.\
-        More info on "http://mathworld.wolfram.com/ElementaryCellularAutomaton.html"\
-        \
-        The command structure is given by:\
-        `/rule <edge> <scale> <#rule> <width> <height> <1st>`\
-        \
-        `<edge> ∊ {r(andom), t(orus), b(lack), w(hite)}` \
-        `<scale> ∊ [1, ∞[ `the size of 1 cell in pixels \
-        `<#rule> ∊ [0, 255] `the rule you want to see\
-        `<width> ∊ [1, ∞[` the number of cells\
-        `<height> ∊ [1, ∞[` the number of timesteps\
-        `<height> ∊ {r, [all states like 0 1 1 ...]}`\
-        \
+        Draws a time diagram of a 1D cellular Automaton
+
+        This utility exists to draw the 1D "rule" cellular automaton invented by stephen Wolfram in 1985.\
+        It starts with a line of 1's (black) and 0's (white) at the top of the image and applies the given rule on\
+        the current row in every timestep to create the next row.
+        More info on "http://mathworld.wolfram.com/ElementaryCellularAutomaton.html"
+
+        The command structure is given by:
+        `/rule <edge> <scale> <#rule> <width> <height> <1st>`
+
+        `<edge>   ∊ {r(andom), t(orus), b(lack), w(hite)}`
+        `<scale>  ∊ [1, ∞[ `the size of 1 cell in pixels
+        `<#rule>  ∊ [0, 255] `the rule you want to see
+        `<width>  ∊ [1, ∞[` the number of cells
+        `<height> ∊ [1, ∞[` the number of timesteps
+        `<height> ∊ {r, [all states like 0 1 1 ...]}`
+
         e.g: `/rule b 25 73 200 200 r`
         """
         # /rule {r, t(orus), b(lack), w(hite)} {scale} {r,0,1,2,3,...,255?} {width} {time} {r,[a1,a2,a3,...,awidth]
@@ -157,7 +157,7 @@ class DiaMaltBert(ImageBaseBert):
         listmax = len(last)
         listmin = 0
         for i in reversed(range(rulelength)):
-            if i + index + delta_x >= listmin and i + index + delta_x < listmax:
+            if listmin <= i + index + delta_x < listmax:
                 temp_value = last[i + index + delta_x]
             else:
                 if edge is 't':
@@ -175,17 +175,20 @@ class DiaMaltBert(ImageBaseBert):
     @command
     def carpet(self, args):
         """
-        Generate a self-similar fractal carpet based on the given parameters\
-        \
-        is to come
+        Generate a self-similar fractal carpet based on the given parameters
+
+        Some day in the future someone is going to be sufficiently bored to explain this thing.
+        Just go figure it out. (Code is available on github. No cheating, though)
+
+        Syntax: /carpet <scale> <recursion depth> <width> <height> <list of [wblrphvtic] sub-tile specifiers>
         """
         scale, depth, width, height = map(int, args[:4])
         matrix = args[4:]
         if max(width, height)**depth > 5000:
-            raise Herberror("zu dick, keinen Bock")
+            raise Herberror("Too much work.")
 
         if len(matrix) != width * height:
-            raise Herberror("Angaben nicht valide")
+            raise Herberror("Not enough args")
 
         itmatrix = iter(matrix)
         base = tuple(tuple(next(itmatrix) for _ in range(width))

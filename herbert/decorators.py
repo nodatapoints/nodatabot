@@ -10,8 +10,9 @@ from telegram.ext import CommandHandler, CallbackQueryHandler
 import telegram.error
 
 from basebert import Herberror, BadHerberror
+from common.constants import ERROR_FAILED, ERROR_PREFIX, BAD_ERROR_SUFFIX
 
-__all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback', 'GITHUB_URL']
+__all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback']
 
 reply_timeout = timedelta(seconds=30)
 
@@ -19,10 +20,6 @@ reply_timeout = timedelta(seconds=30)
 def pull_string(text):  # FIXME requires documentation
     _, _, string = text.partition(' ')
     return string
-
-
-ERROR_FAILED = 'Oops, something went wrong! 😱'
-GITHUB_URL = 'http://www.github.com/nodatapoints/nodatabot' # FIXME move this somewhere it makes sense
 
 
 def handle_herberrors(method):
@@ -42,10 +39,11 @@ def handle_herberrors(method):
             return method(self, *args, **kwargs)
 
         except Herberror as e:
-            self.reply_text(*e.args)
+            res_text = " ".join([ERROR_PREFIX, *e.args])
             if isinstance(e, BadHerberror):
-                self.reply_text(f'Report Bugs at {GITHUB_URL}, if you want to get them fixed\n' +
-                                '(fix them yourself if you _actually_ want to get them fixed)')
+                res_text += BAD_ERROR_SUFFIX
+
+            self.reply_text(res_text, parse_mode='HTML', disable_web_page_preview=True)
             msg, = e.args
             logging.debug(f'Herberror: "{msg}"')
 
@@ -90,7 +88,8 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
 
         delta = datetime.now() - update.message.date
         if delta > reply_timeout:
-            logging.info(f'Command "{update.message.text}" timed out ({delta.seconds:.1f}s > {reply_timeout.seconds:.1f}s)')
+            logging.info(f'Command "{update.message.text}" timed out '
+                         f'({delta.seconds:.1f}s > {reply_timeout.seconds:.1f}s)')
             return
 
         if pass_args and inline:

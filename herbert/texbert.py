@@ -87,7 +87,7 @@ class TexBert(ImageBaseBert):
 
         try:
             result = run(
-                ('./texit.zsh', f'{target_pixel_width:d}'),
+                ('./ext/texit.zsh', f'{target_pixel_width:d}'),
                 input=string,
                 encoding='utf8',
                 capture_output=True

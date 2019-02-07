@@ -1,4 +1,6 @@
-from decorators import command, aliases, GITHUB_URL
+from common import chatformat
+from decorators import command, aliases
+from common.constants import GITHUB_REF, SEP_LINE, HERBERT_TITLE
 from basebert import BaseBert, Herberror
 import inspect
 import core
@@ -27,7 +29,7 @@ class HelpBert(BaseBert):
         """
         string = string.strip()
         if string == '':
-            self.send_message(help_str or make_help_str())
+            self.send_message(help_str or make_help_str(), disable_web_page_preview=True)
 
         else:
             if help_str is None:
@@ -37,6 +39,20 @@ class HelpBert(BaseBert):
                 self.send_message(detailed_help[string])
             else:
                 raise Herberror(f'No further help available for \'{string}\'.')
+
+    @command(pass_args=False)
+    def about(self):
+        """Print some meta-information"""
+        self.send_message(helpify_docstring(f"""
+        I am a server running an instance of Herbert.
+        Herbert is, much to your surprise, a telegram bot.
+        
+        It is written in Python and C++, using a custom command dispatcher built on top of the \
+        {chatformat.link_to("http://www.python-telegram-bot.org", name="python-telegram-bot")} framework.
+        
+        To find out what it can do, use /help
+        To find out how it works, check out the code on {GITHUB_REF}
+        """))
 
 
 def make_help_str():
@@ -58,14 +74,15 @@ SPACES = r'[\t ]+'
 ESCAPED_NEWLINE = r'\\\n'
 
 
-def check_for_(s):
+def check_for_(s: str):
     assert "_" not in s, "UNTERSTRICHE SIND VERBOTEN!!!!!!"
+    assert s.count('`') % 2 == 0, "Balance your backticks!"
 
 
 # this is bodgy, please fix (but without destroying it).
-def make_bert_str(bert):
+def make_bert_str(bert: BaseBert):
     check_for_(bert.__class__.__name__)
-    res = f"*{bert.__class__.__name__}*:\n"
+    res = f"{chatformat.bold(bert.__class__.__name__)}:\n"
     for _, method in inspect.getmembers(bert, inspect.ismethod):
         # if we just inherited this method, dont list it again for this class
         is_own_fn = True
@@ -82,19 +99,19 @@ def make_bert_str(bert):
                 continue
 
             name, *cmd_aliases = method.commands
-            check_for_(name + "".join(cmd_aliases))
-            res += f"/{name} `<args>` "  # TODO somehow figure out args
+            chatformat.ensure_markup_clean(name + "".join(cmd_aliases))
+            res += f"/{name} {chatformat.mono('<args>', escape=True)} "  # TODO somehow figure out args
             res += f" {tuple(cmd_aliases)} " if cmd_aliases else ""
             if method.__doc__:
-                check_for_(method.__doc__)
                 parts = method.__doc__.split(DBLNEWLINE, maxsplit=1)
+                chatformat.ensure_markup_clean(parts[0], msg="The short description of a function can not contain md")
                 if len(parts) > 0:
-                    res += f"- _{parts[0].replace(SPACES, ' ').strip()}_\n"
+                    res += f"- {chatformat.italic(parts[0].replace(SPACES, ' ').strip())}\n"
                 if len(parts) > 1:
-                    detailed_help_body = re.sub(ESCAPED_NEWLINE, '',
-                                                re.sub(SPACES, ' ', parts[1])
-                                                ).strip()
-                    detailed_help_str = f"`{name}` (aka `{','.join(cmd_aliases)}`):\n" +\
+                    detailed_help_body = helpify_docstring(parts[1])
+                    detailed_help_str = f"{chatformat.mono(name)} " +\
+                                        (f"(aka {chatformat.mono(','.join(cmd_aliases))}):\n"
+                                            if len(cmd_aliases) > 0 else ':\n') + \
                                         f"{detailed_help_body}\n"
                     detailed_help[name] = detailed_help_str
                     for alias in cmd_aliases:
@@ -107,13 +124,12 @@ def make_bert_str(bert):
     return res
 
 
-HELP_HEADER = """
-```
- _  _         _             _   
-| || |___ _ _| |__  ___ _ _| |_ 
-| __ / -_) '_| '_ \/ -_) '_|  _|
-|_||_\___|_| |_.__/\___|_|  \__|
-```
+def helpify_docstring(s):
+    return re.sub(ESCAPED_NEWLINE, '', re.sub(SPACES, ' ', s)).strip()
+
+
+HELP_HEADER = f"""
+{HERBERT_TITLE}
 Herbert,
 the Herr of the Berts & the Heer of Berts.
 for everything you ever want to do,
@@ -122,12 +138,9 @@ Subberts he gives you easy access to
 can and will offer help to you.
 You just have to ask them by their name:
 
+&gt; Use {chatformat.mono('/help <cmd name>', escape=True)} for additional information (if available)
 
 """
 
-HELP_FOOTER = """
-
-Use `/help <cmd name>` for additional information (if available)
-
----
-report bugs and view source on [GitHub](""" + GITHUB_URL + ')'
+HELP_FOOTER = f"""{SEP_LINE}
+report bugs and view source on {GITHUB_REF}"""

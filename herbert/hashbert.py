@@ -60,7 +60,9 @@ class HashBert(InlineBaseBert):
     @command(allow_inline=True)
     def rot(self, args):
         """
-        Shift every letter of the string by <n> positions
+        Shift every letter of the string by n positions
+
+        ebg 13 vf avpr orpnhfr rapbqvat naq qrpbqvat vf gur fnzr bssfrg
         """
         tx_assert(len(args) >= 2, "Not enough arguments: /rot <shift> <text>")
 
@@ -68,7 +70,7 @@ class HashBert(InlineBaseBert):
 
         res = rotate(int(float(shift)), " ".join(rest))
 
-        self.reply_text(res)
+        self.reply_text(res, parse_mode=None)
 
 
 def rotate_char(shift, char, low, high):

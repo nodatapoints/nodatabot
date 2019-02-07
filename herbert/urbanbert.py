@@ -11,12 +11,12 @@ class UrbanBert(BaseBert):
     @command(pass_string=True)
     def urbandict(self, string):
         """
-        Have unknown words given as strings explained to you\
-        \
-        The UrbanDictionary utility makes use of the wbsite "www.urbandictionary.com".
-        It is specialized for the quick explanation of common abbreviations and slang
-        of the youth that you do not understand.\
-        \
+        Have unknown words given as strings explained to you
+
+        The UrbanDictionary utility makes use of the website "www.urbandictionary.com".\
+        It is specialized for the quick explanation of common abbreviations and slang \
+        of the youth that you do not understand.
+
         e.g `/urban top kek`
         """
         phrase = quote(string, safe='')
@@ -35,5 +35,5 @@ class UrbanBert(BaseBert):
         except Exception:
             raise Herberror('This is probably not a valid query')
 
-        outp = (f'`{title}:`\n{meaning}\n_{example}_')
+        outp = f'`{title}:`\n{meaning}\n_{example}_'
         self.reply_text(outp)

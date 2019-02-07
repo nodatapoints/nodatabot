@@ -44,6 +44,21 @@ class AsciiBert(TexBert):
     @aliases('am')
     @command(pass_string=True)
     def asciimath(self, string):
+        """
+        Turn your plaintext equations into images
+
+        This is an experimental parser to generate tex code from your mathematical plain-text \
+        input, render it and return the image.
+
+        A lot of things aren't working correctly as of now, but it works for simple equations and terms.
+        Try, for example
+        <code>
+        > (a + b)^2
+        > A and B and not C
+        > lim {x->inf} 1/x
+        > v cross u * r
+        </code>
+        """
         for pattern, subst in _substitutions.items():
             string = re.sub(pattern, subst, string)
 

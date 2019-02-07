@@ -115,7 +115,8 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         Evaluate a simple mathematical expression and return the result \
         \
         This is a simple calculator using python syntax to return results directly in the Telegram environment
-        to fit into the flow of the conversation. The spported Operators are \
+        to fit into the flow of the conversation. The spported Operators are brackets and relational operators ( ==, !=, <, >, <=, >=)
+        as well as \
         ` +  `Addition\
         ` -  `Subtraction\
         ` *  `Multiplication\
@@ -125,7 +126,7 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         \
         e.g: `/math 365*(24-8)`
         """
-        allowed_chars = set('1234567890.+*-/%=() ')
+        allowed_chars = set('1234567890.+*-/%=()<> ')
         if set(string).issubset(allowed_chars):
             try:
                 self.reply_text(str(eval(string, {}, {})))

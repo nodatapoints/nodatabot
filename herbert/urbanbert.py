@@ -11,7 +11,13 @@ class UrbanBert(BaseBert):
     @command(pass_string=True)
     def urbandict(self, string):
         """
-        Have unknown words given as strings explained to you
+        Have unknown words given as strings explained to you\
+        \
+        The UrbanDictionary utility makes use of the wbsite "www.urbandictionary.com".
+        It is specialized for the quick explanation of common abbreviations and slang
+        of the youth that you do not understand.\
+        \
+        e.g `/urban top kek`
         """
         phrase = quote(string, safe='')
         url = f'https://www.urbandictionary.com/define.php?term={phrase}'
@@ -22,10 +28,12 @@ class UrbanBert(BaseBert):
             div = site.xpath(xpath)[0]
             chunks = div.xpath('.//text()').extract()
             return ''.join(chunks)
-
-        title = site.xpath('//a[@class="word"]/text()').extract_first()
-        meaning = join_chunked('//div[@class="meaning"]')
-        example = join_chunked('//div[@class="example"]')
+        try:
+            title = site.xpath('//a[@class="word"]/text()').extract_first()
+            meaning = join_chunked('//div[@class="meaning"]')
+            example = join_chunked('//div[@class="example"]')
+        except Exception:
+            raise Herberror('This is probably not a valid query')
 
         outp = (f'`{title}:`\n{meaning}\n_{example}_')
         self.reply_text(outp)

@@ -35,7 +35,7 @@ class InterpRert(BaseBert):
         `>` - move to the next tape slot
         `<` - move to the previous tape slot
         `[` - begin a loop block
-        `]` - if the current value is not 0, jump to the corresponding [. end a loop block.
+        `]` - if the current value is not 0, jump to the corresponding `[`. end a loop block.
         `.` - print the value in the current slot as a byte
         `,` - read a value - not implemented in this version
 

@@ -9,9 +9,9 @@ import logging
 from telegram.ext import CommandHandler, CallbackQueryHandler
 import telegram.error
 
-from basebert import Herberror
+from basebert import Herberror, BadHerberror
 
-__all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback']
+__all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback', 'GITHUB_URL']
 
 reply_timeout = timedelta(seconds=30)
 
@@ -22,6 +22,7 @@ def pull_string(text):  # FIXME requires documentation
 
 
 ERROR_FAILED = 'Oops, something went wrong! 😱'
+GITHUB_URL = 'http://www.github.com/nodatapoints/nodatabot' # FIXME move this somewhere it makes sense
 
 
 def handle_herberrors(method):
@@ -42,6 +43,9 @@ def handle_herberrors(method):
 
         except Herberror as e:
             self.reply_text(*e.args)
+            if isinstance(e, BadHerberror):
+                self.reply_text(f'Report Bugs at {GITHUB_URL}, if you want to get them fixed\n' +
+                                '(fix them yourself if you _actually_ want to get them fixed)')
             msg, = e.args
             logging.debug(f'Herberror: "{msg}"')
 

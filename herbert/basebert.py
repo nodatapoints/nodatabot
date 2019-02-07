@@ -7,11 +7,15 @@ import telegram.error
 from common.basic_utils import arr_to_bytes
 from common import chat
 
-__all__ = ['Herberror', 'BaseBert', 'ImageBaseBert', 'InlineBaseBert']
+__all__ = ['Herberror', 'BadHerberror', 'BaseBert', 'ImageBaseBert', 'InlineBaseBert']
 
 
 class Herberror(Exception):
     """Basic Herbert error"""
+
+
+class BadHerberror(Herberror):
+    """Something someone needs to actually go and fix"""
 
 
 class BaseBert:

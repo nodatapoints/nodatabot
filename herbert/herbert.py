@@ -23,7 +23,7 @@ from helpbert import HelpBert
 from asciimath import AsciiBert
 from urbanbert import UrbanBert
 
-from testbert import TestBert
+# from testbert import TestBert
 
 
 def start_bot():

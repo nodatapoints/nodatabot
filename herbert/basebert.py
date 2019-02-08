@@ -57,10 +57,14 @@ class BaseBert:
         return self.message.chat_id
 
     def send_message(self, *args, parse_mode=chatformat.get_parse_mode(), **kwargs):
+        msg = " ".join(args)
+        if parse_mode == chatformat.STYLE_CUSTOM:
+            msg = chatformat.render_custom(msg)
+
         return self.bot.send_message(
             self.chat_id,
-            *args,
-            parse_mode=parse_mode,
+            msg,
+            parse_mode=chatformat.get_output_mode(use_style=parse_mode),
             **kwargs
         )
 

@@ -13,7 +13,7 @@ BAD_ERROR_SUFFIX = f"""
 {SEP_LINE}
 You apparently found a bug.
 Please report Bugs at {GITHUB_REF}, if you want to get them fixed
-(and fix them yourself if you <i>actually</i> want to get them fixed)
+(and fix them yourself if you {chatformat.italic('actually')} want to get them fixed)
 """
 
 HERBERT_TITLE = chatformat.mono("""
@@ -22,3 +22,9 @@ HERBERT_TITLE = chatformat.mono("""
 | __ / -_) '_| '_ \/ -_) '_|  _|
 |_||_\___|_| |_.__/\___|_|  \__|
 """)
+
+ERROR_TEMPLATE = """{} {}"""  # emoji, description
+BAD_ERROR_TEMPLATE = ERROR_TEMPLATE + BAD_ERROR_SUFFIX
+
+EMOJI_WARN = '⚠️'
+EMOJI_EXPLOSION = '💥'

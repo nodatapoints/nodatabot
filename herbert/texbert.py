@@ -83,8 +83,6 @@ class TexBert(ImageBaseBert):
         if target_pixel_width > 1e5:
             raise Herberror('Dude wtf are you doing?')
 
-
-
         try:
             result = run(
                 ('./ext/texit.zsh', f'{target_pixel_width:d}'),

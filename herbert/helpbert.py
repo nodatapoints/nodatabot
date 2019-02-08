@@ -134,11 +134,11 @@ Herbert,
 the Herr of the Berts & the Heer of Berts.
 for everything you ever want to do,
 you just ask Herbert and multiple
-Subberts he gives you easy access to
+SubBerts he gives you easy access to
 can and will offer help to you.
 You just have to ask them by their name:
 
-&gt; Use {chatformat.mono('/help <cmd name>', escape=True)} for additional information (if available)
+> Use {chatformat.mono('/help <cmd name>')} for additional information (if available)
 
 """
 

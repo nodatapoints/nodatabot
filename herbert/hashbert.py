@@ -9,7 +9,7 @@ from common.basic_utils import str_to_bytes
 from common.herbert_utils import tx_assert
 from decorators import *
 
-from basebert import InlineBaseBert
+from basebert import InlineBaseBert, Herberror
 
 import hashlib as hl
 import base64 as b64
@@ -68,7 +68,10 @@ class HashBert(InlineBaseBert):
 
         shift, *rest = args
 
-        res = rotate(int(float(shift)), " ".join(rest))
+        try:
+            res = rotate(int(float(shift)), " ".join(rest))
+        except ValueError:
+            raise Herberror(f'shift \'{shift}\' is not a valid integer')
 
         self.reply_text(res, parse_mode=None)
 

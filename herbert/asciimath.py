@@ -52,12 +52,10 @@ class AsciiBert(TexBert):
 
         A lot of things aren't working correctly as of now, but it works for simple equations and terms.
         Try, for example
-        <code>
-        > (a + b)^2
-        > A and B and not C
-        > lim {x->inf} 1/x
-        > v cross u * r
-        </code>
+        ` (a + b)^2 `
+        ` A and B and not C `
+        ` lim {x->inf} 1/x `
+        ` v cross u * r `
         """
         for pattern, subst in _substitutions.items():
             string = re.sub(pattern, subst, string)

@@ -20,10 +20,9 @@ then
 fi
 
 if ! {
-    dvisvgm main.pdf --pdf --output=main.svg &>/dev/null
-    inkscape -z main.svg -w ${1:-1920} -b#FFFFFF -e main.png &>/dev/null
-    cp "$working_dir/main.png" "$old_dir/ext/main.png"
-    echo "$old_dir/ext/main.png"
+        pdftoppm -scale-to-x ${1:-1920} -scale-to-y -1 -singlefile -q -png main.pdf main
+        cp "$working_dir/main.png" "$old_dir/ext/main.png"
+        echo "$old_dir/ext/main.png"
     }
 then
     exit 3

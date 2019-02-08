@@ -12,11 +12,16 @@ working_dir=$(mktemp -d)
 old_dir=$PWD
 cd $working_dir
 
+clean_exit () {
+  rm -r "$working_dir" || { echo "$working_dir"; exit 2 }
+  exit $1
+}
+
 cat - > main.tex
 
 if ! pdflatex -interaction=nonstopmode main.tex &>/dev/null;
 then
-  exit 4
+  clean_exit 4
 fi
 
 if ! {
@@ -25,8 +30,9 @@ if ! {
         echo "$old_dir/ext/main.png"
     }
 then
-    exit 3
+    clean_exit 3
 fi
 
-rm -r "$working_dir" || { echo "$working_dir"; exit 2 }
+clean_exit 0
+
 

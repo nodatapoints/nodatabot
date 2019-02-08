@@ -16,11 +16,18 @@ Please report Bugs at {GITHUB_REF}, if you want to get them fixed
 (and fix them yourself if you {chatformat.italic('actually')} want to get them fixed)
 """
 
-HERBERT_TITLE = chatformat.mono("""
+OLD_HERBERT_TITLE = chatformat.mono("""
  _  _         _             _   
 | || |___ _ _| |__  ___ _ _| |_ 
 | __ / -_) '_| '_ \/ -_) '_|  _|
 |_||_\___|_| |_.__/\___|_|  \__|
+""")
+
+HERBERT_TITLE = chatformat.mono("""
+ _  _        _          _   
+| || |__ _ _| |_ __ _ _| |_ 
+| __ /._) '_| ' \._) '_|  _|
+|_||_\__|_| |_._/__|_|  \__|
 """)
 
 ERROR_TEMPLATE = """{} {}"""  # emoji, description

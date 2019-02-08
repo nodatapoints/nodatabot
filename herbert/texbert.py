@@ -54,11 +54,11 @@ class TexBert(ImageBaseBert):
         """
         argvals, string = Args.parse(string, {
             'inv':    Args.T.BOOL,
-            # 'send':   Args.T.one_of('file', 'both', 'validate'), TODO
+            'send':   Args.T.one_of('img', 'file', 'both', 'validate'),
             'res':    Args.T.INT,
             'pre':    Args.T.bounded(Args.T.INT, limits=(0, 4)),
             # 'err':    Args.T.one_of('last', 'all'), TODO
-            # 'format': Args.T.one_of('pdf', 'dvi') TODO
+            # 'format': Args.T.one_of('img', 'pdf', 'dvi') TODO
         })
 
         argvals = argvals or dict()
@@ -113,7 +113,15 @@ class TexBert(ImageBaseBert):
             if invert or argvals.get('inv'):
                 img = ImageOps.invert(img.convert(mode='RGB'))
 
-            self.send_pil_image(img)
+            arg_send = argvals.get('send')
+
+            if arg_send:
+                if arg_send == 'file' or arg_send == 'both':
+                    self.send_pil_image(img, full=True)
+                if arg_send == 'img' or arg_send == 'both':
+                    self.send_pil_image(img)
+            else:
+                self.send_pil_image(img)
 
         except FileNotFoundError:
             raise BadHerberror('`texit.zsh` is broken 😢')

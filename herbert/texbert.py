@@ -94,7 +94,7 @@ class TexBert(ImageBaseBert):
         string = template.format(string)
 
         target_pixel_width = argvals.get('res') or 1000
-        if target_pixel_width > 1e5:
+        if target_pixel_width > 10000:
             raise Herberror('Dude wtf are you doing?')
 
         try:

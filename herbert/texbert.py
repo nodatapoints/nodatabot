@@ -1,21 +1,20 @@
-from subprocess import run, CalledProcessError
+import logging
+from subprocess import run
 
 from PIL import Image, ImageOps
 
-from decorators import command, aliases
 from basebert import ImageBaseBert, Herberror, BadHerberror
 from common.argparser import Args
+from decorators import command, aliases
 
-import logging
-import re
+# format breaks here because e.g. {{amsfonts}} gets transformed to {amsfonts} and then the
+# real substiture will throw a KeyError
 
 very_basic_tex_template = """
 \\documentclass[preview, margin=1mm]{{standalone}}
 {}
 """
-
-basic_tex_template = """
-\\documentclass[preview, margin=1mm]{{standalone}}
+basic_tex_template = very_basic_tex_template.replace("{}", """
 \\usepackage{{amsmath}}
 \\usepackage{{amssymb}}
 \\usepackage{{wasysym}}
@@ -32,12 +31,14 @@ basic_tex_template = """
 \\begin{{document}}
 {} % This is where the code goes
 \\end{{document}}
-"""
-
-# format breaks here because e.g. {{amsfonts}} gets transformed to {amsfonts} and then the
-# real substiture will throw a KeyError
+""")
 display_math_template = basic_tex_template.replace("{}", """{{$\\displaystyle {}$}}""")
 aligned_math_template = display_math_template.replace("{}", """{{\\begin{{aligned}} {} \\end{{aligned}} }}""")
+
+pre_levels = [very_basic_tex_template,
+              basic_tex_template,
+              display_math_template,
+              aligned_math_template]
 
 
 def validate(str):
@@ -51,31 +52,44 @@ class TexBert(ImageBaseBert):
     def texraw(self, string, invert=False, template="{}"):
         """
         Render LaTeX
+
+        Writes the given string into a file, runs a latex compiler on it and returns the result.
+
+        TeX is a turing-complete macro markup language, suited especially for typesetting mathematical equations. \
+        For more information, syntax and general help try consulting the internet.
+
+        If the argument starts with '[', everything up to the next ']' is interpreted as configuration options for the \
+        rendering itself, not as tex source code.
+
+        Valid options are
+        `pre` (integer value, range 0-4) - setup a tex environment. (0 - nothing, \
+        4 - aligned block in displaymath in document)
+        `inv` (boolean value) - invert the colors of the output image
+        `res` (integer value) - width of the output image in pixels
+        `send` (either img or file or both or validate) - decide which information to return
+
+        Try
+        ` /tex [pre=4, inv=yes, send=both] x &= y \\ &= z `
+        ` /dtex [res=1000, inv=false] \sum `
+
+        Also, TODO, improve this documentation
         """
         argvals, string = Args.parse(string, {
             'inv':    Args.T.BOOL,
             'send':   Args.T.one_of('img', 'file', 'both', 'validate'),
             'res':    Args.T.INT,
-            'pre':    Args.T.bounded(Args.T.INT, limits=(0, 4)),
+            'pre':    Args.T.INT.bounded(limits=(0, len(pre_levels))),
             # 'err':    Args.T.one_of('last', 'all'), TODO
             # 'format': Args.T.one_of('img', 'pdf', 'dvi') TODO
         })
 
-        argvals = argvals or dict()
         validate(string)
 
-        pre_level = argvals.get('pre')
-        if pre_level is not None:
-            if pre_level == 0:
-                template = "{}"
-            elif pre_level == 1:
-                template = very_basic_tex_template
-            elif pre_level == 2:
-                template = basic_tex_template
-            elif pre_level == 3:
-                template = display_math_template
-            elif pre_level == 4:
-                template = aligned_math_template
+        pre_level = argvals.get('pre') or 0
+        if pre_level > 0:
+            template = pre_levels[1 + pre_level]
+        elif template is None:
+            template = "{}"
 
         string = template.format(string)
 
@@ -113,14 +127,10 @@ class TexBert(ImageBaseBert):
             if invert or argvals.get('inv'):
                 img = ImageOps.invert(img.convert(mode='RGB'))
 
-            arg_send = argvals.get('send')
-
-            if arg_send:
-                if arg_send == 'file' or arg_send == 'both':
-                    self.send_pil_image(img, full=True)
-                if arg_send == 'img' or arg_send == 'both':
-                    self.send_pil_image(img)
-            else:
+            arg_send = argvals.get('send') or 'img'
+            if arg_send == 'file' or arg_send == 'both':
+                self.send_pil_image(img, full=True)
+            if arg_send == 'img' or arg_send == 'both':
                 self.send_pil_image(img)
 
         except FileNotFoundError:
@@ -130,8 +140,9 @@ class TexBert(ImageBaseBert):
     def tex(self, string, invert=False):
         """
         Render LaTeX. Implies a minimal preamble.
+
+        This is an alias for /texraw [pre=2]. For more information look at /help texraw.
         """
-        validate(string)
         self.texraw(string, invert=invert, template=basic_tex_template)
 
     @aliases('dtex')
@@ -139,8 +150,9 @@ class TexBert(ImageBaseBert):
     def displaytex(self, string, invert=False):
         """
         Render LaTeX in math-mode. Implies an environment for typesetting math.
+
+        This is an alias for /texraw [pre=3]. For more information look at /help texraw.
         """
-        validate(string)
         self.texraw(string, invert=invert, template=display_math_template)
 
     @aliases('atex')
@@ -148,8 +160,9 @@ class TexBert(ImageBaseBert):
     def aligntex(self, string, invert=False):
         """
         Render LaTeX in aligned math-mode. Implies an environment for typesetting math.
+
+        This is an alias for /texraw [pre=4]. For more information look at /help texraw.
         """
-        validate(string)
         self.texraw(string, invert=invert, template=aligned_math_template)
 
     @aliases('itex')
@@ -157,8 +170,9 @@ class TexBert(ImageBaseBert):
     def inverttex(self, string):
         """
         Render LaTeX like /tex, but invert the colors.
+
+        This is an alias for /texraw [pre=2, inv=true]. For more information look at /help texraw.
         """
-        validate(string)
         self.tex(string, invert=True)
 
     @aliases('idtex')
@@ -166,15 +180,17 @@ class TexBert(ImageBaseBert):
     def invertdisplaytex(self, string):
         """
         Render LaTeX like /displaytex, but invert the colors.
+
+        This is an alias for /texraw [pre=3, inv=true]. For more information look at /help texraw.
         """
-        validate(string)
         self.displaytex(string, invert=True)
 
     @aliases('iatex')
     @command(pass_string=True)
-    def invertedaligntex(self, string):
+    def invertaligntex(self, string):
         """
         Render LaTeX like /algintex, but invert the colors
+
+        This is an alias for /texraw [pre=4, inv=true]. For more information look at /help texraw.
         """
-        validate(string)
         self.aligntex(string, invert=True)

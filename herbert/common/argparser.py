@@ -1,7 +1,11 @@
+from typing import SupportsInt, SupportsFloat, Callable, Tuple
+
 from basebert import Herberror
 import re
 
-__all__ = ['Args']
+from common.constants import SEP_LINE
+
+__all__ = ['Args', 'ArgParser', 'dict_map']
 
 
 class UnexpectedArgument(Herberror):
@@ -12,22 +16,30 @@ class ArgumentFormatError(Herberror):
     """ e.g. missing brackets in arg string """
 
 
-def _check_if_int(s):
+def _check_if_int(s: (str, bytes, SupportsInt)) -> (bool, int):
     try:
         return True, int(s)
     except ValueError:
         return False, 0
 
 
-def _check_if_float(s):
+def _check_if_float(s: (str, bytes, SupportsFloat)) -> (bool, float):
     try:
         return True, float(s)
     except ValueError:
         return False, 0.
 
 
+def dict_map(table: dict):
+    def map_fn(s):
+        return table[s]
+
+    return map_fn
+
+
 class ArgParser:
-    def __init__(self, check=None, value=None, accept=None):
+    def __init__(self, check: Callable = None, value: Callable = None, accept: Callable = None, explain: str = ""):
+        self.explain = explain + "\n"
         if accept is not None:
             assert check is None, "Invalid ArgParser Construction"
             assert value is None, "Invalid ArgParser Construction"
@@ -39,17 +51,27 @@ class ArgParser:
             self.check = check
             self.value = value
 
+    def map(self, map_fn: Callable):
+        return ArgParser(self.check, lambda s: map_fn(self.value(s)))
+
+    def and_require(self, secondary_check_fn: Callable, explain: str = None):
+        return ArgParser(lambda s: self.check(s) and secondary_check_fn(s), self.value, explain=self.explain + explain)
+
+    def bounded(self, limits: Tuple[object, object] = (0, 1)):
+        return self.and_require(lambda s: limits[0] <= self.value(s) <= limits[1],
+                                explain=f"Value has to be in Range [{limits[0]}..{limits[1]}].")
+
 
 class Args:
     @staticmethod
-    def parse(string: str, expected_arguments: dict):
+    def parse(string: str, expected_arguments: dict) -> (dict, str):
         """ Parse [key=value, k=v] arg pairs at start of string and return rest """
         # the string needs to start with "[" (+- some whitespace)
         # and contain comma-separated key=value pairs until the closing "]"
         string = string.strip()
 
         if len(string) == 0 or string[0] != "[":
-            return None, string
+            return dict(), string
 
         res = dict()
 
@@ -69,7 +91,9 @@ class Args:
                 raise UnexpectedArgument(f'Got unexpected argument \'{key}\' with value \'{raw_value}\'')
 
             if not expected_arguments[key].check(raw_value):
-                raise ArgumentFormatError(f'Invalid argument value \'{raw_value}\' for key \'{key}\'')
+                raise ArgumentFormatError(f'Invalid argument value \'{raw_value}\' for key \'{key}\'' +
+                                          (f'\n{SEP_LINE}\n{expected_arguments[key].explain}'
+                                           if expected_arguments[key].explain else ''))
 
             res[key] = expected_arguments[key].value(raw_value)
 
@@ -78,22 +102,17 @@ class Args:
     class T:
         BOOL = ArgParser(
             check=lambda s: re.match('^([Tt]rue?|[Ff]alse?|1|0|y(es)?|no?)$', s) is not None,
-            value=lambda s: re.match('^([Tt]rue?|1|y(es)?)$', s) is not None
+            value=lambda s: re.match('^([Tt]rue?|1|y(es)?)$', s) is not None,
+            explain="Expecting a Boolean Value (matching ^([Tt]rue?|[Ff]alse?|1|0|y(es)?|no?)$)"
         )
 
-        INT = ArgParser(accept=_check_if_int)
-        FLOAT = ArgParser(accept=_check_if_float)
+        INT = ArgParser(accept=_check_if_int, explain="Expecting an Integer Value")
+        FLOAT = ArgParser(accept=_check_if_float, explain="Expecting a Floating Point Numeric Value")
 
         @staticmethod
         def one_of(*args):
             return ArgParser(
                 check=lambda s: s in args,
-                value=lambda s: s
-            )
-
-        @staticmethod
-        def bounded(pre_parser: ArgParser, limits: tuple):
-            return ArgParser(
-                check=lambda s: pre_parser.check(s) and limits[0] <= pre_parser.value(s) <= limits[1],
-                value=pre_parser.value
+                value=lambda s: s,
+                explain=f"Expecting Value to be one of {args}."
             )

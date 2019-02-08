@@ -14,7 +14,7 @@ cd $working_dir
 
 cat - > main.tex
 
-if ! latexmk -xelatex -interaction=nonstopmode main.tex &>/dev/null;
+if ! pdflatex -interaction=nonstopmode main.tex &>/dev/null;
 then
   exit 4
 fi

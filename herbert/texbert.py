@@ -94,7 +94,7 @@ class TexBert(ImageBaseBert):
         string = template.format(string)
 
         target_pixel_width = argvals.get('res') or 1000
-        if target_pixel_width > 1e5:
+        if target_pixel_width > 10000:
             raise Herberror('Dude wtf are you doing?')
 
         try:
@@ -189,7 +189,7 @@ class TexBert(ImageBaseBert):
     @command(pass_string=True)
     def invertaligntex(self, string):
         """
-        Render LaTeX like /algintex, but invert the colors
+        Render LaTeX like /aligntex, but invert the colors
 
         This is an alias for /texraw [pre=4, inv=true]. For more information look at /help texraw.
         """

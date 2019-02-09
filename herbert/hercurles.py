@@ -10,6 +10,8 @@
 #
 
 # IMPORTS
+import telegram
+
 from basebert import *
 from decorators import *
 
@@ -25,7 +27,7 @@ __all__ = ['Hercurles']
 ARG_COUNT_ERR = "This takes exactly 1 argument. Please try again."
 
 
-def _t_get_text(bot, update, args):
+def _t_get_text(bot: telegram.Bot, update: telegram.Update, url: str):
     """
     This function forwards the request from the client
     to the handling functions, and then replies with
@@ -33,17 +35,15 @@ def _t_get_text(bot, update, args):
     On success, forward the contents of an url specified
     in args to the end user.
     """
-    assert len(args) == 1, ARG_COUNT_ERR
-
-    url = args[0]
+    if " " in url:
+        raise Herberror("URLS cannot contain spaces")
 
     reply_large_utf8(bot, update, load_str(url), name=gen_filename_from_url(url))
 
 
-def _t_get(bot, update, args):
-    assert len(args) == 1, ARG_COUNT_ERR
-
-    url = args[0]
+def _t_get(bot: telegram.Bot, update: telegram.Update, url: str):
+    if " " in url:
+        raise Herberror("URLS cannot contain spaces")
 
     data_type, data = load_content(url)
 
@@ -74,20 +74,20 @@ def _t_search_for_first(bot, update, query):
 class Hercurles(BaseBert):
 
     @aliases('gt')
-    @command
-    def gettext(self, args):
+    @command(pass_string=True)
+    def gettext(self, string):
         """
         Retrieve the contents of the given url as text or a text file
         """
-        _t_get_text(self.bot, self.update, args)
+        _t_get_text(self.bot, self.update, string.strip())
 
     @aliases('g', 'getme', 'curl')
-    @command
-    def get(self, args):
+    @command(pass_string=True)
+    def get(self, string):
         """
         Retrieve the contents of the given url
         """
-        _t_get(self.bot, self.update, args)
+        _t_get(self.bot, self.update, string.strip())
 
     @command(pass_string=True)
     def searchfor(self, string):

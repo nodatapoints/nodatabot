@@ -15,6 +15,9 @@ class StackBert(BaseBert):
         if not topic:
             raise Herberror('No topic given.')
 
+        if '\n' in topic or len(topic) > 20:
+            raise Herberror('One line. 20 Chars.')
+
         self._stack.append(topic)
         self.send_message(f'Pushed `{topic:.15}` on the stack.', parse_mode=STYLE_MD)
 

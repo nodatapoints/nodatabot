@@ -47,7 +47,7 @@ class GameBert(ImageBaseBert):
              for name in self.available_names]
         ])
         self.naming_message = self.send_message(
-            text='Chose your name',
+            msg='Chose your name',
             reply_markup=markup
         )
 

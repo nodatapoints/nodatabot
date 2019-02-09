@@ -22,6 +22,7 @@ from xkcdert import XKCDert
 from helpbert import HelpBert
 from asciimath import AsciiBert
 from urbanbert import UrbanBert
+from unicodert import UniCoDert
 
 # from testbert import TestBert
 

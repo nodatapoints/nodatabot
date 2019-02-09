@@ -109,10 +109,28 @@ class Args:
         INT = ArgParser(accept=_check_if_int, explain="Expecting an Integer Value")
         FLOAT = ArgParser(accept=_check_if_float, explain="Expecting a Floating Point Numeric Value")
 
+        STR = ArgParser(
+            check=lambda s: True,
+            value=lambda s: s,
+            explain="Expecting a String Value"
+        )
+
         @staticmethod
         def one_of(*args):
             return ArgParser(
                 check=lambda s: s in args,
                 value=lambda s: s,
                 explain=f"Expecting Value to be one of {args}."
+            )
+
+        @staticmethod
+        def from_dict(dct: dict):
+            return Args.T.one_of(*dct.keys()).map(dict_map(dct))
+
+        @staticmethod
+        def matching(regexp: str):
+            return ArgParser(
+                lambda s: re.match(regexp, s) is not None,
+                lambda s: re.match(regexp, s),
+                explain=f'Expected Value to match {regexp}'
             )

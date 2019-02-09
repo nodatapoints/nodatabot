@@ -16,4 +16,3 @@ venv
 *.old
 *.err.txt
 test.py
-testbert.py

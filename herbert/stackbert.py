@@ -29,7 +29,7 @@ class StackBert(BaseBert):
 
         msg = 'Current conversation stack:\n'
         for i, topic in enumerate(reversed(self._stack)):
-            msg += f'`{i:2d} {topic}`'
+            msg += f'`{i:2d} {topic}`\n'
 
         self.send_message(msg, parse_mode=STYLE_MD)
 

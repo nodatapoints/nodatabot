@@ -12,8 +12,7 @@ class Dudert(BaseBert):
     @command(pass_string=True)
     def dudensearch(self, query):
         """
-        Searches for a given query in the online
-        German dictionary duden.de, and displays the top result.
+        Searches for a given query in the online German dictionary duden.de, and displays the top result.
         """
 
         url = f'http://www.duden.de/suchen/dudenonline/{quote(query)}'

@@ -31,7 +31,7 @@ class GameBert(ImageBaseBert):
         if self.shown_board_message is not None:
             self.shown_board_message.delete()
 
-        self.shown_board_message = self.send_photo(
+        self.shown_board_message = self.send_pil_image(
             draw_game(self.game),
             reply_markup=self.game.render_keyboard(
                 InlineKeyboardMarkup, InlineKeyboardButton)
@@ -47,7 +47,7 @@ class GameBert(ImageBaseBert):
              for name in self.available_names]
         ])
         self.naming_message = self.send_message(
-            text='Chose your name',
+            msg='Chose your name',
             reply_markup=markup
         )
 

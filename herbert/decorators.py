@@ -128,11 +128,14 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
         bound_method.__self__.inline = inline
         bound_method.__self__.inline_query = inline_query
 
-        delta = datetime.now() - update.message.date
-        if delta > reply_timeout:
-            logging.info(f'Command "{update.message.text}" timed out '
-                         f'({delta.seconds:.1f}s > {reply_timeout.seconds:.1f}s)')
-            return
+        # update.message = None bei edits
+
+        if update.message is not None:
+            delta = datetime.now() - update.message.date
+            if delta > reply_timeout:
+                logging.info(f'Command "{update.message.text}" timed out '
+                             f'({delta.seconds:.1f}s > {reply_timeout.seconds:.1f}s)')
+                return
 
         if pass_args and inline:
             args = (inline_args, )

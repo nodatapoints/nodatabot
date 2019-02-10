@@ -24,6 +24,7 @@ from asciimath import AsciiBert
 from urbanbert import UrbanBert
 from unicodert import UniCoDert
 from stackbert import StackBert
+from dudert import Dudert
 
 # from testbert import TestBert
 

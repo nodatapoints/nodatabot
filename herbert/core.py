@@ -8,6 +8,7 @@ import inspect
 import logging
 import path
 
+
 from telegram.ext import Updater, InlineQueryHandler
 from telegram import InlineQueryResultArticle, InputTextMessageContent
 
@@ -17,6 +18,9 @@ logging.basicConfig(
     format='{asctime} [{levelname:5}] {message}',
     level=logging.INFO
 )
+
+logging.getLogger('requests').setLevel(logging.WARNING)
+logging.getLogger('urllib3').setLevel(logging.WARNING)
 
 berts = []
 inline_methods = {}

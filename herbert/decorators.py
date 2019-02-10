@@ -47,6 +47,7 @@ import telegram.error
 from telegram.ext import CommandHandler, CallbackQueryHandler
 
 from basebert import Herberror, BadHerberror
+from common import chatformat
 from common.constants import ERROR_FAILED, ERROR_TEMPLATE, BAD_ERROR_TEMPLATE, \
     EMOJI_EXPLOSION, EMOJI_WARN
 
@@ -84,7 +85,7 @@ def handle_herberrors(method):
                 emoji = EMOJI_EXPLOSION
 
             res_text = template.format(emoji, " ".join(e.args))
-            self.reply_text(res_text, parse_mode='HTML', disable_web_page_preview=True)
+            self.reply_text(res_text, disable_web_page_preview=True)
             msg, = e.args
             logging.debug(f'Herberror: "{msg}"')
 

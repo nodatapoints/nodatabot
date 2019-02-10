@@ -4,7 +4,9 @@ from subprocess import run
 from PIL import Image, ImageOps
 
 from basebert import ImageBaseBert, Herberror, BadHerberror
+from common import chatformat
 from common.argparser import Args
+from common.constants import SEP_LINE
 from decorators import command, aliases
 
 # format breaks here because e.g. {{amsfonts}} gets transformed to {amsfonts} and then the
@@ -87,7 +89,7 @@ class TexBert(ImageBaseBert):
 
         pre_level = argvals.get('pre') or 0
         if pre_level > 0:
-            template = pre_levels[1 + pre_level]
+            template = pre_levels[pre_level - 1]
         elif template is None:
             template = "{}"
 
@@ -107,11 +109,12 @@ class TexBert(ImageBaseBert):
             exit_val = result.returncode
 
             if exit_val == 2:
-                logging.info(f'Couldn\'t cleanup directory {result.stdout}.')
+                logging.info(f'Couldn\'t cleanup working directory.')
             elif exit_val == 3:
                 raise Herberror('Your \'tex produces output I literally can\'t comprehend.')
             elif exit_val == 4:
-                raise Herberror('Lern ma LaTeX 🙄')
+                raise Herberror(f'Lern ma LaTeX 🙄\n{SEP_LINE}\n'
+                                f'[{chatformat.bold("LATEX")}] {chatformat.mono(result.stdout)}')
             elif exit_val != 0:
                 raise BadHerberror('Error. That was unexpected.')
 

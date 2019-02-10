@@ -24,7 +24,7 @@ from asciimath import AsciiBert
 from urbanbert import UrbanBert
 from unicodert import UniCoDert
 
-# from testbert import TestBert
+from testbert import TestBert
 
 
 def start_bot():

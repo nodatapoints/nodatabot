@@ -26,7 +26,7 @@ from unicodert import UniCoDert
 from stackbert import StackBert
 from dudert import Dudert
 
-# from testbert import TestBert
+from testbert import TestBert
 
 
 def start_bot():

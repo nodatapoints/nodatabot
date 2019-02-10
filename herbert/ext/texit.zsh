@@ -13,14 +13,15 @@ old_dir=$PWD
 cd $working_dir
 
 clean_exit () {
-  rm -r "$working_dir" || { echo "$working_dir"; exit 2 }
+  rm -r "$working_dir" || exit 2
   exit $1
 }
 
 cat - > main.tex
 
-if ! pdflatex -interaction=nonstopmode main.tex &>/dev/null;
+if ! pdflatex -interaction=nonstopmode -halt-on-error main.tex &>/dev/null;
 then
+  sed -n '/[^ \n\t]/{/Here is how much/!{H;$!d}}; x; /\n! /{s/^.*! //; p;q}' main.log
   clean_exit 4
 fi
 

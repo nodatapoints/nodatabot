@@ -63,9 +63,10 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         elif full:  # high resolution file
             _, data = load_content(url)
             image = Image.open(BytesIO(data))
-            self.bot.send_document(self.chat_id, document=ImageBaseBert.pil_image_to_fp(image, 'PNG'))
+            self.bot.send_document(
+                self.chat_id, document=ImageBaseBert.pil_image_to_fp(image, 'PNG'))
         else:  # not full  ->  simple image
-            string = string if self.inline else ''  
+            string = string if self.inline else ''
             self.reply_gif_url(url, caption=string, title='')
 
     @aliases('hrwa', 'hrwolfram')

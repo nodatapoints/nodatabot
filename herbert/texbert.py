@@ -34,8 +34,10 @@ basic_tex_template = very_basic_tex_template.replace("{}", """
 {} % This is where the code goes
 \\end{{document}}
 """)
-display_math_template = basic_tex_template.replace("{}", """{{$\\displaystyle {}$}}""")
-aligned_math_template = display_math_template.replace("{}", """{{\\begin{{aligned}} {} \\end{{aligned}} }}""")
+display_math_template = basic_tex_template.replace(
+    "{}", """{{$\\displaystyle {}$}}""")
+aligned_math_template = display_math_template.replace(
+    "{}", """{{\\begin{{aligned}} {} \\end{{aligned}} }}""")
 
 pre_levels = [very_basic_tex_template,
               basic_tex_template,
@@ -77,10 +79,10 @@ class TexBert(ImageBaseBert):
         Also, TODO, improve this documentation
         """
         argvals, string = Args.parse(string, {
-            'inv':    Args.T.BOOL,
-            'send':   Args.T.one_of('img', 'file', 'both', 'validate'),
-            'res':    Args.T.INT,
-            'pre':    Args.T.INT.bounded(limits=(0, len(pre_levels))),
+            'inv': Args.T.BOOL,
+            'send': Args.T.one_of('img', 'file', 'both', 'validate'),
+            'res': Args.T.INT,
+            'pre': Args.T.INT.bounded(limits=(0, len(pre_levels))),
             # 'err':    Args.T.one_of('last', 'all'), TODO
             # 'format': Args.T.one_of('img', 'pdf', 'dvi') TODO
         })
@@ -96,7 +98,7 @@ class TexBert(ImageBaseBert):
         string = template.format(string)
 
         target_pixel_width = argvals.get('res') or 1000
-        if target_pixel_width > 10000:
+        if target_pixel_width > 5000:
             raise Herberror('Dude wtf are you doing?')
 
         try:
@@ -111,7 +113,8 @@ class TexBert(ImageBaseBert):
             if exit_val == 2:
                 logging.info(f'Couldn\'t cleanup working directory.')
             elif exit_val == 3:
-                raise Herberror('Your \'tex produces output I literally can\'t comprehend.')
+                raise Herberror(
+                    'Your \'tex produces output I literally can\'t comprehend.')
             elif exit_val == 4:
                 raise Herberror(f'Lern ma LaTeX 🙄\n{SEP_LINE}\n'
                                 f'[{chatformat.bold("LATEX")}] {chatformat.mono(result.stdout)}')
@@ -123,7 +126,8 @@ class TexBert(ImageBaseBert):
             img = Image.open(image_path)
 
             if img.width / img.height > 20.0:
-                buf = Image.new(mode='RGB', size=(img.width, int(img.width/20.0 + 1)), color=(255, 255, 255))
+                buf = Image.new(mode='RGB', size=(img.width, int(
+                    img.width / 20.0 + 1)), color=(255, 255, 255))
                 buf.paste(img)
                 img = buf
 

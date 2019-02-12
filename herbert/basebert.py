@@ -1,7 +1,7 @@
 from io import BytesIO
 import hashlib
 
-from telegram import InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultPhoto
+from telegram import InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultPhoto, InlineQueryResultGif
 import telegram.error
 
 from common.basic_utils import arr_to_bytes
@@ -76,6 +76,9 @@ class BaseBert:
     def send_photo(self, data, **kwargs):
         self.bot.send_photo(self.chat_id, data, **kwargs)
 
+    def send_gif(self, data, **kwargs):
+        self.bot.send_animation(self.chat_id, data, **kwargs)
+
     # reply_ methods are a unified way to respond
     # both @inline and /directly.
     def reply_text(self, string, title='', **kwargs):
@@ -90,6 +93,12 @@ class BaseBert:
             InlineBaseBert._inl_send_photo_url_list([(url, title, caption)], self.inline_query)
         else:
             self.send_photo(url, title=title, caption=caption)
+
+    def reply_gif_url(self, url, title="", caption=""):
+        if self.inline:
+            InlineBaseBert._inl_send_gif_url_list([(url, title, caption)], self.inline_query)
+        else:
+            self.send_gif(url, title=title, caption=caption)
 
     @staticmethod
     def wrap_in_file(data, fname):
@@ -130,6 +139,27 @@ class InlineBaseBert(BaseBert):
             InlineQueryResultPhoto(
                 id=f"photo{i}-{InlineBaseBert.gen_id(url_list)}",
                 photo_url=url,
+                title=title,
+                caption=desc,
+                thumb_url=url
+            )
+            for i, (url, title, desc) in enumerate(url_list)
+        ]
+
+        InlineBaseBert._inl_send(result, inline_query)
+
+    def inline_answer_gif_url(self, url, title="", caption=""):
+        self.inline_answer_gif_urls([(url, title, caption)])
+
+    def inline_answer_gif_urls(self, url_list):
+        InlineBaseBert._inl_send_gif_url_list(url_list, self.inline_query)
+
+    @staticmethod
+    def _inl_send_gif_url_list(url_list, inline_query):
+        result = [
+            InlineQueryResultGif(
+                id=f"gif{i}-{InlineBaseBert.gen_id(url_list)}",
+                gif_url=url,
                 title=title,
                 caption=desc,
                 thumb_url=url

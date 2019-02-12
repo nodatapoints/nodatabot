@@ -17,6 +17,13 @@ class TodoBert(BaseBert):
     def todo(self):
         """
         Return a formatted list of all the open requests
+
+        The whole TodoBert has been built to keep track of all the things\
+        that we still need to implement. It keeps them in a list, which can be expanded by\
+        everyone finding something which still needs to be done. This command is used to display all the requests\
+        in a formated list with markdwn for better recognizablity
+
+        e.g: `/td`
         """
         try:
             with todo_file.open() as fobj:
@@ -30,6 +37,13 @@ class TodoBert(BaseBert):
     def addtodo(self, args):
         """
         Add an additional keyspecified element to the open requests
+
+        See `/help todo` for the concept of the todo utility.
+        This command is used to append new requests and ideas to the end of the list. Use the first \
+        (<= 6 characters long) word as a key or heading to your request and the following ones to describe\
+        what you want
+
+        e.g: `/td+ $$$ I want Ca$h`
         """
         try:
             todo_file.open('r+')  # to catch not found
@@ -51,6 +65,12 @@ class TodoBert(BaseBert):
     def removetodo(self, args):
         """
         Remove the keyspecified element from the open requests
+
+        See `/help todo` for the concept of the todo utility.
+        This command is used to remove requests from the list. Use the key that specifies the request\
+        to address and remove it. All requests with that key will get removed.
+
+        e.g: '/td- $$$`
         """
         try:
             with todo_file.open('r+') as fobj:
@@ -77,6 +97,12 @@ class TodoBert(BaseBert):
     def edittodo(self, args):
         """
         Edit the keyspecified element in the requests
+
+        See `/help todo` for the concept of the todo utility.
+        This command is used to edit requests in the list. Use the the first word as the key that specifies\
+        the request and the following words to rewrite the content of that request.
+
+        e.g: '/td% $$$ maybe there are more important things in life`
         """
         try:
             with todo_file.open('r+') as fobj:

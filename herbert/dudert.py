@@ -4,7 +4,6 @@ from basebert import BaseBert, Herberror
 
 import requests
 from requests.utils import quote
-from scrapy.http import HtmlResponse
 from lxml import etree
 
 
@@ -24,21 +23,32 @@ class Dudert(BaseBert):
         phrase = quote(string, safe='')
         url = f'https://www.urbandictionary.com/define.php?term={phrase}'
         response = requests.get(url)
-        site = HtmlResponse(url=response.url, body=response.content)
+        dom = etree.HTML(response.text)
 
         def join_chunked(xpath):
-            div = site.xpath(xpath)[0]
-            chunks = div.xpath('.//text()').extract()
-            return ''.join(chunks)
+            div = dom.xpath(xpath)[0]
+            return ''.join(div.xpath('.//text()'))
+
         try:
-            title = site.xpath('//a[@class="word"]/text()').extract_first()
+            title = dom.xpath('//a[@class="word"]/text()')[0]
             meaning = join_chunked('//div[@class="meaning"]')
             example = join_chunked('//div[@class="example"]')
-        except Exception:
-            raise Herberror('This is not a valid query')
 
-        outp = f'`{title}:`\n{meaning}\n_{example}_'
-        self.reply_text(outp)
+        except IndexError:
+            # Check if its just the "not defined yet" page
+            if dom.xpath('//a[text()="Define it!"]'):
+                self.send_message(
+                    msg=f"""\
+_This is not defined yet!_
+[Want to define it?](https://www.urbandictionary.com/add.php?term={phrase})""",
+                    parse_mode='MARKDOWN'
+                )
+                return
+
+            else:  # if not, its a problem
+                raise
+
+        self.send_message(f'`{title}:`\n{meaning}\n_{example}_', parse_mode='MARKDOWN')
 
     @aliases('dude')
     @command(pass_string=True)
@@ -85,8 +95,7 @@ class Dudert(BaseBert):
         main_block, *_ = dom.xpath('//section[@id="block-system-main"]')
         word_def, = main_block.xpath('./h1/text()')
         word_class, *_, freq = main_block.xpath('.//strong/text()')
-        _, *meanings = dom.xpath(
-                '//section[@id="block-duden-tiles-1"]//a/text()')
+        _, *meanings = dom.xpath('//section[@id="block-duden-tiles-1"]//a/text()')
 
         meanings_list_str = '\n'.join(
             f'{i+1}. _{meaning}_' for i, meaning in enumerate(meanings)) or '_Keine Bedeutungen gefunden._'

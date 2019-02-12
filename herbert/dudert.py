@@ -1,5 +1,6 @@
 from decorators import aliases, command
 from basebert import BaseBert, Herberror
+import common.chatformat as cf
 
 
 import requests
@@ -39,16 +40,18 @@ class Dudert(BaseBert):
             if dom.xpath('//a[text()="Define it!"]'):
                 self.send_message(
                     msg=f"""\
-_This is not defined yet!_
-[Want to define it?](https://www.urbandictionary.com/add.php?term={phrase})""",
-                    parse_mode='MARKDOWN'
+{cf.it("This is not defined yet!")}
+{cf.link_to(f"https://www.urbandictionary.com/add.php?term={phrase}", "Want to define it?")}"""
                 )
                 return
 
             else:  # if not, its a problem
                 raise
 
-        self.send_message(f'`{title}:`\n{meaning}\n_{example}_', parse_mode='MARKDOWN')
+        self.send_message(f"""\
+{cf.mono(title)}
+{meaning}
+{cf.it(example)}""")
 
     @aliases('dude')
     @command(pass_string=True)
@@ -73,7 +76,7 @@ _This is not defined yet!_
         top_entry, *_ = results
 
         msg = self._parse_definition(url=top_entry)
-        self.send_message(msg, parse_mode='MARKDOWN')
+        self.send_message(msg)
 
     def _parse_definition(self, *, word=None, url=None):
         """
@@ -98,9 +101,9 @@ _This is not defined yet!_
         _, *meanings = dom.xpath('//section[@id="block-duden-tiles-1"]//a/text()')
 
         meanings_list_str = '\n'.join(
-            f'{i+1}. _{meaning}_' for i, meaning in enumerate(meanings)) or '_Keine Bedeutungen gefunden._'
-        return f"""*{word_def}*
-_{word_class}_
+            f'{i+1}. {cf.it(meaning)}' for i, meaning in enumerate(meanings)) or cf.it("Keine Bedeutungen gefunden.")
+        return f"""{cf.bold(word_def)}
+{cf.it(word_class)}
 Häufigkeit: {'💬'*len(freq)}
 
 Bedeutungen:

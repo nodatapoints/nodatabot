@@ -1,3 +1,4 @@
+from functools import partial
 
 STYLE_MD = 'MARKDOWN'
 STYLE_HTML = 'HTML'
@@ -10,14 +11,14 @@ STYLE_CUSTOM = 'CUSTOM'
 STYLE = STYLE_CUSTOM
 
 
-def get_parse_mode(use_style=STYLE):
-    return use_style
+def get_parse_mode(style=STYLE):
+    return style
 
 
-def get_output_mode(use_style=STYLE):
-    if use_style == STYLE_CUSTOM:
+def get_output_mode(style=STYLE):
+    if style == STYLE_CUSTOM:
         return STYLE_HTML
-    return use_style
+    return style
 
 
 def render_custom(string, target_style=STYLE_HTML):
@@ -34,7 +35,7 @@ def render_custom(string, target_style=STYLE_HTML):
         '!§!]a': '</a>'
     }
 
-    string = escape_string(string, use_style=target_style)
+    string = escape_string(string, style=target_style)
 
     for key, val in substitutions.items():
         string = string.replace(key, val)
@@ -42,77 +43,72 @@ def render_custom(string, target_style=STYLE_HTML):
     return string
 
 
-def ensure_markup_clean(string, msg=None, use_style=STYLE):
-    bad_strings = []
-    if use_style == STYLE_HTML:
-        bad_strings += ['<', '>']
-    elif use_style == STYLE_MD:
-        bad_strings += ['`', '_', '*', '[']
-    elif use_style == STYLE_CUSTOM:
-        bad_strings += ['!§![', '!§!]']
+def ensure_markup_clean(string, msg='', style=STYLE):
+    crimes = {
+        STYLE_HTML: ('<', '>'),
+        STYLE_MD: ('`', '_', '*', '['),
+        STYLE_CUSTOM: ('!§![', '!§!]')
+    }[style]
 
-    total_count = 0
-    for s in bad_strings:
-        total_count += string.count(s)
-
-    assert total_count == 0, (f"{string} contains (invalid?) markup sequences! " + (msg if msg else ''))
+    if any(crime in string for crime in crimes):
+        raise ValueError(f'{string} contains (invalid?) markup sequences. {msg}')
 
 
-def escape_string(string, use_style=STYLE):
+def escape_string(string, style=STYLE):
     # markdown cannot be escaped. hope for the best.
-    if use_style == STYLE_HTML:
+    if style == STYLE_HTML:
         return string.replace("<", "&lt;").replace(">", "&gt;")
 
     return string
 
 
-def link_to(url, name=None, use_style=STYLE):
+def link_to(url, name=None, style=STYLE):
     name = name or url
-
-    if use_style == STYLE_HTML:
-        return f'<a href="{url}">{name}</a>'
-    elif use_style == STYLE_MD:
-        return f'[{name}]({url})'
-    elif use_style == STYLE_CUSTOM:
-        return f'!§![a{url}!§!|A{name}!§!]a'
-    else:
-        raise ValueError(f"Style {use_style} is undefined.")
-
-
-def italic(text, escape=True, use_style=STYLE):
-    if escape:
-        text = escape_string(text)
-    if use_style == STYLE_HTML:
-        return f'<i>{text}</i>'
-    elif use_style == STYLE_MD:
-        return f'_{text}_'
-    elif use_style == STYLE_CUSTOM:
-        return f'!§![i{text}!§!]i'
-    else:
-        raise ValueError(f"Style {use_style} is undefined.")
+    try:
+        return {
+            STYLE_HTML: f'<a href="{url}">{name}</a>',
+            STYLE_MD: f'[{name}]({url})',
+            STYLE_CUSTOM: f'!§![a{url}!§!|A{name}!§!]a'
+        }[style]
+    except KeyError:
+        raise ValueError(f'Style {style} is undefined.')
 
 
-def bold(text, escape=True, use_style=STYLE):
-    if escape:
-        text = escape_string(text)
-    if use_style == STYLE_HTML:
-        return f'<b>{text}</b>'
-    elif use_style == STYLE_MD:
-        return f'*{text}*'
-    elif use_style == STYLE_CUSTOM:
-        return f'!§![b{text}!§!]b'
-    else:
-        raise ValueError(f"Style {use_style} is undefined.")
+def _wrap_delimiters(style_dict, text, escape=True, style=STYLE):
+    try:
+        prefix, suffix = style_dict[style]
+        if escape:
+            text = escape_string(text, style)
+
+        return prefix + text + suffix
+
+    except KeyError:
+        raise ValueError(f'Style {style} is undefined.')
 
 
-def mono(text, escape=True, use_style=STYLE):
-    if escape:
-        text = escape_string(text)
-    if use_style == STYLE_HTML:
-        return f'<code>{text}</code>'
-    elif use_style == STYLE_MD:
-        return f'`{text}`'
-    elif use_style == STYLE_CUSTOM:
-        return f'!§![c{text}!§!]c'
-    else:
-        raise ValueError(f"Style {use_style} is undefined.")
+italic = em = it = partial(
+    _wrap_delimiters,
+    {
+        STYLE_HTML: ('<i>', '</i>'),
+        STYLE_MD: ('_', '_'),
+        STYLE_CUSTOM: ('!§![i', '!§!]i')
+    }
+)
+
+bold = partial(
+    _wrap_delimiters,
+    {
+        STYLE_HTML: ('<b>', '</b>'),
+        STYLE_MD: ('*', '*'),
+        STYLE_CUSTOM: ('!§![b', '!§!]b')
+    }
+)
+
+mono = partial(
+    _wrap_delimiters,
+    {
+        STYLE_HTML: ('<code>', '</code>'),
+        STYLE_MD: ('*', '*'),
+        STYLE_CUSTOM: ('!§![c', '!§!]c')
+    }
+)

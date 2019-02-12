@@ -34,10 +34,8 @@ basic_tex_template = very_basic_tex_template.replace("{}", """
 {} % This is where the code goes
 \\end{{document}}
 """)
-display_math_template = basic_tex_template.replace(
-    "{}", """{{$\\displaystyle {}$}}""")
-aligned_math_template = display_math_template.replace(
-    "{}", """{{\\begin{{aligned}} {} \\end{{aligned}} }}""")
+display_math_template = basic_tex_template.replace("{}", """{{$\\displaystyle {}$}}""")
+aligned_math_template = display_math_template.replace("{}", """{{\\begin{{aligned}} {} \\end{{aligned}} }}""")
 
 pre_levels = [very_basic_tex_template,
               basic_tex_template,
@@ -113,11 +111,9 @@ class TexBert(ImageBaseBert):
             if exit_val == 2:
                 logging.info(f'Couldn\'t cleanup working directory.')
             elif exit_val == 3:
-                raise Herberror(
-                    'Your \'tex produces output I literally can\'t comprehend.')
+                raise Herberror('Your \'tex produces output I literally can\'t comprehend.')
             elif exit_val == 4:
-                raise Herberror(f'Lern ma LaTeX 🙄\n{SEP_LINE}\n'
-                                f'[{chatformat.bold("LATEX")}] {chatformat.mono(result.stdout)}')
+                raise Herberror(f'Lern ma LaTeX 🙄\n{SEP_LINE}\n'f'[{chatformat.bold("LATEX")}] {chatformat.mono(result.stdout)}')
             elif exit_val != 0:
                 raise BadHerberror('Error. That was unexpected.')
 
@@ -126,8 +122,7 @@ class TexBert(ImageBaseBert):
             img = Image.open(image_path)
 
             if img.width / img.height > 20.0:
-                buf = Image.new(mode='RGB', size=(img.width, int(
-                    img.width / 20.0 + 1)), color=(255, 255, 255))
+                buf = Image.new(mode='RGB', size=(img.width, int(img.width / 20.0 + 1)), color=(255, 255, 255))
                 buf.paste(img)
                 img = buf
 

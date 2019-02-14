@@ -54,7 +54,7 @@ class AsciiBert(TexBert):
         Try, for example
         ` (a + b)^2 `
         ` A and B and not C `
-        ` lim {x->inf} 1/x `
+        ` lim {{x->inf}} 1/x `
         ` v cross u * r `
         """
         for pattern, subst in _substitutions.items():

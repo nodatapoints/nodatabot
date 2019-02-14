@@ -1,8 +1,9 @@
-from typing import SupportsInt, SupportsFloat, Callable, Tuple
+from typing import SupportsInt, SupportsFloat, Callable, Tuple, List, Dict
 
 from basebert import Herberror
 import re
 
+from common.basic_utils import nth
 from common.constants import SEP_LINE
 
 __all__ = ['Args', 'ArgParser', 'dict_map']
@@ -28,6 +29,14 @@ def _check_if_float(s: (str, bytes, SupportsFloat)) -> (bool, float):
         return True, float(s)
     except ValueError:
         return False, 0.
+
+
+def _check_if_chars_in(s, string):
+    for c in s:
+        if s not in string:
+            return False, ""
+
+    return True, s
 
 
 def dict_map(table: dict):
@@ -64,18 +73,18 @@ class ArgParser:
 
 class Args:
     @staticmethod
-    def parse(string: str, expected_arguments: dict) -> (dict, str):
+    def parse(string: str, expected_arguments: Dict[str, ArgParser], begin="[", end="]") -> (dict, str):
         """ Parse [key=value, k=v] arg pairs at start of string and return rest """
         # the string needs to start with "[" (+- some whitespace)
         # and contain comma-separated key=value pairs until the closing "]"
         string = string.strip()
 
-        if len(string) == 0 or string[0] != "[":
+        if len(string) == 0 or string[0] != begin:
             return dict(), string
 
         res = dict()
 
-        parts = re.split(r"\]", string[1:], maxsplit=1)
+        parts = re.split(end, string[len(begin):], maxsplit=1)
         kv_pairs = re.split(',', parts[0])
 
         for kv_pair in kv_pairs:
@@ -99,6 +108,27 @@ class Args:
 
         return res, parts[1]
 
+    @staticmethod
+    def parse_positional(string: str, expected_arguments: List[ArgParser]):
+        string = string.strip()
+        argc = len(expected_arguments)
+        parts = re.split(",?\s+", string)
+
+        if len(parts) < argc:
+            raise Herberror(f"Too few arguments! ({argc} expected)")
+        elif len(parts) > argc:
+            raise Herberror(f"Too many arguments! ({argc} expected)")
+
+        res = []
+        for i, part in enumerate(parts):
+            exp_arg = expected_arguments[i]
+            if not exp_arg.check(part):
+                raise ArgumentFormatError(f"Invalid Argument Type for {nth(i+1)} arg (given \'{part}\')" +
+                                          (f"\n{SEP_LINE}\n{exp_arg.explain}" if exp_arg.explain else ''))
+            res.append(exp_arg.value(part))
+
+        return res
+
     class T:
         BOOL = ArgParser(
             check=lambda s: re.match('^([Tt]rue?|[Ff]alse?|1|0|y(es)?|no?)$', s) is not None,
@@ -121,6 +151,21 @@ class Args:
                 check=lambda s: s in args,
                 value=lambda s: s,
                 explain=f"Expecting Value to be one of {args}."
+            )
+
+        @staticmethod
+        def char_in(string: str):
+            return ArgParser(
+                check=lambda s: len(s) == 1 and s in string,
+                value=lambda s: s,
+                explain=f"Expecting Value to be a single character in [{string}]"
+            )
+
+        @staticmethod
+        def chars_in(string: str):
+            return ArgParser(
+                accept=lambda s: _check_if_chars_in(s, string),
+                explain=f"Expecting Value to be a String consisting of characters in [{string}]"
             )
 
         @staticmethod

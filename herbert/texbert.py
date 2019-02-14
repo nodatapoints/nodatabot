@@ -77,10 +77,10 @@ class TexBert(ImageBaseBert):
         Also, TODO, improve this documentation
         """
         argvals, string = Args.parse(string, {
-            'inv':    Args.T.BOOL,
-            'send':   Args.T.one_of('img', 'file', 'both', 'validate'),
-            'res':    Args.T.INT,
-            'pre':    Args.T.INT.bounded(limits=(0, len(pre_levels))),
+            'inv': Args.T.BOOL,
+            'send': Args.T.one_of('img', 'file', 'both', 'validate'),
+            'res': Args.T.INT,
+            'pre': Args.T.INT.bounded(limits=(0, len(pre_levels))),
             # 'err':    Args.T.one_of('last', 'all'), TODO
             # 'format': Args.T.one_of('img', 'pdf', 'dvi') TODO
         })
@@ -123,7 +123,7 @@ class TexBert(ImageBaseBert):
             img = Image.open(image_path)
 
             if img.width / img.height > 20.0:
-                buf = Image.new(mode='RGB', size=(img.width, int(img.width/20.0 + 1)), color=(255, 255, 255))
+                buf = Image.new(mode='RGB', size=(img.width, int(img.width / 20.0 + 1)), color=(255, 255, 255))
                 buf.paste(img)
                 img = buf
 

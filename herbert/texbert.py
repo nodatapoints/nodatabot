@@ -96,7 +96,7 @@ class TexBert(ImageBaseBert):
         string = template.format(string)
 
         target_pixel_width = argvals.get('res') or 1000
-        if target_pixel_width > 10000:
+        if target_pixel_width > 5000:
             raise Herberror('Dude wtf are you doing?')
 
         try:
@@ -113,8 +113,7 @@ class TexBert(ImageBaseBert):
             elif exit_val == 3:
                 raise Herberror('Your \'tex produces output I literally can\'t comprehend.')
             elif exit_val == 4:
-                raise Herberror(f'Lern ma LaTeX 🙄\n{SEP_LINE}\n'
-                                f'[{chatformat.bold("LATEX")}] {chatformat.mono(result.stdout)}')
+                raise Herberror(f'Lern ma LaTeX 🙄\n{SEP_LINE}\n'f'[{chatformat.bold("LATEX")}] {chatformat.mono(result.stdout)}')
             elif exit_val != 0:
                 raise BadHerberror('Error. That was unexpected.')
 

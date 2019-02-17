@@ -5,8 +5,9 @@ import path
 
 from ctypes import create_string_buffer as buf, cdll
 
-
 __all__ = ['InterpRert', 'h_bf']
+
+from common.chatformat import mono
 
 MAX_INSTRUCTIONS = 1000000
 OUT_SIZE = 512
@@ -30,18 +31,18 @@ class InterpRert(BaseBert):
 
         Interpret the given string as brainfuck. Brainfuck is a minimalistic, esoteric, but turing-complete \
         programming language operating on a linear storage tape with exactly 8 instructions:
-        `+` - increment the value in the current tape slot
-        `-` - decrement the value
-        `>` - move to the next tape slot
-        `<` - move to the previous tape slot
-        `[` - begin a loop block
-        `]` - if the current value is not 0, jump to the corresponding `[`. end a loop block.
-        `.` - print the value in the current slot as a byte
-        `,` - read a value - not implemented in this version
+        {mono('+')} - increment the value in the current tape slot
+        {mono('-')} - decrement the value
+        {mono('>')} - move to the next tape slot
+        {mono('<')} - move to the previous tape slot
+        {mono('[')} - begin a loop block
+        {mono(']')} - if the current value is not 0, jump to the corresponding {mono('[')}. end a loop block.
+        {mono('.')} - print the value in the current slot as a byte
+        {mono(',')} - read a value - not implemented in this version
 
         Limits:
         To avoid overly long calculation times and/or memory usage, this interpreter limits the number of executed \
-        instructions to 1000000, the number of output bytes to 512 and the tape length to 512. \
+        instructions to {MAX_INSTRUCTIONS}, the number of output bytes to {OUT_SIZE} and the tape length to 512. \
         Input Program size is theoretically unlimited, but has to fit in a single telegram message, which is, again, \
         of constrained size.
         """
@@ -69,4 +70,3 @@ def run_bf(prog):
             return str(b.value)
         else:
             return b.value.decode("utf-8")
-

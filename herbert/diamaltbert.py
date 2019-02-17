@@ -58,12 +58,12 @@ class DiaMaltBert(ImageBaseBert):
         The command structure is given by:
         `/rule <edge> <scale> <#rule> <width> <height> <1st>`
 
-        `<edge>   ∊ {r(andom), t(orus), b(lack), w(hite)}`
+        `<edge>   ∊ {{r(andom), t(orus), b(lack), w(hite)}}`
         `<scale>  ∊ [1, ∞[ `the size of 1 cell in pixels
         `<#rule>  ∊ [0, 255] `the rule you want to see
         `<width>  ∊ [1, ∞[` the number of cells
         `<height> ∊ [1, ∞[` the number of timesteps
-        `<height> ∊ {r, [all states like 0 1 1 ...]}`
+        `<height> ∊ {{r, [all states like 0 1 1 ...]}}`
 
         e.g: `/rule b 25 73 200 200 r`
         """
@@ -82,12 +82,12 @@ class DiaMaltBert(ImageBaseBert):
         The command structure is given by:
         `/rule <edge> <scale> <#rule> <width> <height> <1st>`
 
-        `<edge>   ∊ {r(andom), t(orus), b(lack), w(hite)}`
+        `<edge>   ∊ {{r(andom), t(orus), b(lack), w(hite)}}`
         `<scale>  ∊ [1, ∞[ `the size of 1 cell in pixels
         `<#rule>  ∊ [0, 255] `the rule you want to see
         `<width>  ∊ [1, ∞[` the number of cells
         `<height> ∊ [1, ∞[` the number of timesteps
-        `<height> ∊ {r, [all states like 0 1 1 ...]}`
+        `<height> ∊ {{r, [all states like 0 1 1 ...]}}`
 
         e.g: `/rule b 25 73 200 200 r`
         """

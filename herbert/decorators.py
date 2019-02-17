@@ -38,16 +38,15 @@ the python-telegram-bot api when calling register_bert(fn.__self__) in core.py
 
 If this seems confusing and/or hard to understand, that's because that's the way it is.
 """
-
 import logging
 from datetime import datetime, timedelta
 from functools import wraps
+from typing import Callable
 
 import telegram.error
 from telegram.ext import CommandHandler, CallbackQueryHandler
 
 from basebert import Herberror, BadHerberror
-from common import chatformat
 from common.constants import ERROR_FAILED, ERROR_TEMPLATE, BAD_ERROR_TEMPLATE, \
     EMOJI_EXPLOSION, EMOJI_WARN
 
@@ -233,6 +232,10 @@ def command(arg=None, *, pass_args=None, pass_update=False, pass_string=False,
 
         wrapped = handle_herberrors(method)
         wrapped.original = method
+
+        if method.__doc__ is None and method.register_help:
+            logging.info(f"/{method.__name__} is missing Documentation!")
+
         return wrapped
 
     if callable(arg):

@@ -100,7 +100,7 @@ def make_bert_str(bert: BaseBert):
 
             name, *cmd_aliases = method.commands
             chatformat.ensure_markup_clean(name + "".join(cmd_aliases))
-            res += f"/{name} {chatformat.mono('<args>', escape=True)} "  # TODO somehow figure out args
+            res += f"/{name} {chatformat.mono('<args>')} "  # TODO somehow figure out args
             res += f" {tuple(cmd_aliases)} " if cmd_aliases else ""
             if method.__doc__:
                 parts = method.__doc__.split(DBLNEWLINE, maxsplit=1)

@@ -85,8 +85,7 @@ class Dudert(BaseBert):
         main_block, *_ = dom.xpath('//section[@id="block-system-main"]')
         word_def, = main_block.xpath('./h1/text()')
         word_class, *_, freq = main_block.xpath('.//strong/text()')
-        _, * \
-            meanings = dom.xpath(
+        _, *meanings = dom.xpath(
                 '//section[@id="block-duden-tiles-1"]//a/text()')
 
         meanings_list_str = '\n'.join(

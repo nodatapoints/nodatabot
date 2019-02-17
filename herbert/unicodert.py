@@ -1,12 +1,10 @@
 import re
 
 from basebert import Herberror, InlineBaseBert
+from common.constants import FLAG_CHARS
 from decorators import command, aliases
 
 __all__ = ['UniCoDert']
-
-
-FLAG_CHARS = "🇦🇧🇨🇩🇪🇫🇬🇭🇮🇯🇰🇱🇲🇳🇴🇵🇶🇷🇸🇹🇺🇻🇼🇽🇾🇿"
 
 
 def _translate_char(c: chr):

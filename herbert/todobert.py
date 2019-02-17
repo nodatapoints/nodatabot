@@ -16,7 +16,7 @@ class TodoBert(BaseBert):
     @command(pass_args=False)
     def todo(self):
         """
-        Return a formatted list of all the open requests
+        Return a list of open requests
 
         The whole TodoBert has been built to keep track of all the things\
         that we still need to implement. It keeps them in a list, which can be expanded by\
@@ -36,7 +36,7 @@ class TodoBert(BaseBert):
     @command
     def addtodo(self, args):
         """
-        Add an additional keyspecified element to the open requests
+        Add an request to the list
 
         See `/help todo` for the concept of the todo utility.
         This command is used to append new requests and ideas to the end of the list. Use the first \
@@ -64,7 +64,7 @@ class TodoBert(BaseBert):
     @command
     def removetodo(self, args):
         """
-        Remove the keyspecified element from the open requests
+        Remove a request from the list
 
         See `/help todo` for the concept of the todo utility.
         This command is used to remove requests from the list. Use the key that specifies the request\
@@ -96,7 +96,7 @@ class TodoBert(BaseBert):
     @command
     def edittodo(self, args):
         """
-        Edit the keyspecified element in the requests
+        Edit a request in the list
 
         See `/help todo` for the concept of the todo utility.
         This command is used to edit requests in the list. Use the the first word as the key that specifies\

@@ -61,6 +61,8 @@ def register_bert(cls):
                 method.callback_query_handler(method)
             )
 
+    logging.getLogger('herbert.SETUP').debug(f"Registered Bert {bot} of type {cls}")
+
 
 def handle_inline_query(bot, update, line=None):
     query = line or update.inline_query.query

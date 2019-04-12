@@ -7,11 +7,11 @@ from common.argparser import Args, UnexpectedArgument, ArgumentFormatError
 from decorators import command, aliases
 from datetime import datetime
 
-from asciimath import AsciiBert
-from hashbert import HashBert
-from helpbert import HelpBert
-from interprert import InterpRert
-from texbert import TexBert
+from berts.asciimath import AsciiBert
+from berts.hashbert import HashBert
+from berts.helpbert import HelpBert
+from berts.interprert import InterpRert
+from berts.texbert import TexBert
 
 
 class TestBert(BaseBert):

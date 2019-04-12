@@ -47,3 +47,18 @@ All work is protected under Copyright and -left; meaning that you can copy it fr
 economics and law discussion D: ))
 
 - edited and written by @AlcedoAttis
+
+
+### DEPENDENCIES
+#### Basic
+- python-telegram-bot
+
+#### For each Bert
+- certifi
+- cffi
+- cryptography
+- lxml
+- pillow
+- requests
+- scrapy
+- urllib3

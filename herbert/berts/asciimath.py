@@ -2,7 +2,7 @@ from decorators import command, aliases
 
 import re
 
-from texbert import TexBert
+from berts.texbert import TexBert
 
 EXPR = r'(-?[\w\d]+|\([^()]*\)|{[^{}]+?})'
 

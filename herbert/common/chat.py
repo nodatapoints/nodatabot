@@ -4,11 +4,11 @@ from io import BytesIO
 from re import split
 import hashlib
 
+from common.telegram_limits import MSG_CHUNK
+
 BOT_ERR_PREFIX = "`[ERR][ :( ] `"
 
-MSG_CHUNK = 4096
 MAX_CHUNKY_LENGTH = 3 * MSG_CHUNK
-
 CALLBACK_ARGUMENT_SEPARATOR = " "
 
 
@@ -45,12 +45,12 @@ def reply_filed_binary(bot, update, data, name="default", **kwargs):
     bot.send_document(update.message.chat_id, document=f, **kwargs)
 
 
-def reply_large_utf8(bot, update, msg, **kwargs):
+def reply_large_utf8(bot, update, msg, max_chunky=MAX_CHUNKY_LENGTH, **kwargs):
     """
     Determine whether to send the message chunked
     or filed, and then forward the data
     """
-    if len(msg) > MAX_CHUNKY_LENGTH:
+    if len(msg) > max_chunky:
         reply_filed_utf8(bot, update, msg, **kwargs)
     else:
         reply_chunky(bot, update, msg, **kwargs)

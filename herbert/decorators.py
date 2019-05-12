@@ -86,13 +86,13 @@ def handle_herberrors(method):
             res_text = template.format(emoji, " ".join(e.args))
             self.reply_text(res_text, disable_web_page_preview=True)
             msg, = e.args
-            logging.debug(f'Herberror: "{msg}"')
+            logging.getLogger('herbert.RUNTIME').debug(f'Herberror: "{msg}"')
 
         except telegram.error.TimedOut:
-            logging.info('Timed out')
+            logging.getLogger('herbert.RUNTIME').info('Timed out')
 
         except telegram.error.NetworkError:
-            logging.info('Connection Failed')
+            logging.getLogger('herbert.RUNTIME').info('Connection Failed')
 
         except Exception:
             self.reply_text(ERROR_FAILED)
@@ -132,7 +132,8 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
         if update.message is not None:
             delta = datetime.now() - update.message.date
             if delta > reply_timeout:
-                logging.info(f'Command "{update.message.text}" timed out '
+                logging.getLogger('herbert.RUNTIME')\
+                       .info(f'Command "{update.message.text}" timed out '
                              f'({delta.seconds:.1f}s > {reply_timeout.seconds:.1f}s)')
                 return
 
@@ -234,7 +235,7 @@ def command(arg=None, *, pass_args=None, pass_update=False, pass_string=False,
         wrapped.original = method
 
         if method.__doc__ is None and method.register_help:
-            logging.info(f"/{method.__name__} is missing Documentation!")
+            logging.getLogger('herbert.SETUP').info(f"/{method.__name__} is missing Documentation!")
 
         return wrapped
 

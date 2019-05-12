@@ -42,6 +42,15 @@ def render_custom(string, target_style=STYLE_HTML):
     return string
 
 
+def render(text, input_style):
+    if input_style == STYLE_CUSTOM:
+        render_text = render_custom(text)
+    else:
+        render_text = text
+
+    return render_text, get_output_mode(input_style)
+
+
 def ensure_markup_clean(string, msg=None, use_style=STYLE):
     bad_strings = []
     if use_style == STYLE_HTML:

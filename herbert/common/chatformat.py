@@ -51,7 +51,8 @@ def render(text, input_style):
     return render_text, get_output_mode(input_style)
 
 
-def ensure_markup_clean(string, msg=None, use_style=STYLE):
+def ensure_markup_clean(*strings, msg=None, use_style=STYLE):
+    string = "".join(strings)
     bad_strings = []
     if use_style == STYLE_HTML:
         bad_strings += ['<', '>']

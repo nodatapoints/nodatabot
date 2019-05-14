@@ -7,6 +7,7 @@ from basebert import ImageBaseBert, Herberror, BadHerberror
 from common import chatformat
 from common.argparser import Args
 from common.constants import SEP_LINE
+from common.telegram_limits import IMG_MAX_ASPECT
 from decorators import command, aliases
 
 # format breaks here because e.g. {{amsfonts}} gets transformed to {amsfonts} and then the
@@ -109,7 +110,7 @@ class TexBert(ImageBaseBert):
             exit_val = result.returncode
 
             if exit_val == 2:
-                logging.info(f'Couldn\'t cleanup working directory.')
+                logging.getLogger('herbert.RUNTIME').warning(f'Couldn\'t cleanup working directory.')
             elif exit_val == 3:
                 raise Herberror('Your \'tex produces output I literally can\'t comprehend.')
             elif exit_val == 4:
@@ -121,8 +122,8 @@ class TexBert(ImageBaseBert):
             image_path = result.stdout.strip()
             img = Image.open(image_path)
 
-            if img.width / img.height > 20.0:
-                buf = Image.new(mode='RGB', size=(img.width, int(img.width / 20.0 + 1)), color=(255, 255, 255))
+            if img.width / img.height > IMG_MAX_ASPECT:
+                buf = Image.new(mode='RGB', size=(img.width, int(img.width / IMG_MAX_ASPECT + 1)), color=(255, 255, 255))
                 buf.paste(img)
                 img = buf
 

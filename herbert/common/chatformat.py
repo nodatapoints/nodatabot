@@ -42,7 +42,7 @@ def render_custom(string, target_style=STYLE_HTML):
 
     return string
 
-
+""" proposed:
 def ensure_markup_clean(string, msg='', style=STYLE):
     crimes = {
         STYLE_HTML: ('<', '>'),
@@ -52,7 +52,25 @@ def ensure_markup_clean(string, msg='', style=STYLE):
 
     if any(crime in string for crime in crimes):
         raise ValueError(f'{string} contains (invalid?) markup sequences. {msg}')
+"""
+def render(text, input_style):
+    if input_style == STYLE_CUSTOM:
+        render_text = render_custom(text)
+    else:
+        render_text = text
 
+    return render_text, get_output_mode(input_style)
+
+
+def ensure_markup_clean(*strings, msg=None, use_style=STYLE):
+    string = "".join(strings)
+    bad_strings = []
+    if use_style == STYLE_HTML:
+        bad_strings += ['<', '>']
+    elif use_style == STYLE_MD:
+        bad_strings += ['`', '_', '*', '[']
+    elif use_style == STYLE_CUSTOM:
+        bad_strings += ['!§![', '!§!]']
 
 def escape_string(string, style=STYLE):
     # markdown cannot be escaped. hope for the best.

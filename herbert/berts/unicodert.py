@@ -1,17 +1,19 @@
 import re
 
 from basebert import Herberror, InlineBaseBert
+from common.constants import FLAG_CHARS
 from decorators import command, aliases
 
 __all__ = ['UniCoDert']
 
 
-FLAG_CHARS = "🇦🇧🇨🇩🇪🇫🇬🇭🇮🇯🇰🇱🇲🇳🇴🇵🇶🇷🇸🇹🇺🇻🇼🇽🇾🇿"
-
-
 def _translate_char(c: chr):
     assert 'A' <= c <= 'Z'
     return FLAG_CHARS[ord(c) - ord('A')]
+
+def _retranslate_char(c: chr):
+    assert c in FLAG_CHARS
+    return chr(ord('A') + FLAG_CHARS.find(c))
 
 
 class UniCoDert(InlineBaseBert):
@@ -37,3 +39,16 @@ class UniCoDert(InlineBaseBert):
             res += _translate_char(c)
 
         self.reply_text(res)
+
+    @command(pass_string=True, register_help=False)
+    def reverseflg(self, string: str):
+        string = string.strip()
+        res = ''
+        try:
+            for c in string:
+                res += _retranslate_char(c)
+        except AssertionError:
+            raise Herberror("Well, that sucks. That is, you do.")
+
+        self.reply_text(res)
+    

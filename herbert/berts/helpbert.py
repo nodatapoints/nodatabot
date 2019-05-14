@@ -1,9 +1,10 @@
-from common import chatformat
-from decorators import command, aliases
-from common.constants import GITHUB_REF, SEP_LINE, HERBERT_TITLE
 from basebert import BaseBert, Herberror
-import inspect
+from common.chatformat import mono, italic, bold, link_to, ensure_markup_clean
+from common.constants import GITHUB_REF, SEP_LINE, HERBERT_TITLE
+from common.herbert_utils import getmethods, isownmethod
+from decorators import command, aliases
 import core
+import inspect
 import re
 
 
@@ -48,7 +49,7 @@ class HelpBert(BaseBert):
         Herbert is, much to your surprise, a telegram bot.
         
         It is written in Python and C++, using a custom command dispatcher built on top of the \
-        {chatformat.link_to("http://www.python-telegram-bot.org", name="python-telegram-bot")} framework.
+        {link_to("http://www.python-telegram-bot.org", name="python-telegram-bot")} framework.
         
         To find out what it can do, use /help
         To find out how it works, check out the code on {GITHUB_REF}
@@ -79,45 +80,54 @@ def check_for_(s: str):
     assert s.count('`') % 2 == 0, "Balance your backticks!"
 
 
+def _format_aliases(alias_list):
+    if len(alias_list) == 0:
+        return ' '
+    res = ' (' + alias_list[0]
+    for i in alias_list[1:]:
+        res += ', ' + i
+    return res + ') '
+
+
 # this is bodgy, please fix (but without destroying it).
 def make_bert_str(bert: BaseBert):
     check_for_(bert.__class__.__name__)
-    res = f"{chatformat.bold(bert.__class__.__name__)}:\n"
-    for _, method in inspect.getmembers(bert, inspect.ismethod):
-        # if we just inherited this method, dont list it again for this class
-        is_own_fn = True
-        for baseclass in bert.__class__.__bases__:
-            if hasattr(baseclass, method.__name__):
-                is_own_fn = False
-                break
 
-        if not is_own_fn:
+    def providesHelp(member):
+        _, method = member # first arg is member name, not needed here
+        return hasattr(method, 'command_handler') and method.register_help
+
+    # TODO add unified flag and is_command_handler method to avoid spaghetti
+    help_fns = [ *filter(providesHelp, getmethods(bert)) ]
+
+    if len(help_fns) == 0:
+        return ''
+
+    res = f"{bold(bert.__class__.__name__)}:\n"
+    for _, method in help_fns:
+        # if we just inherited this method, dont list it again for this class
+        if not isownmethod(method, bert):
             continue
 
-        if hasattr(method, 'command_handler'):  # TODO add unified flag and is_command_handler method to avoid spaghetti
-            if not method.register_help:
-                continue
-
-            name, *cmd_aliases = method.commands
-            chatformat.ensure_markup_clean(name + "".join(cmd_aliases))
-            res += f"/{name} {chatformat.mono('<args>', escape=True)} "  # TODO somehow figure out args
-            res += f" {tuple(cmd_aliases)} " if cmd_aliases else ""
-            if method.__doc__:
-                parts = method.__doc__.split(DBLNEWLINE, maxsplit=1)
-                chatformat.ensure_markup_clean(parts[0], msg="The short description of a function can not contain md")
-                if len(parts) > 0:
-                    res += f"- {chatformat.italic(parts[0].replace(SPACES, ' ').strip())}\n"
-                if len(parts) > 1:
-                    detailed_help_body = helpify_docstring(parts[1])
-                    detailed_help_str = f"{chatformat.mono(name)} " +\
-                                        (f"(aka {chatformat.mono(','.join(cmd_aliases))}):\n"
-                                            if len(cmd_aliases) > 0 else ':\n') + \
-                                        f"{detailed_help_body}\n"
-                    detailed_help[name] = detailed_help_str
-                    for alias in cmd_aliases:
-                        detailed_help[alias] = detailed_help_str
-            else:
-                res += "- (documentation is unavailable)\n"
+        name, *cmd_aliases = method.commands
+        ensure_markup_clean(*method.commands)
+        res += f"/{name}" + _format_aliases(cmd_aliases) # TODO somehow figure out args
+        if method.__doc__:
+            parts = method.__doc__.split(DBLNEWLINE, maxsplit=1)
+            ensure_markup_clean(parts[0], msg="The short description of a function can not contain md")
+            if len(parts) > 0:
+                res += f"- {italic(parts[0].replace(SPACES, ' ').strip())}\n"
+            if len(parts) > 1:
+                detailed_help_body = helpify_docstring(parts[1])
+                detailed_help_str = f"{mono(name)} " +\
+                                    (f"(aka {mono(','.join(cmd_aliases))}):\n"
+                                        if len(cmd_aliases) > 0 else ':\n') + \
+                                    f"{detailed_help_body}\n"
+                detailed_help[name] = detailed_help_str
+                for alias in cmd_aliases:
+                    detailed_help[alias] = detailed_help_str
+        else:
+            res += "- (documentation is unavailable)\n"
 
     res += "\n\n"
     res = res.replace(",)", ")").replace("'", "")
@@ -138,7 +148,7 @@ SubBerts he gives you easy access to
 can and will offer help to you.
 You just have to ask them by their name:
 
-> Use {chatformat.mono('/help <cmd name>')} for additional information (if available)
+> Use {mono('/help <cmd name>')} for additional information (if available)
 
 """
 

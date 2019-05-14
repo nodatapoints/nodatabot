@@ -5,7 +5,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from decorators import command, callback
 from basebert import ImageBaseBert, Herberror
 from game import Game
-from render import draw_game
+from berts.render import draw_game
 
 names = '👍😂💯'
 

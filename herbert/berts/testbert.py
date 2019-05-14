@@ -1,15 +1,17 @@
 import re
+from typing import Callable
 
 from common import chatformat
 from basebert import BaseBert, Herberror, BadHerberror
+from common.argparser import Args, UnexpectedArgument, ArgumentFormatError
 from decorators import command, aliases
 from datetime import datetime
 
-from asciimath import AsciiBert
-from hashbert import HashBert
-from helpbert import HelpBert
-from interprert import InterpRert
-from texbert import TexBert
+from berts.asciimath import AsciiBert
+from berts.hashbert import HashBert
+from berts.helpbert import HelpBert
+from berts.interprert import InterpRert
+from berts.texbert import TexBert
 
 
 class TestBert(BaseBert):
@@ -48,9 +50,10 @@ if __name__ == '__main__':
     there are by no means enough tests to avoid most bugs, but at least this 
     should help to catch some mistakes somewhat easier. please add more tests.
     """
+
+
     # WARNING
     # this is kind of a bodge; test at your own risk
-
 
     class FakeBot:
         def send_message(self, chat_id: int, text: str, *_, **kwargs):
@@ -76,6 +79,7 @@ if __name__ == '__main__':
 
     fb = FakeBot()
 
+
     def fire_cmd(cmd, args: list):
         global res, image_sent
         res = ""
@@ -89,10 +93,12 @@ if __name__ == '__main__':
         else:
             real_fn(fb, fu)
 
+
     def expect_in_response(content: str, cmd, args: list, msg="EXPECT_RESPONSE test case failed."):
         global res
         fire_cmd(cmd, args)
         assert content in res, msg + f"\n\nGot response\n{res}\nWhen \'{content}\' was expected"
+
 
     def match_in_response(regexp: str, cmd, args: list, msg="MATCH_REPONSE test case failed"):
         global res
@@ -100,10 +106,34 @@ if __name__ == '__main__':
         match = re.match(regexp, res, flags=re.IGNORECASE | re.MULTILINE)
         assert match is not None, msg + f"\n\nGot response\n{res}\nNot matching \'{regexp}\'"
 
+
     def expect_sent_image(cmd, args: list, msg="EXPECT_IMAGE test failed"):
         global image_sent
         fire_cmd(cmd, args)
         assert image_sent, msg + f"\n\nGot response\n{res}"
+
+
+    def expect_error(fn: Callable, *args, error: type = Exception):
+        try:
+            fn(*args)
+            assert False, "No exception thrown"
+        except error:
+            # ok
+            return True
+        except Exception as e:
+            if not isinstance(e, AssertionError):
+                assert False, "Wrong exception thrown"
+            else:
+                raise
+
+
+    def expect_no_error(fn: Callable, *args):
+        try:
+            fn(*args)
+            # ok
+        except:
+            assert False, "Exception thrown on expect_no_error"
+
 
     # testing hashbert
     h = HashBert()
@@ -150,5 +180,19 @@ if __name__ == '__main__':
     # TODO test hercurles
     # TODO test urbanbert
     # TODO test xkcdert
+
+    # Test ArgParser
+    expect_error(lambda: Args.parse("[hello=world]", {'x': Args.T.INT}), error=UnexpectedArgument)
+    expect_error(lambda: Args.parse("[]", {'x': Args.T.INT}), error=ArgumentFormatError)
+    expect_error(lambda: Args.parse("[x", {'x': Args.T.INT}), error=ArgumentFormatError)
+    expect_error(lambda: Args.parse("[x]", {'x': Args.T.INT}), error=ArgumentFormatError)
+    expect_error(lambda: Args.parse("[x=]", {'x': Args.T.INT}), error=ArgumentFormatError)
+    expect_error(lambda: Args.parse("[x=string]", {'x': Args.T.INT}), error=ArgumentFormatError)
+    expect_no_error(lambda: Args.parse("[x=0]", {'x': Args.T.INT}))
+    expect_no_error(lambda: Args.parse_positional("a, c 112", [Args.T.STR, Args.T.char_in("bcdef"), Args.T.INT]))
+    expect_error(
+        lambda: Args.parse_positional("b, c, dgef", [Args.T.chars_in("abcdef") for _ in range(3)]),
+        error=ArgumentFormatError
+    )
 
     print("Tests executed.\nEverything seems fine (it totally isn't)")

@@ -6,24 +6,31 @@ from inspect import getmembers, isclass
 
 import core
 import basebert
+import logging
 
-from asciimath import AsciiBert
-from diamaltbert import DiaMaltBert
-from gamebert import GameBert
-from hashbert import HashBert
-from helpbert import HelpBert
-from hercurles import Hercurles
-from interprert import InterpRert
-from kalcbert import KalcBert
-from ping import PingBert
-from texbert import TexBert
-from todobert import TodoBert
-from xkcdert import XKCDert
-from unicodert import UniCoDert
-from stackbert import StackBert
-from dudert import Dudert
+from berts.asciimath import AsciiBert
+from berts.diamaltbert import DiaMaltBert
+from berts.gamebert import GameBert
+from berts.hashbert import HashBert
+from berts.helpbert import HelpBert
+from berts.hercurles import Hercurles
+from berts.interprert import InterpRert
+from berts.kalcbert import KalcBert
+from berts.ping import PingBert
+from berts.texbert import TexBert
+from berts.todobert import TodoBert
+from berts.xkcdert import XKCDert
+from berts.unicodert import UniCoDert
+from berts.stackbert import StackBert
+from berts.dudert import Dudert
 
-from testbert import TestBert
+from berts.testbert import TestBert
+
+
+def configure_logs(log_lvl):
+    logging.basicConfig()
+    logging.getLogger('herbert.SETUP').setLevel(log_lvl)
+    logging.getLogger('herbert.RUNTIME').setLevel(log_lvl)
 
 
 def start_bot():
@@ -40,4 +47,5 @@ def start_bot():
         core.idle()
 
 
+configure_logs(logging.DEBUG)
 start_bot()

@@ -68,21 +68,21 @@ class Dudert(BaseBert):
         dom = etree.HTML(listing.text)
 
         # All links pointing to a word definition Page
-        results = dom.xpath('//a[.="Zum vollständigen Artikel"]/@href')
+        results = dom.xpath('//strong/parent::a/@href')
 
         if not results:
             raise Herberror('Gibts nicht.')
 
         top_entry, *_ = results
 
-        msg = self._parse_definition(url=top_entry)
+        msg = self._parse_definition(url='http://www.duden.de/'+top_entry)
         self.send_message(msg)
 
     def _parse_definition(self, *, word=None, url=None):
         """
         Creates a full Telegram message containing information about a
         word. The word is either passed as `word` as itself, or in an already
-        formatted url pointig to the definition page.
+        formatted url pointing to the definition page.
         """
         if word:
             url = f'http://www.duden.de/rechtschreibung/{quote(word)}'
@@ -95,10 +95,22 @@ class Dudert(BaseBert):
 
         dom = etree.HTML(definition_page.text)
 
-        main_block, *_ = dom.xpath('//section[@id="block-system-main"]')
-        word_def, = main_block.xpath('./h1/text()')
-        word_class, *_, freq = main_block.xpath('.//strong/text()')
-        _, *meanings = dom.xpath('//section[@id="block-duden-tiles-1"]//a/text()')
+        word_def = ', '.join(dom.xpath('//h1/span/text()'))
+        word_class, *_ = dom.xpath('//dd[@class="tuple__val"]/text()')
+
+        freq = dom.xpath('//span[@class="shaft__full"]/text()')[0]
+
+        # check for single definition
+        meanings = dom.xpath('//div[@id="bedeutung"]/p/text()')
+
+        # TODO auslagern
+        if not meanings:
+            # if there are mutliple definitions, parse them
+            for elem in dom.xpath('//div[@class="enumeration__text"]'):
+                text = ''.join(elem.xpath('./descendant-or-self::*/text()'))
+                if not text.strip():
+                    continue
+                meanings.append(text)
 
         meanings_list_str = '\n'.join(
             f'{i+1}. {cf.it(meaning)}' for i, meaning in enumerate(meanings)) or cf.it("Keine Bedeutungen gefunden.")

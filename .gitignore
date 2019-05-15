@@ -16,3 +16,4 @@ venv
 *.old
 *.err.txt
 test.py
+.vscode

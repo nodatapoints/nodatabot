@@ -116,7 +116,7 @@ class TodoBert(BaseBert):
                             raise Herberror(
                                 'Markup Characters cause Fuckups, please use alternatives')
                         fobj.write(
-                            f'{element[:MARKDOWNEXTRA+MAXLENGTHKEY+len(COLON)]}{chatformat.italic(door, kstyle=chatformat.STYLE_MD)}\n')
+                            f'{element[:MARKDOWNEXTRA+MAXLENGTHKEY+len(COLON)]}{chatformat.italic(door, style=chatformat.STYLE_MD)}\n')
                         self.send_message(f'You successfully edited the list.')
                         edited = True
                     else:

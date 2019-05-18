@@ -41,7 +41,7 @@ class TestBert(BaseBert):
 res = ""
 image_sent = False
 
-if __name__ == '__main__':
+def test():
     """
     UNIT TESTING
     
@@ -84,7 +84,7 @@ if __name__ == '__main__':
         global res, image_sent
         res = ""
         image_sent = False
-        handler = cmd.command_handler('x', cmd)
+        handler, *_ = cmd.cmdinfo.handlers(cmd)
         real_fn = handler.callback
         fu = FakeUpdate(' '.join(['.', *args]))
 
@@ -196,3 +196,6 @@ if __name__ == '__main__':
     )
 
     print("Tests executed.\nEverything seems fine (it totally isn't)")
+
+if __name__ == '__main__':
+    test()

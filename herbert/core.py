@@ -43,25 +43,24 @@ def register_bert(cls):
     bot = cls()
     berts.append(bot)
 
-    for _, method in inspect.getmembers(bot, inspect.ismethod):
-        if hasattr(method, 'inline'):
-            if method.inline:
-                inline_methods[method.__name__] = method.get_inner(method)
-                for command in method.commands:
-                    inline_aliases[command] = method.__name__
+    for method in bot.enumerate_members():
+        if hasattr(method, 'cmdinfo'):
+            inf = method.cmdinfo
+            for handler in inf.handlers(method):
+                updater.dispatcher.add_handler(handler)
 
-        if hasattr(method, 'command_handler'):
-            for command in method.commands:
-                updater.dispatcher.add_handler(
-                    method.command_handler(command, method)
-                )
+            if inf.allow_inline:
+                inline_methods[method.__name__] = inf._invoke(method)
+                for command in inf.aliases:
+                    inline_aliases[command] = method.__name__
 
         elif hasattr(method, 'callback_query_handler'):
             updater.dispatcher.add_handler(
                 method.callback_query_handler(method)
             )
 
-    logging.getLogger('herbert.SETUP').debug(f"Registered Bert {bot} of type {cls}")
+    cmds = ", ".join((m.__name__ for m in bot.enumerate_cmds()))
+    logging.getLogger('herbert.SETUP').debug(f"Registered Bert {bot} of type {cls.__name__} ({cmds})")
 
 
 def handle_inline_query(bot, update, line=None):

@@ -95,9 +95,7 @@ def make_bert_str(bert: BaseBert):
 
     def providesHelp(member):
         _, method = member # first arg is member name, not needed here
-        return hasattr(method, 'command_handler') and method.register_help
-
-    # TODO add unified flag and is_command_handler method to avoid spaghetti
+        return hasattr(method, 'cmdinfo') and method.cmdinfo.register_help
     help_fns = [ *filter(providesHelp, getmethods(bert)) ]
 
     if len(help_fns) == 0:
@@ -109,16 +107,16 @@ def make_bert_str(bert: BaseBert):
         if not isownmethod(method, bert):
             continue
 
-        name, *cmd_aliases = method.commands
-        ensure_markup_clean(*method.commands)
+        inf = method.cmdinfo
+
+        name, *cmd_aliases = inf.aliases
+        ensure_markup_clean(*inf.aliases)
         res += f"/{name}" + _format_aliases(cmd_aliases) # TODO somehow figure out args
-        if method.__doc__:
-            parts = method.__doc__.split(DBLNEWLINE, maxsplit=1)
-            ensure_markup_clean(parts[0], msg="The short description of a function can not contain md")
-            if len(parts) > 0:
-                res += f"- {italic(parts[0].replace(SPACES, ' ').strip())}\n"
-            if len(parts) > 1:
-                detailed_help_body = helpify_docstring(parts[1])
+        if inf.help_summary != '':
+            ensure_markup_clean(inf.help_summary, msg="The short description of a function can not contain md")
+            res += f"- {italic(inf.help_summary.replace(SPACES, ' ').strip())}\n"
+            if inf.help_detailed != '':
+                detailed_help_body = helpify_docstring(inf.help_detailed)
                 detailed_help_str = f"{mono(name)} " +\
                                     (f"(aka {mono(','.join(cmd_aliases))}):\n"
                                         if len(cmd_aliases) > 0 else ':\n') + \
@@ -130,12 +128,13 @@ def make_bert_str(bert: BaseBert):
             res += "- (documentation is unavailable)\n"
 
     res += "\n\n"
-    res = res.replace(",)", ")").replace("'", "")
+    # res = res.replace(",)", ")").replace("'", "")
     return res
 
 
 def helpify_docstring(s):
-    return re.sub(ESCAPED_NEWLINE, '', re.sub(SPACES, ' ', s)).strip()
+    rm_multiple_spaces = re.sub(SPACES, ' ', s)
+    return re.sub(ESCAPED_NEWLINE, '', rm_multiple_spaces).strip()
 
 
 HELP_HEADER = f"""

@@ -55,7 +55,7 @@ class TodoBert(BaseBert):
                         'Markup Characters cause Fuckups, please use alternatives')
 
                 fobj.write(
-                    f'`{key}{COLON}`{chatformat.italic(door, use_style=chatformat.STYLE_MD)}\n')
+                    f'`{key}{COLON}`{chatformat.italic(door, style=chatformat.STYLE_MD)}\n')
                 self.send_message(f'Your request was added to the list.')
         except Exception:
             raise BadHerberror('todo.txt not found')
@@ -116,7 +116,7 @@ class TodoBert(BaseBert):
                             raise Herberror(
                                 'Markup Characters cause Fuckups, please use alternatives')
                         fobj.write(
-                            f'{element[:MARKDOWNEXTRA+MAXLENGTHKEY+len(COLON)]}{chatformat.italic(door, use_style=chatformat.STYLE_MD)}\n')
+                            f'{element[:MARKDOWNEXTRA+MAXLENGTHKEY+len(COLON)]}{chatformat.italic(door, style=chatformat.STYLE_MD)}\n')
                         self.send_message(f'You successfully edited the list.')
                         edited = True
                     else:

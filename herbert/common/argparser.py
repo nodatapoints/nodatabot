@@ -33,7 +33,7 @@ def _check_if_float(s: (str, bytes, SupportsFloat)) -> (bool, float):
 
 def _check_if_chars_in(s, string):
     for c in s:
-        if s not in string:
+        if c not in string:
             return False, ""
 
     return True, s
@@ -66,8 +66,8 @@ class ArgParser:
     def and_require(self, secondary_check_fn: Callable, explain: str = None):
         return ArgParser(lambda s: self.check(s) and secondary_check_fn(s), self.value, explain=self.explain + explain)
 
-    def bounded(self, limits: Tuple[object, object] = (0, 1)):
-        return self.and_require(lambda s: limits[0] <= self.value(s) <= limits[1],
+    def bounded(self, min: object = 0, max: object = 1, limits: Tuple[object, object] = (0, 1)):
+        return self.and_require(lambda s: min or limits[0] <= self.value(s) <= max or limits[1],
                                 explain=f"Value has to be in Range [{limits[0]}..{limits[1]}].")
 
 

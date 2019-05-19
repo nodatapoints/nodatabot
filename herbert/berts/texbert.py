@@ -13,6 +13,7 @@ from decorators import command, aliases
 # format breaks here because e.g. {{amsfonts}} gets transformed to {amsfonts} and then the
 # real substiture will throw a KeyError
 
+empty_tex_template = """{}"""
 very_basic_tex_template = """
 \\documentclass[preview, margin=1mm]{{standalone}}
 {}
@@ -38,7 +39,8 @@ basic_tex_template = very_basic_tex_template.replace("{}", """
 display_math_template = basic_tex_template.replace("{}", """{{$\\displaystyle {}$}}""")
 aligned_math_template = display_math_template.replace("{}", """{{\\begin{{aligned}} {} \\end{{aligned}} }}""")
 
-pre_levels = [very_basic_tex_template,
+pre_levels = [empty_tex_template,
+              very_basic_tex_template,
               basic_tex_template,
               display_math_template,
               aligned_math_template]
@@ -52,7 +54,7 @@ def validate(str):
 
 class TexBert(ImageBaseBert):
     @command(pass_string=True)
-    def texraw(self, string, invert=False, template="{}"):
+    def texraw(self, string, invert=False, pre_level=None):
         """
         Render LaTeX
 
@@ -81,18 +83,15 @@ class TexBert(ImageBaseBert):
             'inv': Args.T.BOOL,
             'send': Args.T.one_of('img', 'file', 'both', 'validate'),
             'res': Args.T.INT,
-            'pre': Args.T.INT.bounded(limits=(0, len(pre_levels))),
+            'pre': Args.T.INT.bounded(0, len(pre_levels)),
             # 'err':    Args.T.one_of('last', 'all'), TODO
             # 'format': Args.T.one_of('img', 'pdf', 'dvi') TODO
         })
 
         validate(string)
 
-        pre_level = argvals.get('pre') or 0
-        if pre_level > 0:
-            template = pre_levels[pre_level - 1]
-        elif template is None:
-            template = "{}"
+        pre_level = pre_level or argvals.get('pre') or 0
+        template = pre_levels[pre_level]
 
         string = template.format(string)
 
@@ -146,7 +145,7 @@ class TexBert(ImageBaseBert):
 
         This is an alias for /texraw [pre=2]. For more information look at /help texraw.
         """
-        self.texraw(string, invert=invert, template=basic_tex_template)
+        self.texraw(string, invert=invert, pre_level=2)
 
     @aliases('dtex')
     @command(pass_string=True)
@@ -156,7 +155,7 @@ class TexBert(ImageBaseBert):
 
         This is an alias for /texraw [pre=3]. For more information look at /help texraw.
         """
-        self.texraw(string, invert=invert, template=display_math_template)
+        self.texraw(string, invert=invert, pre_level=3)
 
     @aliases('atex')
     @command(pass_string=True)
@@ -166,7 +165,7 @@ class TexBert(ImageBaseBert):
 
         This is an alias for /texraw [pre=4]. For more information look at /help texraw.
         """
-        self.texraw(string, invert=invert, template=aligned_math_template)
+        self.texraw(string, invert=invert, pre_level=4)
 
     @aliases('itex')
     @command(pass_string=True)

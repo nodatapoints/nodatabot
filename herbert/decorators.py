@@ -23,6 +23,7 @@ def argdecorator(fn):
     """ 
     decorator decorating a decorator, to convert it to a decorator-generating function.
     """
+    @wraps(fn)
     def argreceiver(*args, **kwargs):
         if len(args) == 1 and callable(args[0]):
             logging.getLogger('herbert.SETUP').warn(f'{args[0].__name__} (?, name lookup might fail here) has missing parentheses on @{fn.__name__}')

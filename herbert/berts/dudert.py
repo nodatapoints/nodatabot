@@ -4,7 +4,6 @@ import common.chatformat as cf
 
 
 import requests
-from requests.utils import quote
 from lxml import etree
 
 
@@ -21,7 +20,7 @@ class Dudert(BaseBert):
 
         e.g `/urban top kek`
         """
-        phrase = quote(string, safe='')
+        phrase = requests.utils.quote(string, safe='')
         url = f'https://www.urbandictionary.com/define.php?term={phrase}'
         response = requests.get(url)
         dom = etree.HTML(response.text)
@@ -85,7 +84,7 @@ class Dudert(BaseBert):
         formatted url pointing to the definition page.
         """
         if word:
-            url = f'http://www.duden.de/rechtschreibung/{quote(word)}'
+            url = f'http://www.duden.de/rechtschreibung/{requests.utils.quote(word)}'
 
         elif not url:
             raise ValueError('No valid arguments given.')

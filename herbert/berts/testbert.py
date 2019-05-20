@@ -1,5 +1,5 @@
 import re
-from typing import Callable
+from typing import Callable, Type
 
 from common import chatformat
 from basebert import BaseBert, Herberror, BadHerberror
@@ -113,7 +113,7 @@ def test():
         assert image_sent, msg + f"\n\nGot response\n{res}"
 
 
-    def expect_error(fn: Callable, *args, error: type = Exception):
+    def expect_error(fn: Callable, *args, error: Type[Exception] = Exception):
         try:
             fn(*args)
             assert False, "No exception thrown"

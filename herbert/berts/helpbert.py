@@ -3,6 +3,7 @@ from common.chatformat import mono, italic, bold, link_to, ensure_markup_clean
 from common.constants import GITHUB_REF, SEP_LINE, HERBERT_TITLE
 from common.herbert_utils import getmethods, isownmethod
 from decorators import command, aliases
+from typing import Dict
 import core
 import inspect
 import re
@@ -11,7 +12,7 @@ import re
 __all__ = ['HelpBert']
 
 help_str = None
-detailed_help = dict()
+detailed_help : Dict[str, str] = dict()
 
 
 class HelpBert(BaseBert):

@@ -1,4 +1,4 @@
-from typing import SupportsInt, SupportsFloat, Callable, Tuple, List, Dict
+from typing import SupportsInt, SupportsFloat, Callable, Tuple, List, Dict, Union
 
 from basebert import Herberror
 import re
@@ -17,14 +17,14 @@ class ArgumentFormatError(Herberror):
     """ e.g. missing brackets in arg string """
 
 
-def _check_if_int(s: (str, bytes, SupportsInt)) -> (bool, int):
+def _check_if_int(s: Union[str, bytes, SupportsInt]) -> Tuple[bool, int]:
     try:
         return True, int(s)
     except ValueError:
         return False, 0
 
 
-def _check_if_float(s: (str, bytes, SupportsFloat)) -> (bool, float):
+def _check_if_float(s: Union[str, bytes, SupportsFloat]) -> Tuple[bool, float]:
     try:
         return True, float(s)
     except ValueError:
@@ -64,6 +64,7 @@ class ArgParser:
         return ArgParser(self.check, lambda s: map_fn(self.value(s)))
 
     def and_require(self, secondary_check_fn: Callable, explain: str = None):
+        explain = explain or ""
         return ArgParser(lambda s: self.check(s) and secondary_check_fn(s), self.value, explain=self.explain + explain)
 
     def bounded(self, min: object = 0, max: object = 1, limits: Tuple[object, object] = (0, 1)):
@@ -73,7 +74,7 @@ class ArgParser:
 
 class Args:
     @staticmethod
-    def parse(string: str, expected_arguments: Dict[str, ArgParser], begin="[", end="]") -> (dict, str):
+    def parse(string: str, expected_arguments: Dict[str, ArgParser], begin="[", end="]") -> Tuple[dict, str]:
         """ Parse [key=value, k=v] arg pairs at start of string and return rest """
         # the string needs to start with "[" (+- some whitespace)
         # and contain comma-separated key=value pairs until the closing "]"

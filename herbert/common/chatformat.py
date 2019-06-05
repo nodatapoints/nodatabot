@@ -1,4 +1,9 @@
+"""
+FIXME this contains several specific hardcoded style definitions and conversions
+please improve (without breaking things)
+"""
 from functools import partial
+import re
 
 STYLE_MD = 'MARKDOWN'
 STYLE_HTML = 'HTML'
@@ -6,9 +11,14 @@ STYLE_HTML = 'HTML'
 # use custom style cause i want to use chars like _ and <
 # if anyone needs to use !§![ or !§!] the prefixes can be
 # made increasingly weird on demand
-STYLE_CUSTOM = 'CUSTOM'
+STYLE_BACKEND = 'CUSTOM'
+STYLE_PARA = '§§'
 
-STYLE = STYLE_CUSTOM
+STYLE = STYLE_BACKEND
+
+
+class MessageMarkupError(Exception):
+    pass
 
 
 def get_parse_mode(style=STYLE):
@@ -16,12 +26,12 @@ def get_parse_mode(style=STYLE):
 
 
 def get_output_mode(style=STYLE):
-    if style == STYLE_CUSTOM:
+    if style == STYLE_BACKEND or style == STYLE_PARA:
         return STYLE_HTML
     return style
 
 
-def render_custom(string, target_style=STYLE_HTML):
+def render_style_backend(string, target_style=STYLE_HTML):
     assert target_style == STYLE_HTML, "Markdown rendering is not supported yet"
     substitutions = {
         '!§![i': '<i>',
@@ -42,38 +52,41 @@ def render_custom(string, target_style=STYLE_HTML):
 
     return string
 
-""" proposed:
-def ensure_markup_clean(string, msg='', style=STYLE):
-    crimes = {
-        STYLE_HTML: ('<', '>'),
-        STYLE_MD: ('`', '_', '*', '['),
-        STYLE_CUSTOM: ('!§![', '!§!]')
-    }[style]
 
-    if any(crime in string for crime in crimes):
-        raise ValueError(f'{string} contains (invalid?) markup sequences. {msg}')
-"""
+def render_style_para(string, target_style=STYLE_BACKEND):
+    assert target_style == STYLE_BACKEND, "Direct HTML rendering is not supported yet"
+    string = re.sub(r'm§([^§]*)§', lambda m: mono(m.group(1), style=STYLE_BACKEND), string)
+    string = re.sub(r'b§([^§]*)§', lambda m: bold(m.group(1), style=STYLE_BACKEND), string)
+    string = re.sub(r'i§([^§]*)§', lambda m: italic(m.group(1), style=STYLE_BACKEND), string)
+
+    return string
+
+
 def render(text, input_style):
-    if input_style == STYLE_CUSTOM:
-        render_text = render_custom(text)
+    if input_style == STYLE_BACKEND:
+        render_text = render_style_backend(text)
+    elif input_style == STYLE_PARA:
+        render_text = render_style_backend(render_style_para(text, target_style=STYLE_BACKEND))
     else:
         render_text = text
 
     return render_text, get_output_mode(input_style)
 
 
-def ensure_markup_clean(*strings, msg=None, use_style=STYLE):
-    string = "".join(strings)
-    bad_strings = []
-    if use_style == STYLE_HTML:
-        bad_strings += ['<', '>']
-    elif use_style == STYLE_MD:
-        bad_strings += ['`', '_', '*', '[']
-    elif use_style == STYLE_CUSTOM:
-        bad_strings += ['!§![', '!§!]']
+def ensure_markup_clean(string, msg='', style=STYLE):
+    crimes = {
+        STYLE_HTML: ('<', '>'),
+        STYLE_MD: ('`', '_', '*', '['),
+        STYLE_BACKEND: ('!§![', '!§!]'),
+        STYLE_PARA: ('§',)
+    }[style]
+
+    if any(crime in string for crime in crimes):
+        raise ValueError(f'{string} contains (invalid?) markup sequences. {msg}')
+
 
 def escape_string(string, style=STYLE):
-    # markdown cannot be escaped. hope for the best.
+    # only html can be escaped. hope for the best.
     if style == STYLE_HTML:
         return string.replace("<", "&lt;").replace(">", "&gt;")
 
@@ -86,10 +99,10 @@ def link_to(url, name=None, style=STYLE):
         return {
             STYLE_HTML: f'<a href="{url}">{name}</a>',
             STYLE_MD: f'[{name}]({url})',
-            STYLE_CUSTOM: f'!§![a{url}!§!|A{name}!§!]a'
+            STYLE_BACKEND: f'!§![a{url}!§!|A{name}!§!]a',
         }[style]
     except KeyError:
-        raise ValueError(f'Style {style} is undefined.')
+        raise ValueError(f'Style {style} is undefined or cannot markup links.')
 
 
 def _wrap_delimiters(style_dict, text, escape=True, style=STYLE):
@@ -109,7 +122,8 @@ italic = em = it = partial(
     {
         STYLE_HTML: ('<i>', '</i>'),
         STYLE_MD: ('_', '_'),
-        STYLE_CUSTOM: ('!§![i', '!§!]i')
+        STYLE_BACKEND: ('!§![i', '!§!]i'),
+        STYLE_PARA: ('i§', '§')
     }
 )
 
@@ -118,7 +132,8 @@ bold = partial(
     {
         STYLE_HTML: ('<b>', '</b>'),
         STYLE_MD: ('*', '*'),
-        STYLE_CUSTOM: ('!§![b', '!§!]b')
+        STYLE_BACKEND: ('!§![b', '!§!]b'),
+        STYLE_PARA: ('b§', '§')
     }
 )
 
@@ -127,6 +142,7 @@ mono = partial(
     {
         STYLE_HTML: ('<code>', '</code>'),
         STYLE_MD: ('*', '*'),
-        STYLE_CUSTOM: ('!§![c', '!§!]c')
+        STYLE_BACKEND: ('!§![c', '!§!]c'),
+        STYLE_PARA: ('i§', '§')
     }
 )

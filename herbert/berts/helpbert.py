@@ -110,7 +110,7 @@ def make_bert_str(bert: BaseBert):
         inf = method.cmdinfo
 
         name, *cmd_aliases = inf.aliases
-        ensure_markup_clean(*inf.aliases)
+        ensure_markup_clean(''.join(inf.aliases))
         res += f"/{name}" + _format_aliases(cmd_aliases) # TODO somehow figure out args
         if inf.help_summary != '':
             ensure_markup_clean(inf.help_summary, msg="The short description of a function can not contain md")

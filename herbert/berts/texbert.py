@@ -8,7 +8,7 @@ from common import chatformat
 from common.argparser import Args
 from common.constants import SEP_LINE
 from common.telegram_limits import IMG_MAX_ASPECT
-from decorators import command, aliases
+from decorators import command, aliases, doc
 
 # format breaks here because e.g. {{amsfonts}} gets transformed to {amsfonts} and then the
 # real substiture will throw a KeyError
@@ -52,8 +52,8 @@ def validate(str):
 
 class TexBert(ImageBaseBert):
     @command(pass_string=True)
-    def texraw(self, string, invert=False, template="{}"):
-        """
+    @doc(
+        f"""
         Render LaTeX
 
         Writes the given string into a file, runs a latex compiler on it and returns the result.
@@ -65,18 +65,18 @@ class TexBert(ImageBaseBert):
         rendering itself, not as tex source code.
 
         Valid options are
-        `pre` (integer value, range 0-4) - setup a tex environment. (0 - nothing, \
+        m§pre§ (integer value, range 0-{len(pre_levels)}) - setup a tex environment. (0 - nothing, \
         4 - aligned block in displaymath in document)
-        `inv` (boolean value) - invert the colors of the output image
-        `res` (integer value) - width of the output image in pixels
-        `send` (either img or file or both or validate) - decide which information to return
+        m§inv§ (boolean value) - invert the colors of the output image
+        m§res§ (integer value) - width of the output image in pixels
+        m§send§ (either img or file or both or validate) - decide which information to return
 
         Try
-        ` /tex [pre=4, inv=yes, send=both] x &= y \\ &= z `
-        ` /dtex [res=1000, inv=false] \sum `
-
-        Also, TODO, improve this documentation
+        m§/tex [pre=4, inv=yes, send=both] x &= y \\\\ &= z §
+        m§/dtex [res=1000, inv=false] \\sum §
         """
+    )
+    def texraw(self, string, invert=False, template="{}"):
         argvals, string = Args.parse(string, {
             'inv': Args.T.BOOL,
             'send': Args.T.one_of('img', 'file', 'both', 'validate'),

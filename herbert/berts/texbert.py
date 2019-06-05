@@ -17,7 +17,7 @@ very_basic_tex_template = """
 \\documentclass[preview, margin=1mm]{{standalone}}
 {}
 """
-basic_tex_template = very_basic_tex_template.replace("{}", """
+packages_tex_template = very_basic_tex_template.replace("{}", """
 \\usepackage{{amsmath}}
 \\usepackage{{amssymb}}
 \\usepackage{{wasysym}}
@@ -26,11 +26,15 @@ basic_tex_template = very_basic_tex_template.replace("{}", """
 \\usepackage{{etoolbox}}
 \\usepackage{{tikz}}
 \\usepackage{{physics}}
+\\usepackage{{ifthen}}
 
 \\usepackage{{amsfonts}}
 \\usepackage[ngerman]{{babel}}
 
 \\usepackage[utf8]{{inputenc}}
+{} 
+""")
+basic_tex_template = packages_tex_template.replace("{}", """
 \\begin{{document}}
 {} % This is where the code goes
 \\end{{document}}
@@ -38,10 +42,20 @@ basic_tex_template = very_basic_tex_template.replace("{}", """
 display_math_template = basic_tex_template.replace("{}", """{{$\\displaystyle {}$}}""")
 aligned_math_template = display_math_template.replace("{}", """{{\\begin{{aligned}} {} \\end{{aligned}} }}""")
 
+tikz_template = packages_tex_template.replace("{}", """
+\\usetikzlibrary{{shapes,arrows}}
+\\begin{{document}}
+\\begin{{tikzpicture}}
+{}
+\\end{{tikzpicture}}
+\\end{{document}}
+""")
+
 pre_levels = [very_basic_tex_template,
               basic_tex_template,
               display_math_template,
-              aligned_math_template]
+              aligned_math_template,
+              tikz_template]
 
 
 def validate(str):

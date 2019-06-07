@@ -27,6 +27,7 @@ packages_tex_template = very_basic_tex_template.replace("{}", """
 \\usepackage{{tikz}}
 \\usepackage{{physics}}
 \\usepackage{{ifthen}}
+\\usepackage[hidelinks]{{hyperref}}
 
 \\usepackage{{amsfonts}}
 \\usepackage[ngerman]{{babel}}

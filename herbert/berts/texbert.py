@@ -92,7 +92,7 @@ class TexBert(ImageBaseBert):
         m§/dtex [res=1000, inv=false] \\sum §
         """
     )
-    def texraw(self, string, invert=False, template="{}"):
+    def texraw(self, string, invert=False, pre_level=None):
         argvals, string = Args.parse(string, {
             'inv': Args.T.BOOL,
             'send': Args.T.one_of('img', 'file', 'both', 'validate'),
@@ -163,7 +163,7 @@ class TexBert(ImageBaseBert):
         """
     )
     def tex(self, string, invert=False):
-        self.texraw(string, invert=invert, template=basic_tex_template)
+        self.texraw(string, invert=invert, pre_level=2)
 
     @aliases('dtex')
     @command(pass_string=True)
@@ -178,7 +178,7 @@ class TexBert(ImageBaseBert):
 
     )
     def displaytex(self, string, invert=False):
-        self.texraw(string, invert=invert, template=display_math_template)
+        self.texraw(string, invert=invert, pre_level=3)
 
     @aliases('atex')
     @command(pass_string=True)
@@ -192,7 +192,7 @@ class TexBert(ImageBaseBert):
         """
     )
     def aligntex(self, string, invert=False):
-        self.texraw(string, invert=invert, template=aligned_math_template)
+        self.texraw(string, invert=invert, pre_level=4)
 
     @aliases('itex')
     @command(pass_string=True)

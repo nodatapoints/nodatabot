@@ -10,8 +10,8 @@ provided commands:
 from basebert import BaseBert, Herberror
 from common.chatformat import mono, italic, bold, link_to, ensure_markup_clean
 from common.constants import GITHUB_REF, SEP_LINE, HERBERT_TITLE
-from common.herbert_utils import getmethods, isownmethod
-from decorators import command, aliases
+from common.herbert_utils import getmethods, is_own_method
+from decorators import command, aliases, doc
 from typing import Dict, Optional
 import core
 # import inspect

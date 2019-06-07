@@ -20,13 +20,9 @@ class Dudert(BaseBert):
 
         e.g: m§/urban top kek§
         """
-<<<<<<< HEAD
-        phrase = requests.utils.quote(string, safe='')
-=======
     )
     def urbandict(self, string):
         phrase = quote(string, safe='')
->>>>>>> 989107be0267c18eedcc602e3d780dc56fafa2ee
         url = f'https://www.urbandictionary.com/define.php?term={phrase}'
         response = requests.get(url)
         dom = etree.HTML(response.text)

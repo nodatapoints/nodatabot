@@ -8,7 +8,7 @@ provides commands:
     - echo
 """
 import datetime
-from decorators import command
+from decorators import command, doc
 from basebert import InlineBaseBert
 
 
@@ -16,27 +16,21 @@ class PingBert(InlineBaseBert):
     """ bert - allow pinging """
     
     @command(pass_args=False)
+    @doc(""" Pong. """)
     def ping(self):
-        """
-        Pong.
-        """
         self.send_message('pong')
 
     @command(pass_string=True, allow_inline=True)
+    @doc(""" Whatever you say. """)
     def echo(self, string):
-        """
-        Whatever you say.
-        """
         self.reply_text(string)
 
     @command(pass_args=False, register_help=False)
+    @doc(""" Easter Egg """)
     def pong(self):
-        """
-        Easter Egg
-        """
         self.send_message('So you think you\'re clever, huh?')
 
     @command(pass_args=False)
+    @doc(""" prints the current time and date """)
     def time(self):
-        """prints the current time and date"""
         self.send_message(str(datetime.datetime.now()))

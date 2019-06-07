@@ -6,6 +6,8 @@ from basebert import ImageBaseBert, Herberror, BadHerberror, InlineBaseBert
 from common.network import load_content, load_str, get_url_safe_string
 from common.argparser import Args
 
+from common.chatformat import mono
+
 '''
 Meine Datei zum berechenen/bearbeiten von queries
 - Philip
@@ -15,7 +17,7 @@ Meine Datei zum berechenen/bearbeiten von queries
 class KalcBert(InlineBaseBert, ImageBaseBert):
     @aliases('wttr')
     @command(allow_inline=True, pass_string=True)
-    def weather(self, string):
+    @doc(
         """
         Take a look at the weather all over the world (asciistyle)
 
@@ -26,8 +28,10 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         The default city is Greifswald, Germany (HGW), which is entirely unrelated to the authors usual location.
         You can also set the info attribute to 1 or 2 to get more tangential information.
 
-        e.g: `/wttr [info=1] New York`
+        e.g: m§/wttr [info=1] New York§
         """
+    )
+    def weather(self, string):
         argvals, string = Args.parse(string, {
             'info': Args.T.INT,
         })
@@ -41,11 +45,11 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         if '=======' in wttr_string:  # good enough
             raise Herberror('No place with that name was found')
 
-        self.reply_text(f'```{wttr_string}```')
+        self.reply_text(mono(wttr_string))
 
     @aliases('wa', 'wolframalpha')
     @command(pass_string=True, allow_inline=True)
-    def wolfram(self, string, full=False):
+    @doc(
         """
         Show a WolframAlpha generated informationsheet based on the given string
 
@@ -53,8 +57,10 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         Using the language processing and database access WolframAlpha API, it will send you an image \
         summarizing available data concerning your query.
 
-        e.g: `/wolfram plot Lemniscate`
+        e.g: m§/wolfram plot Lemniscate§
         """
+    )
+    def wolfram(self, string, full=False):
         query = get_url_safe_string(string)
         url = f'https://api.wolframalpha.com/v1/simple?i={query}&appid=36GXXR-K5UA8L8XTY'
 
@@ -71,7 +77,7 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
 
     @aliases('hrwa', 'hrwolfram')
     @command(pass_string=True)
-    def highreswolfram(self, string):
+    @doc(
         """
         Send a high resolution WolframAlpha generated informationsheet based on the given string as a file
 
@@ -79,8 +85,10 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         Using the language processing and database access WolframAlpha API, it will send you a higher \
         resolution png-file summarizing available data concerning your query.
 
-        e.g: `/hrwolfram Lemniscate`
+        e.g: m§/hrwolfram Lemniscate$
         """
+    )
+    def highreswolfram(self, string):
         self.wolfram(string, full=True)
 
     """
@@ -93,7 +101,7 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         It presents the steps for the calculation or derivation of some kind of problem in an easy to follow format,
         with the special benefit that this isn't possible on the standard website.
 
-
+        meh doesnt work, we need to get premium
         "-"-"
         # higly susceptible to fails if WolframAlphas output xml changes
         # but no scrapy so usable in python 3.7
@@ -120,7 +128,7 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
 
     # new part
     @command(pass_string=True, allow_inline=True)
-    def math(self, string):
+    @doc(
         """
         Evaluate a simple mathematical expression and return the result
 
@@ -128,15 +136,17 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         to fit into the flow of the conversation. The spported Operators are brackets \
         and relational operators ( ==, !=, <, >, <=, >=) \
         as well as
-        ` +  `Addition
-        ` -  `Subtraction
-        ` *  `Multiplication
-        ` /  `Division
-        ` %  `Modulus
-        ` ** `Exponent
+        m$ + § Addition
+        m$ - § Subtraction
+        m$ * § Multiplication
+        m$ / § Division
+        m$ % § Modulus
+        m$ **§ Exponentiation
 
-        e.g: `/math 365*(24-8)`
+        e.g: m§/math 365*(24-8)§
         """
+    )
+    def math(self, string):
         allowed_chars = set('1234567890.+*-/%=()<> ')
         if set(string).issubset(allowed_chars):
             try:

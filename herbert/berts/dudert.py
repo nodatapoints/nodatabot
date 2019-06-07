@@ -1,4 +1,4 @@
-from decorators import aliases, command
+from decorators import aliases, command, doc
 from basebert import BaseBert, Herberror
 import common.chatformat as cf
 
@@ -10,7 +10,7 @@ from lxml import etree
 class Dudert(BaseBert):
     @aliases('urban', 'dict')
     @command(pass_string=True)
-    def urbandict(self, string):
+    @doc(
         """
         Have unknown words given as strings explained to you
 
@@ -18,9 +18,15 @@ class Dudert(BaseBert):
         It is specialized for the quick explanation of common abbreviations and slang \
         of the youth that you do not understand.
 
-        e.g `/urban top kek`
+        e.g: m§/urban top kek§
         """
+<<<<<<< HEAD
         phrase = requests.utils.quote(string, safe='')
+=======
+    )
+    def urbandict(self, string):
+        phrase = quote(string, safe='')
+>>>>>>> 989107be0267c18eedcc602e3d780dc56fafa2ee
         url = f'https://www.urbandictionary.com/define.php?term={phrase}'
         response = requests.get(url)
         dom = etree.HTML(response.text)
@@ -54,11 +60,17 @@ class Dudert(BaseBert):
 
     @aliases('dude')
     @command(pass_string=True)
-    def dudensearch(self, query):
+    @doc(
         """
-        Searches for a given query in the online German dictionary duden.de, and displays the top result.\
-        """
+        Searches for a given query in the online German dictionary duden.de, and displays the top result.
 
+        The Duden utility makes use of the website "www.duden.de".\
+        It is specialized for bare definitions of proper german words you could find in a dictionary, too.
+
+        e.g: m§/dudensearch Baum§
+        """
+    )
+    def dudensearch(self, query):
         url = f'http://www.duden.de/suchen/dudenonline/{quote(query)}'
         listing = requests.get(url)
         if not listing.ok:

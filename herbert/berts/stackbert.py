@@ -1,4 +1,4 @@
-from decorators import command
+from decorators import command, doc
 from basebert import BaseBert, Herberror
 from common.chatformat import STYLE_MD
 
@@ -8,10 +8,8 @@ class StackBert(BaseBert):
         self._stack = []
 
     @command(pass_string=True)
+    @doc(""" Pushes given topic on conversation stack """)
     def push(self, topic):
-        """
-        Pushes a given topic on the conversation stack.
-        """
         if not topic:
             raise Herberror('No topic given.')
 
@@ -22,10 +20,8 @@ class StackBert(BaseBert):
         self.send_message(f'Pushed `{topic:.15}` on the stack.', parse_mode=STYLE_MD)
 
     @command(pass_args=False)
+    @doc(""" Displays current conversation stack """)
     def stack(self):
-        """
-        Displays the current conversation stack.
-        """
         if not self._stack:
             self.send_message('🗑')
             return
@@ -37,11 +33,8 @@ class StackBert(BaseBert):
         self.send_message(msg, parse_mode=STYLE_MD)
 
     @command(pass_args=False)
+    @doc(""" Removes top element of the stack, and displays the next topic below """)
     def pop(self):
-        """
-        Removes the top element of the stack,
-        and displays the next topic below.
-        """
         if not self._stack:
             raise Herberror('Stack is empty.')
 

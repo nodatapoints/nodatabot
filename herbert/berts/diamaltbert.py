@@ -5,7 +5,7 @@ from math import log
 
 from PIL import Image, ImageOps
 
-from decorators import command, aliases
+from decorators import command, aliases, doc
 from basebert import ImageBaseBert, Herberror
 
 '''
@@ -45,7 +45,7 @@ def atom_colors(entry):
 class DiaMaltBert(ImageBaseBert):
     @aliases('hrrule', 'hrr')
     @command
-    def higresrule(self, args):
+    @doc(
         """
         Sends the high resolution time diagram as a file
 
@@ -53,24 +53,26 @@ class DiaMaltBert(ImageBaseBert):
         and to send the high resolution file of the generated image.
         It starts with a line of 1's (black) and 0's (white) at the top of the image and applies the given rule on\
         the current row in every timestep to create the next row.
-        More info on "http://mathworld.wolfram.com/ElementaryCellularAutomaton.html"
+        More info on "mathworld.wolfram.com/ElementaryCellularAutomaton.html"
 
         The command structure is given by:
-        `/rule <edge> <scale> <#rule> <width> <height> <1st>`
+        m§/rule <edge> <scale> <#rule> <width> <height> <1st>§
 
-        `<edge>   ∊ {{r(andom), t(orus), b(lack), w(hite)}}`
-        `<scale>  ∊ [1, ∞[ `the size of 1 cell in pixels
-        `<#rule>  ∊ [0, 255] `the rule you want to see
-        `<width>  ∊ [1, ∞[` the number of cells
-        `<height> ∊ [1, ∞[` the number of timesteps
-        `<height> ∊ {{r, [all states like 0 1 1 ...]}}`
+        m§<edge>   ∊ {r(andom), t(orus), b(lack), w(hite)}§
+        m§<scale>  ∊ [1, ∞[ §the size of 1 cell in pixels
+        m§<#rule>  ∊ [0, 255] §the rule you want to see
+        m§<width>  ∊ [1, ∞[ §the number of cells
+        m§<height> ∊ [1, ∞[ §the number of timesteps
+        m§<height> ∊ {r, [all states like 0 1 1 ...]}§
 
-        e.g: `/rule b 25 73 200 200 r`
+        e.g: m§/hrr b 25 73 200 200 r§
         """
+    )
+    def higresrule(self, args):
         self.rule(args, full=True)
 
     @command
-    def rule(self, args, full=False):
+    @doc(
         """
         Draws a time diagram of a 1D cellular Automaton
 
@@ -80,17 +82,19 @@ class DiaMaltBert(ImageBaseBert):
         More info on "http://mathworld.wolfram.com/ElementaryCellularAutomaton.html"
 
         The command structure is given by:
-        `/rule <edge> <scale> <#rule> <width> <height> <1st>`
+        m§/rule <edge> <scale> <#rule> <width> <height> <1st>§
 
-        `<edge>   ∊ {{r(andom), t(orus), b(lack), w(hite)}}`
-        `<scale>  ∊ [1, ∞[ `the size of 1 cell in pixels
-        `<#rule>  ∊ [0, 255] `the rule you want to see
-        `<width>  ∊ [1, ∞[` the number of cells
-        `<height> ∊ [1, ∞[` the number of timesteps
-        `<height> ∊ {{r, [all states like 0 1 1 ...]}}`
+        m§<edge>   ∊ {r(andom), t(orus), b(lack), w(hite)}§
+        m§<scale>  ∊ [1, ∞[ §the size of 1 cell in pixels
+        m§<#rule>  ∊ [0, 255] §the rule you want to see
+        m§<width>  ∊ [1, ∞[ §the number of cells
+        m§<height> ∊ [1, ∞[ §the number of timesteps
+        m§<height> ∊ {r, [all states like 0 1 1 ...]}§
 
-        e.g: `/rule b 25 73 200 200 r`
+        e.g: m§/rule b 25 73 200 200 r§
         """
+    )
+    def rule(self, args, full=False):
         # /rule {r, t(orus), b(lack), w(hite)} {scale} {r,0,1,2,3,...,255?} {width} {time} {r,[a1,a2,a3,...,awidth]
 
         # args to parameters
@@ -173,15 +177,17 @@ class DiaMaltBert(ImageBaseBert):
         return subrules[output]
 
     @command
-    def carpet(self, args):
+    @doc(
         """
         Generate a self-similar fractal carpet based on the given parameters
 
-        Some day in the future someone is going to be sufficiently bored to explain this thing.
-        Just go figure it out. (Code is available on github. No cheating, though)
+        i§Some day in the future someone is going to be sufficiently bored to explain this thing.
+        Just go figure it out. (Code is available on github. No cheating, though)§
 
         Syntax: /carpet <scale> <recursion depth> <width> <height> <list of [wblrphvtic] sub-tile specifiers>
         """
+    )
+    def carpet(self, args):
         scale, depth, width, height = map(int, args[:4])
         matrix = args[4:]
         if max(width, height)**depth > 5000:

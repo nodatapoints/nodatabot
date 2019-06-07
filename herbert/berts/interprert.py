@@ -7,7 +7,7 @@ from ctypes import create_string_buffer as buf, cdll
 
 __all__ = ['InterpRert', 'h_bf']
 
-from common.chatformat import mono
+from common.chatformat import link_to
 
 MAX_INSTRUCTIONS = 1000000
 OUT_SIZE = 512
@@ -25,20 +25,21 @@ except Exception:
 class InterpRert(BaseBert):
     @aliases('bf')
     @command(pass_args=False, pass_string=True, allow_inline=True)
-    def brainfuck(self, string):
-        """
+    @doc(
+        f"""
         Interpret the message as brainfuck-code
 
-        Interpret the given string as brainfuck. Brainfuck is a minimalistic, esoteric, but turing-complete \
+        Interpret the given string as {link_to('https://en.wikipedia.org/wiki/Brainfuck', 'brainfuck')}.
+        Brainfuck is a minimalistic, esoteric, but turing-complete \
         programming language operating on a linear storage tape with exactly 8 instructions:
-        {mono('+')} - increment the value in the current tape slot
-        {mono('-')} - decrement the value
-        {mono('>')} - move to the next tape slot
-        {mono('<')} - move to the previous tape slot
-        {mono('[')} - begin a loop block
-        {mono(']')} - if the current value is not 0, jump to the corresponding {mono('[')}. end a loop block.
-        {mono('.')} - print the value in the current slot as a byte
-        {mono(',')} - read a value - not implemented in this version
+        m§+§ - increment the value in the current tape slot
+        m§-§ - decrement the value
+        m§>§ - move to the next tape slot
+        m§<§ - move to the previous tape slot
+        m§[§ - begin a loop block
+        m§]§ - if the current value is not 0, jump to the corresponding m§[§. end a loop block.
+        m§.§ - print the value in the current slot as a byte
+        m§,§ - read a value - not implemented in this version
 
         Limits:
         To avoid overly long calculation times and/or memory usage, this interpreter limits the number of executed \
@@ -46,6 +47,8 @@ class InterpRert(BaseBert):
         Input Program size is theoretically unlimited, but has to fit in a single telegram message, which is, again, \
         of constrained size.
         """
+    )
+    def brainfuck(self, string):
         self.reply_text(run_bf(bytes(string, encoding="utf-8")) or "(No decodable output)", parse_mode=None)
 
 

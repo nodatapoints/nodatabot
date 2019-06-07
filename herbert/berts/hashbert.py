@@ -20,50 +20,40 @@ __all__ = ["HashBert"]
 
 class HashBert(InlineBaseBert):
     @command(pass_string=True, allow_inline=True)
+    @doc(""" Return the md5-hash of the given string """)
     def md5(self, string):
-        """
-        Return the md5-hash of the given string
-        """
         self.reply_text(hl.md5(str_to_bytes(string)).hexdigest())
 
     @aliases('sha512', 'hash', 'sha')
     @command(pass_string=True, allow_inline=True)
+    @doc(""" Return the sha512-hash of the given string """)
     def sha512(self, string):
-        """
-        Return the sha512-hash of the given string
-        """
         self.reply_text(hl.sha512(str_to_bytes(string)).hexdigest())
 
     @command(pass_string=True, allow_inline=True)
+    @doc(""" Base64-encode the given string """)
     def b64enc(self, string):
-        """
-        Base64-encode the given string
-        """
         self.reply_text(b64e(string))
 
     @command(pass_string=True, allow_inline=True)
+    @doc(""" Base64-decode the given string """)
     def b64dec(self, string):
-        """
-        Base64-decode the given string
-        """
         self.reply_text(b64d(string))
 
     @command(pass_string=True)
+    @doc(""" Run a string through all available hash-functions """)
     def hashit(self, string):
-        """
-        Run a string through all available hash-functions
-        """
         import telegram
         self.send_message(hash_all(str_to_bytes(string)), parse_mode=telegram.ParseMode.MARKDOWN)
 
     @aliases('rotate', 'shift', 'ceasar')
     @command(allow_inline=True)
-    def rot(self, args):
-        """
+    @doc("""
         Shift every letter of the string by n positions
 
-        ebg 13 vf avpr orpnhfr rapbqvat naq qrpbqvat vf gur fnzr bssfrg
-        """
+        ebg 13 vf avpr orpnhfr rapbqvat naq qrpbqvat hfrf gur fnzr bssfrg
+        """)
+    def rot(self, args):
         tx_assert(len(args) >= 2, "Not enough arguments: /rot <shift> <text>")
 
         shift, *rest = args

@@ -1,4 +1,4 @@
-from decorators import command, aliases
+from decorators import command, aliases, doc
 
 import re
 
@@ -43,7 +43,7 @@ _substitutions = {
 class AsciiBert(TexBert):
     @aliases('am')
     @command(pass_string=True)
-    def asciimath(self, string):
+    @doc(
         """
         Turn your plaintext equations into images
 
@@ -52,11 +52,13 @@ class AsciiBert(TexBert):
 
         A lot of things aren't working correctly as of now, but it works for simple equations and terms.
         Try, for example
-        ` (a + b)^2 `
-        ` A and B and not C `
-        ` lim {{x->inf}} 1/x `
-        ` v cross u * r `
+        m§ (a + b)^2 §
+        m§ A and B and not C §
+        m§ lim {x->inf} 1/x §
+        m§ v cross u * r §
         """
+    )
+    def asciimath(self, string):
         for pattern, subst in _substitutions.items():
             string = re.sub(pattern, subst, string)
 

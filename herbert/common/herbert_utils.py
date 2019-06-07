@@ -11,8 +11,12 @@ def getmethods(cls):
     return inspect.getmembers(cls, inspect.ismethod) 
 
 
-def isownmethod(m, cls):
+def is_own_method(m, cls):
     for baseclass in cls.__class__.__bases__:
         if hasattr(baseclass, m.__name__):
             return False
     return True
+
+
+def is_cmd_decorated(fn):
+    return hasattr(fn, 'cmdinfo')

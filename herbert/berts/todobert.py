@@ -1,6 +1,6 @@
 from common import chatformat
 from common.chatformat import STYLE_MD
-from decorators import command, aliases
+from decorators import command, aliases, doc
 from basebert import BaseBert, Herberror, BadHerberror
 
 from pathlib import Path
@@ -14,7 +14,7 @@ COLON = ': '
 class TodoBert(BaseBert):
     @aliases('td')
     @command(pass_args=False)
-    def todo(self):
+    @doc(
         """
         Return a list of open requests
 
@@ -23,8 +23,10 @@ class TodoBert(BaseBert):
         everyone finding something which still needs to be done. This command is used to display all the requests\
         in a formated list with markdwn for better recognizablity
 
-        e.g: `/td`
+        e.g: m§/td§
         """
+    )
+    def todo(self):
         try:
             with todo_file.open() as fobj:
                 self.send_message('`        Stuff to do:`\n' +
@@ -34,17 +36,19 @@ class TodoBert(BaseBert):
 
     @aliases('+todo', 'td+')
     @command
-    def addtodo(self, args):
+    @doc(
         """
         Add an request to the list
 
-        See `/help todo` for the concept of the todo utility.
+        See m§/help todo§ for the concept of the todo utility.
         This command is used to append new requests and ideas to the end of the list. Use the first \
         (<= 6 characters long) word as a key or heading to your request and the following ones to describe\
         what you want
 
-        e.g: `/td+ $$$ I want Ca$h`
+        e.g: m§/td+ $$$ I want Ca$h§
         """
+    )
+    def addtodo(self, args):
         try:
             todo_file.open('r+')  # to catch not found
             with todo_file.open('a') as fobj:
@@ -62,16 +66,18 @@ class TodoBert(BaseBert):
 
     @aliases('-todo', 'td-')
     @command
-    def removetodo(self, args):
+    @doc(
         """
         Remove a request from the list
 
-        See `/help todo` for the concept of the todo utility.
+        See m§/help todo§ for the concept of the todo utility.
         This command is used to remove requests from the list. Use the key that specifies the request\
         to address and remove it. All requests with that key will get removed.
 
-        e.g: '/td- $$$`
+        e.g: m§/td- $$$§
         """
+    )
+    def removetodo(self, args):
         try:
             with todo_file.open('r+') as fobj:
                 lines = fobj.readlines()
@@ -94,16 +100,18 @@ class TodoBert(BaseBert):
 
     @aliases('%todo', 'td%')
     @command
-    def edittodo(self, args):
+    @doc(
         """
         Edit a request in the list
 
-        See `/help todo` for the concept of the todo utility.
+        See m§/help todo§ for the concept of the todo utility.
         This command is used to edit requests in the list. Use the the first word as the key that specifies\
         the request and the following words to rewrite the content of that request.
 
-        e.g: '/td% $$$ maybe there are more important things in life`
+        e.g: m§/td% $$$ maybe there are more important things in life§
         """
+    )
+    def edittodo(self, args):
         try:
             with todo_file.open('r+') as fobj:
                 lines = fobj.readlines()

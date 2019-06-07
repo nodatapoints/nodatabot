@@ -7,7 +7,7 @@ from ctypes import create_string_buffer as buf, cdll
 
 __all__ = ['InterpRert', 'h_bf']
 
-from common.chatformat import mono, link_to
+from common.chatformat import link_to
 
 MAX_INSTRUCTIONS = 1000000
 OUT_SIZE = 512
@@ -29,7 +29,7 @@ class InterpRert(BaseBert):
         f"""
         Interpret the message as brainfuck-code
 
-        Interpret the given string as {link_to('https://en.wikipedia.org/wiki/Brainfuck', 'brainfuck')}. 
+        Interpret the given string as {link_to('https://en.wikipedia.org/wiki/Brainfuck', 'brainfuck')}.
         Brainfuck is a minimalistic, esoteric, but turing-complete \
         programming language operating on a linear storage tape with exactly 8 instructions:
         m§+§ - increment the value in the current tape slot

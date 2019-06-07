@@ -1,10 +1,10 @@
 from basebert import BaseBert, Herberror
 from common.chatformat import mono, italic, bold, link_to, ensure_markup_clean
 from common.constants import GITHUB_REF, SEP_LINE, HERBERT_TITLE
-from common.herbert_utils import getmethods, isownmethod
-from decorators import command, aliases
+from common.herbert_utils import getmethods, is_own_method, is_cmd_decorated
+from decorators import command, aliases, doc
 import core
-import inspect
+# import inspect
 import re
 
 
@@ -17,17 +17,17 @@ detailed_help = dict()
 class HelpBert(BaseBert):
     @aliases('h')
     @command(pass_string=True)
-    def help(self, string):
-        """
+    @doc("""
         Return a formatted list of all available commands, their arguments and their descriptions.
 
         Prints a formatted list of available commands.
 
-        An entry looks like /<cmd> <params> - <description>
-        Use /help <cmd> to print more detailed info
+        An entry looks like m§/<cmd> <params> - <description>§
+        Use m§/help <cmd>§ to print more detailed info
 
         (You already figured that one out if you're reading this text)
-        """
+        """)
+    def help(self, string):
         string = string.strip()
         if string == '':
             self.send_message(help_str or make_help_str(), disable_web_page_preview=True)
@@ -42,8 +42,8 @@ class HelpBert(BaseBert):
                 raise Herberror(f'No further help available for \'{string}\'.')
 
     @command(pass_args=False)
+    @doc(""" Print some meta-information """)
     def about(self):
-        """Print some meta-information"""
         self.send_message(helpify_docstring(f"""
         I am a server running an instance of Herbert.
         Herbert is, much to your surprise, a telegram bot.
@@ -94,8 +94,8 @@ def make_bert_str(bert: BaseBert):
     check_for_(bert.__class__.__name__)
 
     def providesHelp(member):
-        _, method = member # first arg is member name, not needed here
-        return hasattr(method, 'cmdinfo') and method.cmdinfo.register_help
+        _, method = member  # first arg is member name, not needed here
+        return is_cmd_decorated(method) and method.cmdinfo.register_help
     help_fns = [ *filter(providesHelp, getmethods(bert)) ]
 
     if len(help_fns) == 0:
@@ -104,7 +104,7 @@ def make_bert_str(bert: BaseBert):
     res = f"{bold(bert.__class__.__name__)}:\n"
     for _, method in help_fns:
         # if we just inherited this method, dont list it again for this class
-        if not isownmethod(method, bert):
+        if not is_own_method(method, bert):
             continue
 
         inf = method.cmdinfo

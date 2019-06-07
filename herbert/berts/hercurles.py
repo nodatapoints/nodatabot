@@ -47,11 +47,8 @@ def _t_get(bot: telegram.Bot, update: telegram.Update, url: str):
 
     data_type, data = load_content(url)
 
-    reply_filed_binary(bot, update, data, gen_filename_from_url(url, data_type),
-                       reply_markup=make_keyboard(
-                              {"Show as Photo": make_callback("0", url)}
-                          ) if is_image_content_type(data_type) else None
-                       )
+    reply_markup = make_keyboard({"Show as Photo": make_callback("0", url)}) if is_image_content_type(data_type) else None
+    reply_filed_binary(bot, update, data, gen_filename_from_url(url, data_type), reply_markup=reply_markup)
 
 
 def _t_search_for(bot, update, query):
@@ -75,33 +72,25 @@ class Hercurles(BaseBert):
 
     @aliases('gt')
     @command(pass_string=True)
+    @doc(""" Retrieve the contents of the given url as text or a text file """)
     def gettext(self, string):
-        """
-        Retrieve the contents of the given url as text or a text file
-        """
         _t_get_text(self.bot, self.update, string.strip())
 
     @aliases('g', 'getme', 'curl')
     @command(pass_string=True)
+    @doc(""" Retrieve the contents of the given url """)
     def get(self, string):
-        """
-        Retrieve the contents of the given url
-        """
         _t_get(self.bot, self.update, string.strip())
 
     @command(pass_string=True)
+    @doc(""" List the first few links the given string hits when searched for on DuckDuckGo """)
     def searchfor(self, string):
-        """
-        List the first few links the given string hits when searched for on DuckDuckGo
-        """
         _t_search_for(self.bot, self.update, string)
 
     @aliases('lookup')
     @command(pass_string=True)
+    @doc(""" Return the first link the given string hits when searched for on DuckDuckGo """)
     def searchforfirst(self, string):
-        """
-        Return the first link the given string hits when searched for on DuckDuckGo
-        """
         _t_search_for_first(self.bot, self.update, string)
 
     @callback(pattern='T.*')

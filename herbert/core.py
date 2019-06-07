@@ -12,6 +12,8 @@ import path
 from telegram.ext import Updater, InlineQueryHandler
 from telegram import InlineQueryResultArticle, InputTextMessageContent
 
+from common.herbert_utils import is_cmd_decorated
+
 logging.basicConfig(
     style='{',
     datefmt='%d.%m. %H:%M:%S',
@@ -44,7 +46,7 @@ def register_bert(cls):
     berts.append(bot)
 
     for method in bot.enumerate_members():
-        if hasattr(method, 'cmdinfo'):
+        if is_cmd_decorated(method):
             inf = method.cmdinfo
             for handler in inf.handlers(method):
                 updater.dispatcher.add_handler(handler)

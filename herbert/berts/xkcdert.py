@@ -2,16 +2,18 @@ import json.decoder
 
 from basebert import InlineBaseBert, Herberror
 from common import hercurles_utils
-from decorators import command
+from decorators import command, doc
 import re
 
 
 class XKCDert(InlineBaseBert):
     @command(pass_string=True, allow_inline=True)
-    def xkcd(self, string):
+    @doc(
         """
         Retrieve a comic from www.xkcd.com, referenced by number or search query.
         """
+    )
+    def xkcd(self, string):
         num = None
         try:
             num = int(float(string))

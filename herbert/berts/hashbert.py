@@ -25,8 +25,8 @@ class HashBert(InlineBaseBert):
         self.reply_text(hl.md5(str_to_bytes(string)).hexdigest())
 
     @aliases('sha512', 'hash', 'sha')
-    @doc(""" Return the sha512-hash of the given string """)
     @command(pass_string=True, allow_inline=True)
+    @doc(""" Return the sha512-hash of the given string """)
     def sha512(self, string):
         self.reply_text(hl.sha512(str_to_bytes(string)).hexdigest())
 

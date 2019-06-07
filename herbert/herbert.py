@@ -1,12 +1,14 @@
 #!/usr/bin/python3.7
-# Beep boop ich bin eigentlich bloß die liste aller berts die was am doen sind
+"""
+Beep boop ich bin eigentlich bloß die liste aller berts die was am doen sind
+"""
 
 import sys
+import logging
 from inspect import getmembers, isclass
 
 import core
 import basebert
-import logging
 
 from berts.asciimath import AsciiBert
 from berts.diamaltbert import DiaMaltBert

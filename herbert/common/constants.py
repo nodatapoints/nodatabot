@@ -38,3 +38,6 @@ EMOJI_EXPLOSION = '💥'
 
 NUM_SUFFIXES = ['th', 'st', 'nd', 'rd']
 FLAG_CHARS = "🇦🇧🇨🇩🇪🇫🇬🇭🇮🇯🇰🇱🇲🇳🇴🇵🇶🇷🇸🇹🇺🇻🇼🇽🇾🇿"
+
+ONLY_BASIC_HELP = 42
+

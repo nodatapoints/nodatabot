@@ -12,7 +12,7 @@ from telegram.ext import CommandHandler, CallbackQueryHandler
 from common.herbert_utils import is_cmd_decorated
 from basebert import Herberror, BadHerberror
 from common.constants import ERROR_FAILED, ERROR_TEMPLATE, BAD_ERROR_TEMPLATE, \
-    EMOJI_EXPLOSION, EMOJI_WARN
+    EMOJI_EXPLOSION, EMOJI_WARN, ONLY_BASIC_HELP
 
 __all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback', 'doc']
 
@@ -23,7 +23,6 @@ def argdecorator(fn):
     """
     decorator decorating a decorator, to convert it to a decorator-generating function.
     """
-
     def argreceiver(*args, **kwargs):
         if len(args) == 1 and callable(args[0]):
             return fn(*args, **kwargs)
@@ -180,7 +179,9 @@ class HerbertCmdHandlerInfo:
             logging.getLogger('herbert.SETUP').info(f"/{method.__name__} is missing ALL Documentation!")
             return '', ''
         p1, *p2 = re.split('\n\n', method.__doc__, maxsplit=1)
-        if len(p2) == 0:
+        if register_help == ONLY_BASIC_HELP:
+            p2 = 'This should be self-explanatory. If you really need help, sucks to be you; go look at the code.'
+        elif len(p2) == 0:
             logging.getLogger('herbert.SETUP').info(f"/{method.__name__} is missing detailed Documentation!")
             return p1, ''
         return (p1, *p2)

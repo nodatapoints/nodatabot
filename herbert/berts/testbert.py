@@ -37,6 +37,19 @@ class TestBert(BaseBert):
         self.reply_text(chatformat.bold(string) + chatformat.italic(string) + chatformat.mono(string) + string,
                         parse_mode=chatformat.get_parse_mode())
 
+    @aliases('dbg_r')
+    @command(register_help=False, pass_string=True)
+    def dbg_render_md(self, string: str):
+        from common.chatformat import render_style_para as r
+        self.reply_text(r(string), 'abc', parse_mode=chatformat.STYLE_BACKEND)
+
+    @aliases('dbg_mdx')
+    @command(register_help=False, pass_args=True)
+    def dbg_markdown_xcode(self, args):
+        if len(args) <= 1:
+            return
+        self.reply_text("".join(args[1:]), parse_mode=args[0])
+
 
 res = ""
 image_sent = False

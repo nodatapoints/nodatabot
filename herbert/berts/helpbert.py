@@ -1,7 +1,7 @@
 from basebert import BaseBert, Herberror
 from common.chatformat import mono, italic, bold, link_to, ensure_markup_clean
 from common.constants import GITHUB_REF, SEP_LINE, HERBERT_TITLE
-from common.herbert_utils import getmethods, isownmethod
+from common.herbert_utils import getmethods, is_own_method, is_cmd_decorated
 from decorators import command, aliases
 import core
 import inspect
@@ -94,8 +94,8 @@ def make_bert_str(bert: BaseBert):
     check_for_(bert.__class__.__name__)
 
     def providesHelp(member):
-        _, method = member # first arg is member name, not needed here
-        return hasattr(method, 'cmdinfo') and method.cmdinfo.register_help
+        _, method = member  # first arg is member name, not needed here
+        return is_cmd_decorated(method) and method.cmdinfo.register_help
     help_fns = [ *filter(providesHelp, getmethods(bert)) ]
 
     if len(help_fns) == 0:
@@ -104,7 +104,7 @@ def make_bert_str(bert: BaseBert):
     res = f"{bold(bert.__class__.__name__)}:\n"
     for _, method in help_fns:
         # if we just inherited this method, dont list it again for this class
-        if not isownmethod(method, bert):
+        if not is_own_method(method, bert):
             continue
 
         inf = method.cmdinfo

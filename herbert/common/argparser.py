@@ -33,7 +33,7 @@ def _check_if_float(s: (str, bytes, SupportsFloat)) -> (bool, float):
 
 def _check_if_chars_in(s, string):
     for c in s:
-        if s not in string:
+        if c not in string:
             return False, ""
 
     return True, s

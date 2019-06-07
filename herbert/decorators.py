@@ -4,12 +4,12 @@ Define all the decorators!
 import logging
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Callable
 import re
 
 import telegram.error
 from telegram.ext import CommandHandler, CallbackQueryHandler
 
+from common.herbert_utils import is_cmd_decorated
 from basebert import Herberror, BadHerberror
 from common.constants import ERROR_FAILED, ERROR_TEMPLATE, BAD_ERROR_TEMPLATE, \
     EMOJI_EXPLOSION, EMOJI_WARN
@@ -20,14 +20,12 @@ reply_timeout = timedelta(seconds=30)
 
 
 def argdecorator(fn):
-    """ 
+    """
     decorator decorating a decorator, to convert it to a decorator-generating function.
     """
 
     def argreceiver(*args, **kwargs):
         if len(args) == 1 and callable(args[0]):
-            # logging.getLogger('herbert.SETUP').warn(
-            # f'{args[0].__name__} (?, name lookup might fail here) has missing parentheses on @{fn.__name__}')
             return fn(*args, **kwargs)
         return lambda method: fn(method, *args, **kwargs)
 
@@ -37,10 +35,6 @@ def argdecorator(fn):
 def pull_string(text):  # FIXME requires documentation
     _, _, string = text.partition(' ')
     return string
-
-
-def is_cmd_decorated(fn):
-    return hasattr(fn, 'cmdinfo')
 
 
 def handle_herberrors(method):
@@ -75,7 +69,7 @@ def handle_herberrors(method):
         except telegram.error.TimedOut:
             logging.getLogger('herbert.RUNTIME').info('Timed out')
         except telegram.error.NetworkError:
-            logging.getLogger('herbert.RUNTIME').info('Connection Failed')
+            logging.getLogger('herbert.RUNTIME').info('Connection Failed or message rejected by telegram API')
 
         except Exception:
             self.reply_text(ERROR_FAILED)
@@ -160,9 +154,9 @@ class HerbertCmdHandlerInfo:
     not having to check for each individual attribute
     """
 
-    def __init__(self, method, aliases, register_help, help_summary, help_detailed,
+    def __init__(self, method, alias_list, register_help, help_summary, help_detailed,
                  pass_info=PassedInfoType.STRING, allow_inline=False, **ptb_args):
-        self.aliases = aliases
+        self.aliases = alias_list
         self.method = method  # to add handlers we still need an actual instance
         self.register_help = register_help
         self.help_summary, self.help_detailed = help_summary, help_detailed
@@ -175,11 +169,11 @@ class HerbertCmdHandlerInfo:
 
     @staticmethod
     def generatefor(method, register_help=True, **kwargs):
-        h1, h2 = HerbertCmdHandlerInfo.extractHelp(method, register_help)
+        h1, h2 = HerbertCmdHandlerInfo.extract_help(method, register_help)
         return HerbertCmdHandlerInfo(method, [method.__name__], register_help, h1, h2, **kwargs)
 
     @staticmethod
-    def extractHelp(method, register_help):
+    def extract_help(method, register_help):
         if not register_help:
             return '', ''
         if not method.__doc__:
@@ -201,17 +195,16 @@ class HerbertCmdHandlerInfo:
     def _invoke(self, member_method):
         return pull_bot_and_update(
             member_method,
-            pass_update=self.pass_info & PassedInfoType.UPDATE,
-            pass_query=self.pass_info & PassedInfoType.QUERY,
-            pass_string=self.pass_info & PassedInfoType.STRING,
-            pass_args=self.pass_info & PassedInfoType.ARGS
+            pass_update=self.pass_info & PassedInfoType.UPDATE is not 0,
+            pass_query=self.pass_info & PassedInfoType.QUERY is not 0,
+            pass_string=self.pass_info & PassedInfoType.STRING is not 0,
+            pass_args=self.pass_info & PassedInfoType.ARGS is not 0
         )
 
 
 @argdecorator
 def command(method, *args, pass_args=None, pass_update=False, pass_string=False,
             register_help=True, allow_inline=False, **kwargs):
-
     if args:
         logging.getLogger('herbert.SETUP').warning(f'Ignoring arguments to @command ({args}) on {method.__name__}')
 

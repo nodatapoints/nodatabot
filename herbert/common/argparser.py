@@ -1,4 +1,4 @@
-from typing import SupportsInt, SupportsFloat, Callable, Tuple, List, Dict
+from typing import SupportsInt, SupportsFloat, Callable, Tuple, List, Dict, Union
 
 from basebert import Herberror
 import re
@@ -17,26 +17,26 @@ class ArgumentFormatError(Herberror):
     """ e.g. missing brackets in arg string """
 
 
-def _check_if_int(s: (str, bytes, SupportsInt)) -> (bool, int):
+def _check_if_int(maybe_int: Union[str, bytes, SupportsInt]) -> Tuple[bool, int]:
     try:
-        return True, int(s)
+        return True, int(maybe_int)
     except ValueError:
         return False, 0
 
 
-def _check_if_float(s: (str, bytes, SupportsFloat)) -> (bool, float):
+def _check_if_float(maybe_float: Union[str, bytes, SupportsFloat]) -> Tuple[bool, float]:
     try:
-        return True, float(s)
+        return True, float(maybe_float)
     except ValueError:
         return False, 0.
 
 
-def _check_if_chars_in(s, string):
-    for c in s:
-        if c not in string:
+def _check_if_chars_in(string, charset):
+    for c in string:
+        if c not in charset:
             return False, ""
 
-    return True, s
+    return True, string
 
 
 def dict_map(table: dict):
@@ -64,16 +64,17 @@ class ArgParser:
         return ArgParser(self.check, lambda s: map_fn(self.value(s)))
 
     def and_require(self, secondary_check_fn: Callable, explain: str = None):
+        explain = explain or ""
         return ArgParser(lambda s: self.check(s) and secondary_check_fn(s), self.value, explain=self.explain + explain)
 
-    def bounded(self, limits: Tuple[object, object] = (0, 1)):
-        return self.and_require(lambda s: limits[0] <= self.value(s) <= limits[1],
+    def bounded(self, min: object = 0, max: object = 1, limits: Tuple[object, object] = (0, 1)):
+        return self.and_require(lambda s: min or limits[0] <= self.value(s) <= max or limits[1],
                                 explain=f"Value has to be in Range [{limits[0]}..{limits[1]}].")
 
 
 class Args:
     @staticmethod
-    def parse(string: str, expected_arguments: Dict[str, ArgParser], begin="[", end="]") -> (dict, str):
+    def parse(string: str, expected_arguments: Dict[str, ArgParser], begin="[", end="]") -> Tuple[dict, str]:
         """ Parse [key=value, k=v] arg pairs at start of string and return rest """
         # the string needs to start with "[" (+- some whitespace)
         # and contain comma-separated key=value pairs until the closing "]"

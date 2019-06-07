@@ -7,13 +7,12 @@ from decorators import command, aliases, doc
 __all__ = ['UniCoDert']
 
 
-def _translate_char(c: chr):
-    assert 'A' <= c <= 'Z'
+def _translate_char(c: str):
+    assert len(c) == 1 and 'A' <= c <= 'Z'
     return FLAG_CHARS[ord(c) - ord('A')]
 
-
-def _retranslate_char(c: chr):
-    assert c in FLAG_CHARS
+def _retranslate_char(c: str):
+    assert len(c) == 1 and c in FLAG_CHARS
     return chr(ord('A') + FLAG_CHARS.find(c))
 
 

@@ -10,14 +10,9 @@ provided commands:
 from basebert import BaseBert, Herberror
 from common.chatformat import mono, italic, bold, link_to, ensure_markup_clean
 from common.constants import GITHUB_REF, SEP_LINE, HERBERT_TITLE
-<<<<<<< HEAD
 from common.herbert_utils import getmethods, isownmethod
 from decorators import command, aliases
 from typing import Dict, Optional
-=======
-from common.herbert_utils import getmethods, is_own_method, is_cmd_decorated
-from decorators import command, aliases, doc
->>>>>>> 989107be0267c18eedcc602e3d780dc56fafa2ee
 import core
 # import inspect
 import re
@@ -117,18 +112,11 @@ def make_bert_str(bert: BaseBert):
     """
     _check_for_(bert.__class__.__name__)
 
-<<<<<<< HEAD
     def provides_help(member):
         """ returns true if the given member function is a command with a nonempty help string """
         _, method = member # first arg is member name, not needed here
-        return hasattr(method, 'cmdinfo') and method.cmdinfo.register_help
-    help_fns = [ *filter(provides_help, getmethods(bert)) ]
-=======
-    def providesHelp(member):
-        _, method = member  # first arg is member name, not needed here
         return is_cmd_decorated(method) and method.cmdinfo.register_help
-    help_fns = [ *filter(providesHelp, getmethods(bert)) ]
->>>>>>> 989107be0267c18eedcc602e3d780dc56fafa2ee
+    help_fns = [ *filter(provides_help, getmethods(bert)) ]
 
     if len(help_fns) == 0:
         return ''

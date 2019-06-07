@@ -2,7 +2,7 @@ from ast import literal_eval as parse_tuple
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 
-from decorators import command, callback
+from decorators import command, callback, doc
 from basebert import ImageBaseBert, Herberror
 from game import Game
 from berts.render import draw_game
@@ -24,6 +24,7 @@ class GameBert(ImageBaseBert):
         self.naming_message = None
 
     @command(pass_args=False)
+    @doc("""doesnt work, kamal pls fix""")
     def show(self):
         if not self.game_running:
             raise Herberror('Not all players registered yet.')
@@ -38,6 +39,7 @@ class GameBert(ImageBaseBert):
         )
 
     @command(pass_args=False)
+    @doc("""doesnt work, kamal pls fix""")
     def start(self):
         if self.game_running:
             raise Herberror('Game already running')

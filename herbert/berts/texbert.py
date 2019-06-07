@@ -32,7 +32,7 @@ packages_tex_template = very_basic_tex_template.replace("{}", """
 \\usepackage[ngerman]{{babel}}
 
 \\usepackage[utf8]{{inputenc}}
-{} 
+{}
 """)
 basic_tex_template = packages_tex_template.replace("{}", """
 \\begin{{document}}
@@ -154,60 +154,85 @@ class TexBert(ImageBaseBert):
             raise BadHerberror('`texit.zsh` is broken 😢')
 
     @command(pass_string=True)
-    def tex(self, string, invert=False):
+    @doc(
         """
         Render LaTeX. Implies a minimal preamble.
 
-        This is an alias for /texraw [pre=2]. For more information look at /help texraw.
+        This is an alias for m§/texraw [pre=2]§. For more information look at m§/help§ texraw.
+
+        e.g: m§/tex Hello World!§
         """
+    )
+    def tex(self, string, invert=False):
         self.texraw(string, invert=invert, template=basic_tex_template)
 
     @aliases('dtex')
     @command(pass_string=True)
-    def displaytex(self, string, invert=False):
+    @doc(
         """
         Render LaTeX in math-mode. Implies an environment for typesetting math.
 
-        This is an alias for /texraw [pre=3]. For more information look at /help texraw.
+        This is an alias for m§/texraw [pre=3]§. For more information look at m§/help§ texraw.
+
+        e.g: m§/dtex \sum_{n=1}^\infty \\frac{1}{n^2}§
         """
+
+    )
+    def displaytex(self, string, invert=False):
         self.texraw(string, invert=invert, template=display_math_template)
 
     @aliases('atex')
     @command(pass_string=True)
-    def aligntex(self, string, invert=False):
+    @doc(
         """
         Render LaTeX in aligned math-mode. Implies an environment for typesetting math.
 
-        This is an alias for /texraw [pre=4]. For more information look at /help texraw.
+        This is an alias for m§/texraw [pre=4]§. For more information look at m§/help§ texraw.
+
+        e.g: m§/atex a&=b&\\text{weil }c\\\\&=d§
         """
+    )
+    def aligntex(self, string, invert=False):
         self.texraw(string, invert=invert, template=aligned_math_template)
 
     @aliases('itex')
     @command(pass_string=True)
-    def inverttex(self, string):
+    @doc(
         """
         Render LaTeX like /tex, but invert the colors.
 
-        This is an alias for /texraw [pre=2, inv=true]. For more information look at /help texraw.
+        This is an alias for m§/texraw [pre=2, inv=true]§. For more information look at m§/help§ texraw.
+
+        e.g: m§/itex pure white§
         """
+    )
+    def inverttex(self, string):
         self.tex(string, invert=True)
 
     @aliases('idtex')
     @command(pass_string=True)
-    def invertdisplaytex(self, string):
+    @doc(
         """
         Render LaTeX like /displaytex, but invert the colors.
 
-        This is an alias for /texraw [pre=3, inv=true]. For more information look at /help texraw.
+        This is an alias for m§/texraw [pre=3, inv=true]§. For more information look at m§/help§ texraw.
+
+        e.g: m§/idtex \\text{\#ffffff} = \\blacksquare§
         """
+    )
+    def invertdisplaytex(self, string):
         self.displaytex(string, invert=True)
 
     @aliases('iatex')
     @command(pass_string=True)
-    def invertaligntex(self, string):
+    @doc(
         """
         Render LaTeX like /aligntex, but invert the colors
 
-        This is an alias for /texraw [pre=4, inv=true]. For more information look at /help texraw.
+        This is an alias for /m§texraw [pre=4, inv=true]§. For more information look at m§/help§ texraw.
+
+        e.g: m§/iatex a&=b&\\text{weil }c\\\\&=d§
         """
+    )
+    def invertaligntex(self, string):
         self.aligntex(string, invert=True)

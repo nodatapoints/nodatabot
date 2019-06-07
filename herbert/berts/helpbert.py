@@ -1,9 +1,18 @@
+"""
+Bert
+
+Generates an overview for all avaliable commands
+hooks into ../core for this purpose
+
+provided commands:
+    - help
+"""
 from basebert import BaseBert, Herberror
 from common.chatformat import mono, italic, bold, link_to, ensure_markup_clean
 from common.constants import GITHUB_REF, SEP_LINE, HERBERT_TITLE
 from common.herbert_utils import getmethods, isownmethod
 from decorators import command, aliases
-from typing import Dict
+from typing import Dict, Optional
 import core
 import inspect
 import re
@@ -11,8 +20,8 @@ import re
 
 __all__ = ['HelpBert']
 
-help_str = None
-detailed_help : Dict[str, str] = dict()
+help_str: Optional[str] = None
+detailed_help: Dict[str, str] = dict()
 
 
 class HelpBert(BaseBert):
@@ -76,9 +85,9 @@ SPACES = r'[\t ]+'
 ESCAPED_NEWLINE = r'\\\n'
 
 
-def check_for_(s: str):
-    assert "_" not in s, "UNTERSTRICHE SIND VERBOTEN!!!!!!"
-    assert s.count('`') % 2 == 0, "Balance your backticks!"
+def _check_for_(string: str):
+    assert "_" not in string, "UNTERSTRICHE SIND VERBOTEN!!!!!!"
+    assert string.count('`') % 2 == 0, "Balance your backticks!"
 
 
 def _format_aliases(alias_list):
@@ -90,14 +99,24 @@ def _format_aliases(alias_list):
     return res + ') '
 
 
+def helpify_docstring(string):
+    """ cleanup spaces so that the given (indented multiline) string looks correct """
+    rm_multiple_spaces = re.sub(SPACES, ' ', string)
+    return re.sub(ESCAPED_NEWLINE, '', rm_multiple_spaces).strip()
+
+
 # this is bodgy, please fix (but without destroying it).
 def make_bert_str(bert: BaseBert):
-    check_for_(bert.__class__.__name__)
+    """
+    Generate the formatted message part for help on the given bert
+    """
+    _check_for_(bert.__class__.__name__)
 
-    def providesHelp(member):
+    def provides_help(member):
+        """ returns true if the given member function is a command with a nonempty help string """
         _, method = member # first arg is member name, not needed here
         return hasattr(method, 'cmdinfo') and method.cmdinfo.register_help
-    help_fns = [ *filter(providesHelp, getmethods(bert)) ]
+    help_fns = [ *filter(provides_help, getmethods(bert)) ]
 
     if len(help_fns) == 0:
         return ''
@@ -120,7 +139,7 @@ def make_bert_str(bert: BaseBert):
                 detailed_help_body = helpify_docstring(inf.help_detailed)
                 detailed_help_str = f"{mono(name)} " +\
                                     (f"(aka {mono(','.join(cmd_aliases))}):\n"
-                                        if len(cmd_aliases) > 0 else ':\n') + \
+                                     if len(cmd_aliases) > 0 else ':\n') + \
                                     f"{detailed_help_body}\n"
                 detailed_help[name] = detailed_help_str
                 for alias in cmd_aliases:
@@ -131,11 +150,6 @@ def make_bert_str(bert: BaseBert):
     res += "\n\n"
     # res = res.replace(",)", ")").replace("'", "")
     return res
-
-
-def helpify_docstring(s):
-    rm_multiple_spaces = re.sub(SPACES, ' ', s)
-    return re.sub(ESCAPED_NEWLINE, '', rm_multiple_spaces).strip()
 
 
 HELP_HEADER = f"""

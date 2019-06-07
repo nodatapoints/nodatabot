@@ -1,9 +1,20 @@
+"""
+Bert
+
+enables checking the avaliability of this herbert instance
+
+provides commands:
+    - ping
+    - echo
+"""
 import datetime
 from decorators import command
 from basebert import InlineBaseBert
 
 
 class PingBert(InlineBaseBert):
+    """ bert - allow pinging """
+    
     @command(pass_args=False)
     def ping(self):
         """

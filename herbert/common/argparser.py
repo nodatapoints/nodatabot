@@ -17,26 +17,26 @@ class ArgumentFormatError(Herberror):
     """ e.g. missing brackets in arg string """
 
 
-def _check_if_int(s: Union[str, bytes, SupportsInt]) -> Tuple[bool, int]:
+def _check_if_int(maybe_int: Union[str, bytes, SupportsInt]) -> Tuple[bool, int]:
     try:
-        return True, int(s)
+        return True, int(maybe_int)
     except ValueError:
         return False, 0
 
 
-def _check_if_float(s: Union[str, bytes, SupportsFloat]) -> Tuple[bool, float]:
+def _check_if_float(maybe_float: Union[str, bytes, SupportsFloat]) -> Tuple[bool, float]:
     try:
-        return True, float(s)
+        return True, float(maybe_float)
     except ValueError:
         return False, 0.
 
 
-def _check_if_chars_in(s, string):
-    for c in s:
-        if c not in string:
+def _check_if_chars_in(string, charset):
+    for c in string:
+        if c not in charset:
             return False, ""
 
-    return True, s
+    return True, string
 
 
 def dict_map(table: dict):

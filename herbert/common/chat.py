@@ -1,3 +1,6 @@
+"""
+Utilities for interfacing with the telegram api
+"""
 import telegram
 from functools import wraps
 from io import BytesIO
@@ -38,11 +41,11 @@ def reply_filed_binary(bot, update, data, name="default", **kwargs):
     To avoid spamming the user, a lot of data can be
     packed in a file and then sent at once.
     """
-    f = BytesIO(data)
-    f.seek(0)
-    f.name = name
+    file = BytesIO(data)
+    file.seek(0)
+    file.name = name
 
-    bot.send_document(update.message.chat_id, document=f, **kwargs)
+    bot.send_document(update.message.chat_id, document=file, **kwargs)
 
 
 def reply_large_utf8(bot, update, msg, max_chunky=MAX_CHUNKY_LENGTH, **kwargs):
@@ -114,27 +117,38 @@ def get_photo(param):
     return telegram.InputMediaPhoto(param)
 
 
-callback_data_store = {}
+CALLBACK_DATA_STORE = {}
 
 
 def make_callback(name, *args):
+    """
+    Keep data between Telegram API calls by generating a key
+    and placing the data in CALLBACK_DATA_STORE
+
+    this is useful for answering inline queries, since only 64 byte
+    can be cached on telegram side (which is enough for the generated key)
+    """
     prefix = "T" + name + CALLBACK_ARGUMENT_SEPARATOR
     res = prefix + CALLBACK_ARGUMENT_SEPARATOR.join(args)
 
     key = prefix + CALLBACK_ARGUMENT_SEPARATOR + hashlib.md5(res.encode("utf-8")).hexdigest()
 
-    callback_data_store[key] = res
+    CALLBACK_DATA_STORE[key] = res
 
     return key
 
 
 def make_tx_callback(handler):
+    """
+    convert a regular command handler into a callback handler
+    by restoring the argument data from CALLBACK_DATA_STORE
+    """
     @wraps(handler)
     def wrapper(self, query):
-        stored_data = callback_data_store[query.data]
+        stored_data = CALLBACK_DATA_STORE[query.data]
         name, *args = split(CALLBACK_ARGUMENT_SEPARATOR, stored_data)
 
-        handler(self, query, args)
+        return handler(self, query, args)
 
     return wrapper
 

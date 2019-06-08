@@ -174,7 +174,7 @@ class TexBert(ImageBaseBert):
 
         This is an alias for m§/texraw [pre=3]§. For more information look at m§/help§ texraw.
 
-        e.g: m§/dtex \sum_{n=1}^\infty \\frac{1}{n^2}§
+        e.g: m§/dtex \\sum_{n=1}^\\infty \\frac{1}{n^2}§
         """
 
     )
@@ -217,7 +217,7 @@ class TexBert(ImageBaseBert):
 
         This is an alias for m§/texraw [pre=3, inv=true]§. For more information look at m§/help§ texraw.
 
-        e.g: m§/idtex \\text{\#ffffff} = \\blacksquare§
+        e.g: m§/idtex \\text{\\#ffffff} = \\blacksquare§
         """
     )
     def invertdisplaytex(self, string):
@@ -236,4 +236,3 @@ class TexBert(ImageBaseBert):
     )
     def invertaligntex(self, string):
         self.aligntex(string, invert=True)
-

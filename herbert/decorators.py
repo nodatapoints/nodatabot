@@ -4,6 +4,7 @@ Define all the decorators!
 import logging
 from datetime import datetime, timedelta
 from functools import wraps
+from typing import Callable
 import re
 
 import telegram.error
@@ -14,7 +15,8 @@ from basebert import Herberror, BadHerberror
 from common.constants import ERROR_FAILED, ERROR_TEMPLATE, BAD_ERROR_TEMPLATE, \
     EMOJI_EXPLOSION, EMOJI_WARN, ONLY_BASIC_HELP
 
-__all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback', 'doc']
+__all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback', 'doc',
+           'as_partial']
 
 reply_timeout = timedelta(seconds=30)
 
@@ -240,7 +242,7 @@ def callback(method=None, *, pass_update=False, pass_query=True, **kwargs):
 
 
 @argdecorator
-def doc(method, docstring):
+def doc(method: Callable, docstring: str):
     from common.chatformat import render_style_para as r
 
     if is_cmd_decorated(method):
@@ -249,3 +251,9 @@ def doc(method, docstring):
 
     method.__doc__ = r(docstring)
     return method
+
+
+@argdecorator
+def as_partial(_: Callable, base: Callable, *args, **kwargs):
+    from functools import partial
+    return partial(base, *args, **kwargs)

@@ -30,12 +30,14 @@ from berts.testbert import TestBert
 
 
 def configure_logs(log_lvl):
+    """ setup logging for herbert """
     logging.basicConfig()
     logging.getLogger('herbert.SETUP').setLevel(log_lvl)
     logging.getLogger('herbert.RUNTIME').setLevel(log_lvl)
 
 
 def start_bot():
+    """ perform some setup """
     core.init()
 
     # Autoregister the included Berts
@@ -49,5 +51,6 @@ def start_bot():
         core.idle()
 
 
-configure_logs(logging.DEBUG)
-start_bot()
+if __name__ == '__main__':
+    configure_logs(logging.DEBUG)
+    start_bot()

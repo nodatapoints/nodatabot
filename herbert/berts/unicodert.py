@@ -11,6 +11,7 @@ def _translate_char(c: str):
     assert len(c) == 1 and 'A' <= c <= 'Z'
     return FLAG_CHARS[ord(c) - ord('A')]
 
+
 def _retranslate_char(c: str):
     assert len(c) == 1 and c in FLAG_CHARS
     return chr(ord('A') + FLAG_CHARS.find(c))

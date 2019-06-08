@@ -14,7 +14,7 @@ from basebert import InlineBaseBert
 
 class PingBert(InlineBaseBert):
     """ bert - allow pinging """
-    
+
     @command(pass_args=False)
     @doc(""" Pong. """)
     def ping(self):

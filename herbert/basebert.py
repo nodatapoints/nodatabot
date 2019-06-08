@@ -31,7 +31,7 @@ class BaseBert:
 
     def enumerate_cmds(self):
         return filter(lambda m: hasattr(m, 'cmdinfo'), self.enumerate_members())
-    
+
     def enumerate_members(self):
         return map(lambda m: m[1], inspect.getmembers(self, inspect.ismethod))
 

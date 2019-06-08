@@ -4,7 +4,7 @@ Originally meant for berts.hercurles, but
 also used in different contexts
 """
 from common import network
-from basebert import Herberror
+from herberror import Herberror
 from urllib.parse import quote
 import re
 import json

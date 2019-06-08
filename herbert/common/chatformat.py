@@ -2,7 +2,7 @@
 FIXME this contains several specific hardcoded style definitions and conversions
 please improve (without breaking things)
 """
-from decorators import as_partial
+from common.basic_decorators import as_partial
 import re
 
 STYLE_MD = 'MARKDOWN'

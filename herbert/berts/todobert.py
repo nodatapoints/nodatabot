@@ -1,7 +1,8 @@
 from common import chatformat
 from common.chatformat import STYLE_MD
 from decorators import command, aliases, doc
-from basebert import BaseBert, Herberror, BadHerberror
+from basebert import BaseBert
+from herberror import Herberror, BadHerberror
 
 from pathlib import Path
 todo_file = Path('todo.txt')

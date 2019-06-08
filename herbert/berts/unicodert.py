@@ -1,6 +1,7 @@
 import re
 
-from basebert import Herberror, InlineBaseBert
+from basebert import InlineBaseBert
+from herberror import Herberror
 from common.constants import FLAG_CHARS
 from decorators import command, aliases, doc
 

@@ -3,7 +3,8 @@ from subprocess import run
 
 from PIL import Image, ImageOps
 
-from basebert import ImageBaseBert, Herberror, BadHerberror
+from basebert import ImageBaseBert
+from herberror import Herberror, BadHerberror
 from common import chatformat
 from common.argparser import Args
 from common.constants import SEP_LINE

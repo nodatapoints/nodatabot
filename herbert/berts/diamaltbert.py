@@ -6,7 +6,8 @@ from math import log
 from PIL import Image, ImageOps
 
 from decorators import command, aliases, doc
-from basebert import ImageBaseBert, Herberror
+from basebert import ImageBaseBert
+from herberror import Herberror
 from common.argparser import Args
 
 '''

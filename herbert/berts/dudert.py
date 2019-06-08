@@ -1,5 +1,6 @@
 from decorators import aliases, command, doc
-from basebert import BaseBert, Herberror
+from basebert import BaseBert
+from herberror import Herberror
 import common.chatformat as cf
 
 

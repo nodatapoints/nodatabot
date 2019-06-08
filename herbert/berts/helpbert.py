@@ -7,7 +7,8 @@ hooks into ../core for this purpose
 provided commands:
     - help
 """
-from basebert import BaseBert, Herberror
+from basebert import BaseBert
+from herberror import Herberror
 from common.chatformat import mono, italic, bold, link_to, ensure_markup_clean
 from common.constants import GITHUB_REF, SEP_LINE, HERBERT_TITLE
 from common.herbert_utils import getmethods, is_own_method, is_cmd_decorated

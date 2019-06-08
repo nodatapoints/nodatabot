@@ -2,7 +2,8 @@ from PIL import Image
 from io import BytesIO
 
 from decorators import *
-from basebert import ImageBaseBert, Herberror, BadHerberror, InlineBaseBert
+from basebert import ImageBaseBert, InlineBaseBert
+from herberror import Herberror, BadHerberror
 from common.network import load_content, load_str, get_url_safe_string
 from common.argparser import Args
 

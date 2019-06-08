@@ -6,7 +6,7 @@ import certifi
 import re
 
 from urllib.parse import quote
-from basebert import Herberror
+from herberror import Herberror
 
 # fake it 'til you make it
 from common.herbert_utils import tx_assert

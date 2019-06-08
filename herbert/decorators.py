@@ -10,27 +10,15 @@ import re
 import telegram.error
 from telegram.ext import CommandHandler, CallbackQueryHandler
 
+from common.basic_decorators import argdecorator
 from common.herbert_utils import is_cmd_decorated
-from basebert import Herberror, BadHerberror
+from herberror import Herberror, BadHerberror
 from common.constants import ERROR_FAILED, ERROR_TEMPLATE, BAD_ERROR_TEMPLATE, \
     EMOJI_EXPLOSION, EMOJI_WARN, ONLY_BASIC_HELP
 
-__all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback', 'doc',
-           'as_partial']
+__all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback', 'doc']
 
 reply_timeout = timedelta(seconds=30)
-
-
-def argdecorator(fn):
-    """
-    decorator decorating a decorator, to convert it to a decorator-generating function.
-    """
-    def argreceiver(*args, **kwargs):
-        if len(args) == 1 and callable(args[0]):
-            return fn(*args, **kwargs)
-        return lambda method: fn(method, *args, **kwargs)
-
-    return argreceiver
 
 
 def pull_string(text):  # FIXME requires documentation
@@ -253,7 +241,3 @@ def doc(method: Callable, docstring: str):
     return method
 
 
-@argdecorator
-def as_partial(_: Callable, base: Callable, *args, **kwargs):
-    from functools import partial
-    return partial(base, *args, **kwargs)

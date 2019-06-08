@@ -10,15 +10,7 @@ from common.telegram_limits import MSG_CHUNK
 
 import inspect
 
-__all__ = ['Herberror', 'BadHerberror', 'BaseBert', 'ImageBaseBert', 'InlineBaseBert']
-
-
-class Herberror(Exception):
-    """Basic Herbert error"""
-
-
-class BadHerberror(Herberror):
-    """Something someone needs to actually go and fix"""
+__all__ = ['BaseBert', 'ImageBaseBert', 'InlineBaseBert']
 
 
 class BaseBert:

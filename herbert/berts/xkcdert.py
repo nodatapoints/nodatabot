@@ -1,6 +1,7 @@
 import json.decoder
 
-from basebert import InlineBaseBert, Herberror
+from basebert import InlineBaseBert
+from herberror import Herberror
 from common import hercurles_utils
 from decorators import command, doc
 import common.chatformat as cf

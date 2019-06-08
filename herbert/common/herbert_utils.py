@@ -1,7 +1,7 @@
 """
 Utils for basebert and core
 """
-from basebert import Herberror
+from herberror import Herberror
 import inspect
 
 

@@ -9,7 +9,8 @@ from common.basic_utils import str_to_bytes
 from common.herbert_utils import tx_assert
 from decorators import *
 
-from basebert import InlineBaseBert, Herberror
+from basebert import InlineBaseBert
+from herberror import Herberror
 
 import hashlib as hl
 import base64 as b64

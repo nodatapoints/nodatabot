@@ -4,7 +4,7 @@ for arbitrary strings
 """
 from typing import SupportsInt, SupportsFloat, Callable, Tuple, List, Dict, Union
 
-from basebert import Herberror
+from herberror import Herberror
 import re
 
 from common.basic_utils import nth

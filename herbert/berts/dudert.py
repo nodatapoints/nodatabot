@@ -43,7 +43,7 @@ class Dudert(BaseBert):
             if dom.xpath('//a[text()="Define it!"]'):
                 self.send_message(
                     msg=f"""\
-{cf.it("This is not defined yet!")}
+{cf.italic("This is not defined yet!")}
 {cf.link_to(f"https://www.urbandictionary.com/add.php?term={phrase}", "Want to define it?")}"""
                 )
                 return
@@ -54,7 +54,7 @@ class Dudert(BaseBert):
         self.send_message(f"""\
 {cf.mono(title)}
 {meaning}
-{cf.it(example)}""")
+{cf.italic(example)}""")
 
     @aliases('dude')
     @command(pass_string=True)
@@ -122,9 +122,9 @@ class Dudert(BaseBert):
                 meanings.append(text)
 
         meanings_list_str = '\n'.join(
-            f'{i+1}. {cf.it(meaning)}' for i, meaning in enumerate(meanings)) or cf.it("Keine Bedeutungen gefunden.")
+            f'{i+1}. {cf.italic(meaning)}' for i, meaning in enumerate(meanings)) or cf.italic("Keine Bedeutungen gefunden.")
         return f"""{cf.bold(word_def)}
-{cf.it(word_class)}
+{cf.italic(word_class)}
 Häufigkeit: {'💬'*len(freq)}
 
 Bedeutungen:

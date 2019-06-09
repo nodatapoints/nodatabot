@@ -5,6 +5,7 @@ import common.chatformat as cf
 
 
 import requests
+from requests.utils import quote
 from lxml import etree
 
 

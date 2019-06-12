@@ -2,7 +2,8 @@ from PIL import Image
 from io import BytesIO
 
 from decorators import *
-from basebert import ImageBaseBert, Herberror, BadHerberror, InlineBaseBert
+from basebert import ImageBaseBert, InlineBaseBert
+from herberror import Herberror, BadHerberror
 from common.network import load_content, load_str, get_url_safe_string
 from common.argparser import Args
 
@@ -48,48 +49,36 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         self.reply_text(mono(wttr_string))
 
     @aliases('wa', 'wolframalpha')
-    @command(pass_string=True, allow_inline=True)
+    @command(pass_string=True)
     @doc(
         """
         Show a WolframAlpha generated informationsheet based on the given string
 
         The wolfram command gives you easy and comprehensive factual data about most topics. \
         Using the language processing and database access WolframAlpha API, it will send you an image \
-        summarizing available data concerning your query.
+        summarizing available data concerning your query. You can choose if you want the image as full file \
+        or with Telegramcompression.
 
-        e.g: m§/wolfram plot Lemniscate§
+        e.g: m§/wolfram [send=file] plot Lemniscate§
         """
     )
-    def wolfram(self, string, full=False):
+    def wolfram(self, string):
+        argvals, string = Args.parse(string, {
+            'send': Args.T.one_of('img', 'file', 'both'),
+        })
+        arg_send = argvals.get('send') or 'img'
+
         query = get_url_safe_string(string)
         url = f'https://api.wolframalpha.com/v1/simple?i={query}&appid=36GXXR-K5UA8L8XTY'
 
-        if full and self.inline:
-            raise BadHerberror('Should be unreachable')
-        elif full:  # high resolution file
+        if arg_send == 'file' or arg_send == 'both':  # high resolution file
             _, data = load_content(url)
             image = Image.open(BytesIO(data))
             self.bot.send_document(
                 self.chat_id, document=ImageBaseBert.pil_image_to_fp(image, 'PNG'))
-        else:  # not full  ->  simple image
+        if arg_send == 'img' or arg_send == 'both':  # not full  ->  simple image
             string = string if self.inline else ''
             self.reply_gif_url(url, caption=string, title='')
-
-    @aliases('hrwa', 'hrwolfram')
-    @command(pass_string=True)
-    @doc(
-        """
-        Send a high resolution WolframAlpha generated informationsheet based on the given string as a file
-
-        The highreswolfram command gives you easy and comprehensive factual data about most topics. \
-        Using the language processing and database access WolframAlpha API, it will send you a higher \
-        resolution png-file summarizing available data concerning your query.
-
-        e.g: m§/hrwolfram Lemniscate$
-        """
-    )
-    def highreswolfram(self, string):
-        self.wolfram(string, full=True)
 
     """
     @aliases('stepbystep', 'sbs')

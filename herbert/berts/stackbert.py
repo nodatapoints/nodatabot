@@ -1,5 +1,6 @@
 from decorators import command, doc
-from basebert import BaseBert, Herberror
+from basebert import BaseBert
+from herberror import Herberror
 from common.chatformat import STYLE_MD
 
 

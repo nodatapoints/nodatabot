@@ -1,16 +1,22 @@
 import json.decoder
 
-from basebert import InlineBaseBert, Herberror
+from basebert import InlineBaseBert
+from herberror import Herberror
 from common import hercurles_utils
 from decorators import command, doc
+import common.chatformat as cf
 import re
 
 
 class XKCDert(InlineBaseBert):
     @command(pass_string=True, allow_inline=True)
     @doc(
-        """
-        Retrieve a comic from www.xkcd.com, referenced by number or search query.
+        f"""
+        Retrieve a comic from www.xkcd.com, referenced by number or search query
+
+        Retrieve a comic from www.xkcd.com. If the first parameter can be interpreted as a number, this loads the \
+        corresponding comic; else, the argument string will be looked up on \
+        {cf.link_to('http://www.duckduckgo.com/', name='DuckDuckGo')}, the first viable result will be returned.
         """
     )
     def xkcd(self, string):

@@ -2,7 +2,8 @@ import re
 from typing import Callable, Type
 
 from common import chatformat
-from basebert import BaseBert, Herberror, BadHerberror
+from basebert import BaseBert
+from herberror import Herberror, BadHerberror
 from common.argparser import Args, UnexpectedArgument, ArgumentFormatError
 from decorators import command, aliases
 from datetime import datetime

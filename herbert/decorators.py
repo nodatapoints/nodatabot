@@ -4,31 +4,21 @@ Define all the decorators!
 import logging
 from datetime import datetime, timedelta
 from functools import wraps
+from typing import Callable
 import re
 
 import telegram.error
 from telegram.ext import CommandHandler, CallbackQueryHandler
 
+from common.basic_decorators import argdecorator
 from common.herbert_utils import is_cmd_decorated
-from basebert import Herberror, BadHerberror
+from herberror import Herberror, BadHerberror
 from common.constants import ERROR_FAILED, ERROR_TEMPLATE, BAD_ERROR_TEMPLATE, \
     EMOJI_EXPLOSION, EMOJI_WARN, ONLY_BASIC_HELP
 
 __all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback', 'doc']
 
 reply_timeout = timedelta(seconds=30)
-
-
-def argdecorator(fn):
-    """
-    decorator decorating a decorator, to convert it to a decorator-generating function.
-    """
-    def argreceiver(*args, **kwargs):
-        if len(args) == 1 and callable(args[0]):
-            return fn(*args, **kwargs)
-        return lambda method: fn(method, *args, **kwargs)
-
-    return argreceiver
 
 
 def pull_string(text):  # FIXME requires documentation
@@ -240,7 +230,7 @@ def callback(method=None, *, pass_update=False, pass_query=True, **kwargs):
 
 
 @argdecorator
-def doc(method, docstring):
+def doc(method: Callable, docstring: str):
     from common.chatformat import render_style_para as r
 
     if is_cmd_decorated(method):
@@ -249,3 +239,5 @@ def doc(method, docstring):
 
     method.__doc__ = r(docstring)
     return method
+
+

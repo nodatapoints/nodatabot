@@ -10,7 +10,8 @@ from common.herbert_utils import tx_assert
 from common.constants import ONLY_BASIC_HELP
 from decorators import *
 
-from basebert import InlineBaseBert, Herberror
+from basebert import InlineBaseBert
+from herberror import Herberror
 
 import hashlib as hl
 import base64 as b64

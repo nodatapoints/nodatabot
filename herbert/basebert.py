@@ -10,15 +10,7 @@ from common.telegram_limits import MSG_CHUNK
 
 import inspect
 
-__all__ = ['Herberror', 'BadHerberror', 'BaseBert', 'ImageBaseBert', 'InlineBaseBert']
-
-
-class Herberror(Exception):
-    """Basic Herbert error"""
-
-
-class BadHerberror(Herberror):
-    """Something someone needs to actually go and fix"""
+__all__ = ['BaseBert', 'ImageBaseBert', 'InlineBaseBert']
 
 
 class BaseBert:
@@ -31,7 +23,7 @@ class BaseBert:
 
     def enumerate_cmds(self):
         return filter(lambda m: hasattr(m, 'cmdinfo'), self.enumerate_members())
-    
+
     def enumerate_members(self):
         return map(lambda m: m[1], inspect.getmembers(self, inspect.ismethod))
 

@@ -6,7 +6,9 @@ from math import log
 from PIL import Image, ImageOps
 
 from decorators import command, aliases, doc
-from basebert import ImageBaseBert, Herberror
+from basebert import ImageBaseBert
+from herberror import Herberror
+from common.argparser import Args
 
 '''
 Meine Datei zum malen von coolen Sachen
@@ -43,34 +45,6 @@ def atom_colors(entry):
 
 
 class DiaMaltBert(ImageBaseBert):
-    @aliases('hrrule', 'hrr')
-    @command
-    @doc(
-        """
-        Sends the high resolution time diagram as a file
-
-        This utility exists to draw the 1D "rule" cellular automaton invented by stephen Wolfram in 1985\
-        and to send the high resolution file of the generated image.
-        It starts with a line of 1's (black) and 0's (white) at the top of the image and applies the given rule on\
-        the current row in every timestep to create the next row.
-        More info on "mathworld.wolfram.com/ElementaryCellularAutomaton.html"
-
-        The command structure is given by:
-        m§/rule <edge> <scale> <#rule> <width> <height> <1st>§
-
-        m§<edge>   ∊ {r(andom), t(orus), b(lack), w(hite)}§
-        m§<scale>  ∊ [1, ∞[ §the size of 1 cell in pixels
-        m§<#rule>  ∊ [0, 255] §the rule you want to see
-        m§<width>  ∊ [1, ∞[ §the number of cells
-        m§<height> ∊ [1, ∞[ §the number of timesteps
-        m§<height> ∊ {r, [all states like 0 1 1 ...]}§
-
-        e.g: m§/hrr b 25 73 200 200 r§
-        """
-    )
-    def higresrule(self, args):
-        self.rule(args, full=True)
-
     @command
     @doc(
         """
@@ -82,8 +56,9 @@ class DiaMaltBert(ImageBaseBert):
         More info on "http://mathworld.wolfram.com/ElementaryCellularAutomaton.html"
 
         The command structure is given by:
-        m§/rule <edge> <scale> <#rule> <width> <height> <1st>§
+        m§/rule [send=<s>] <edge> <scale> <#rule> <width> <height> <1st>§
 
+        m§<s>      ∊ {img, file, both}§ type of returnimage
         m§<edge>   ∊ {r(andom), t(orus), b(lack), w(hite)}§
         m§<scale>  ∊ [1, ∞[ §the size of 1 cell in pixels
         m§<#rule>  ∊ [0, 255] §the rule you want to see
@@ -91,11 +66,19 @@ class DiaMaltBert(ImageBaseBert):
         m§<height> ∊ [1, ∞[ §the number of timesteps
         m§<height> ∊ {r, [all states like 0 1 1 ...]}§
 
-        e.g: m§/rule b 25 73 200 200 r§
+        e.g: m§/rule [send=file] b 5 73 200 200 r§
         """
     )
-    def rule(self, args, full=False):
+    def rule(self, args):
         # /rule {r, t(orus), b(lack), w(hite)} {scale} {r,0,1,2,3,...,255?} {width} {time} {r,[a1,a2,a3,...,awidth]
+
+        # get if sent to FLIP_VERTICAL
+        argvals, string = Args.parse(' '.join(args), {
+            'send': Args.T.one_of('img', 'file', 'both'),
+        })
+        arg_send = argvals.get('send')
+        if arg_send: args.pop(0)
+        else: arg_send = 'img'
 
         # args to parameters
         for to_int in range(len(args)):
@@ -143,7 +126,11 @@ class DiaMaltBert(ImageBaseBert):
                     color = black
                 subimg = Image.new('RGB', (scale, scale), color)
                 img.paste(subimg, (x * scale, y * scale))
-        self.send_pil_image(img, full=full)
+
+        if arg_send == 'file' or arg_send == 'both':
+            self.send_pil_image(img, full=True)
+        if arg_send == 'img' or arg_send == 'both':
+            self.send_pil_image(img)
 
     def do_rule(self, last, subrules, rulelength, edge):
         delta_x = -(rulelength // 2)

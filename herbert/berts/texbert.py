@@ -3,7 +3,8 @@ from subprocess import run
 
 from PIL import Image, ImageOps
 
-from basebert import ImageBaseBert, Herberror, BadHerberror
+from basebert import ImageBaseBert
+from herberror import Herberror, BadHerberror
 from common import chatformat
 from common.argparser import Args
 from common.constants import SEP_LINE
@@ -28,6 +29,7 @@ packages_tex_template = very_basic_tex_template.replace("{}", """
 \\usepackage{{tikz}}
 \\usepackage{{physics}}
 \\usepackage{{ifthen}}
+\\usepackage[hidelinks]{{hyperref}}
 
 \\usepackage{{amsfonts}}
 \\usepackage[ngerman]{{babel}}
@@ -173,7 +175,7 @@ class TexBert(ImageBaseBert):
 
         This is an alias for m§/texraw [pre=3]§. For more information look at m§/help§ texraw.
 
-        e.g: m§/dtex \sum_{n=1}^\infty \\frac{1}{n^2}§
+        e.g: m§/dtex \\sum_{n=1}^\\infty \\frac{1}{n^2}§
         """
 
     )
@@ -216,7 +218,7 @@ class TexBert(ImageBaseBert):
 
         This is an alias for m§/texraw [pre=3, inv=true]§. For more information look at m§/help§ texraw.
 
-        e.g: m§/idtex \\text{\#ffffff} = \\blacksquare§
+        e.g: m§/idtex \\text{\\#ffffff} = \\blacksquare§
         """
     )
     def invertdisplaytex(self, string):
@@ -235,4 +237,3 @@ class TexBert(ImageBaseBert):
     )
     def invertaligntex(self, string):
         self.aligntex(string, invert=True)
-

@@ -3,7 +3,8 @@ from ast import literal_eval as parse_tuple
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 
 from decorators import command, callback, doc
-from basebert import ImageBaseBert, Herberror
+from basebert import ImageBaseBert
+from herberror import Herberror
 from game import Game
 from berts.render import draw_game
 

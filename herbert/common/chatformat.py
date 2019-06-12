@@ -2,7 +2,7 @@
 FIXME this contains several specific hardcoded style definitions and conversions
 please improve (without breaking things)
 """
-from functools import partial
+from common.basic_decorators import as_partial
 import re
 
 STYLE_MD = 'MARKDOWN'
@@ -18,20 +18,24 @@ STYLE = STYLE_BACKEND
 
 
 class MessageMarkupError(Exception):
+    """ thrown if the markup of a message is invalid """
     pass
 
 
 def get_parse_mode(style=STYLE):
+    """ return the current encoding type """
     return style
 
 
 def get_output_mode(style=STYLE):
+    """ return the correct output encoding after rendering """
     if style == STYLE_BACKEND or style == STYLE_PARA:
         return STYLE_HTML
     return style
 
 
 def render_style_backend(string, target_style=STYLE_HTML):
+    """ transform STYLE_BACKEND to target_style """
     assert target_style == STYLE_HTML, "Markdown rendering is not supported yet"
     substitutions = {
         '!§![i': '<i>',
@@ -54,6 +58,7 @@ def render_style_backend(string, target_style=STYLE_HTML):
 
 
 def render_style_para(string, target_style=STYLE_BACKEND):
+    """ transform STYLE_PARA to target_style """
     assert target_style == STYLE_BACKEND, "Direct HTML rendering is not supported yet"
     string = re.sub(r'm§([^§]*)§', lambda m: mono(m.group(1), style=STYLE_BACKEND), string)
     string = re.sub(r'b§([^§]*)§', lambda m: bold(m.group(1), style=STYLE_BACKEND), string)
@@ -63,6 +68,7 @@ def render_style_para(string, target_style=STYLE_BACKEND):
 
 
 def render(text, input_style):
+    """ transform text from one style to another """
     if input_style == STYLE_BACKEND:
         render_text = render_style_backend(text)
     elif input_style == STYLE_PARA:
@@ -74,6 +80,7 @@ def render(text, input_style):
 
 
 def ensure_markup_clean(string, msg='', style=STYLE):
+    """ raise an error if string contains formatting character sequences """
     crimes = {
         STYLE_HTML: ('<', '>'),
         STYLE_MD: ('`', '_', '*', '['),
@@ -86,6 +93,7 @@ def ensure_markup_clean(string, msg='', style=STYLE):
 
 
 def escape_string(string, style=STYLE):
+    """ to allow <, > in html formatted strings they need to be escaped first """
     # only html can be escaped. hope for the best.
     if style == STYLE_HTML:
         return string.replace("<", "&lt;").replace(">", "&gt;")
@@ -94,6 +102,7 @@ def escape_string(string, style=STYLE):
 
 
 def link_to(url, name=None, style=STYLE):
+    """ return the link encoding of style to url shown as name """
     name = name or url
     try:
         return {
@@ -105,7 +114,7 @@ def link_to(url, name=None, style=STYLE):
         raise ValueError(f'Style {style} is undefined or cannot markup links.')
 
 
-def _wrap_delimiters(style_dict, text, escape=True, style=STYLE):
+def _wrap_delimiters(style_dict: dict, text: str, escape=True, style=STYLE) -> str:
     try:
         prefix, suffix = style_dict[style]
         if escape:
@@ -117,7 +126,7 @@ def _wrap_delimiters(style_dict, text, escape=True, style=STYLE):
         raise ValueError(f'Style {style} is undefined.')
 
 
-italic = em = it = partial(
+@as_partial(
     _wrap_delimiters,
     {
         STYLE_HTML: ('<i>', '</i>'),
@@ -126,8 +135,10 @@ italic = em = it = partial(
         STYLE_PARA: ('i§', '§')
     }
 )
+def italic(): """ adds italic formatting to the given text """
 
-bold = partial(
+
+@as_partial(
     _wrap_delimiters,
     {
         STYLE_HTML: ('<b>', '</b>'),
@@ -136,8 +147,10 @@ bold = partial(
         STYLE_PARA: ('b§', '§')
     }
 )
+def bold(): """ adds bold formatting to the given text """
 
-mono = partial(
+
+@as_partial(
     _wrap_delimiters,
     {
         STYLE_HTML: ('<code>', '</code>'),
@@ -146,3 +159,4 @@ mono = partial(
         STYLE_PARA: ('i§', '§')
     }
 )
+def mono(): """ adds monospaced formatting to the given text """

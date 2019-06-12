@@ -1,6 +1,7 @@
 import re
 
-from basebert import Herberror, InlineBaseBert
+from basebert import InlineBaseBert
+from herberror import Herberror
 from common.constants import FLAG_CHARS
 from decorators import command, aliases, doc
 
@@ -10,6 +11,7 @@ __all__ = ['UniCoDert']
 def _translate_char(c: str):
     assert len(c) == 1 and 'A' <= c <= 'Z'
     return FLAG_CHARS[ord(c) - ord('A')]
+
 
 def _retranslate_char(c: str):
     assert len(c) == 1 and c in FLAG_CHARS

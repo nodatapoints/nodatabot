@@ -1,9 +1,12 @@
+"""
+General network utility
+"""
 import urllib3
 import certifi
 import re
 
 from urllib.parse import quote
-from basebert import Herberror
+from herberror import Herberror
 
 # fake it 'til you make it
 from common.herbert_utils import tx_assert
@@ -24,9 +27,8 @@ REQUEST_TYPE_GET = "GET"
 
 # GLOBAL
 urllib3.disable_warnings()
-http = urllib3.PoolManager(10, USER_AGENT, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
-
-http_plain = urllib3.PoolManager(10, USER_AGENT_CURL, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+HTTP_POOL = urllib3.PoolManager(10, USER_AGENT, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
+HTTP_PLAIN_POOL = urllib3.PoolManager(10, USER_AGENT_CURL, cert_reqs='CERT_REQUIRED', ca_certs=certifi.where())
 
 
 class NetworkError(Herberror):
@@ -47,9 +49,9 @@ def load(url, fake_ua=True):
     """
     try:
         if fake_ua:
-            return http.request(REQUEST_TYPE_GET, url, retries=2)
+            return HTTP_POOL.request(REQUEST_TYPE_GET, url, retries=2)
         else:
-            return http_plain.request(REQUEST_TYPE_GET, url, retries=2)
+            return HTTP_PLAIN_POOL.request(REQUEST_TYPE_GET, url, retries=2)
 
     except urllib3.exceptions.HTTPError:
         raise NetworkError(NO_RESPONSE_ERR)
@@ -111,7 +113,7 @@ def is_image_content_type(content_type):
     return content_type.startswith("image")
 
 
-_ending = {
+_ENDING = {
     "text/plain": "txt",
 }
 
@@ -131,7 +133,7 @@ def gen_filename_from_url(url, content_type="text/plain"):
     @returns an arbitrary string meant to reflect the
              url and represent a file.
     """
-    return re.sub("[:/ \t\n]", "_", url) + "." + _ending.get(content_type, re.split("/", content_type)[1])
+    return re.sub("[:/ \t\n]", "_", url) + "." + _ENDING.get(content_type, re.split("/", content_type)[1])
 
 
 def response_extract_charset(response_header):

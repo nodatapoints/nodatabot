@@ -180,7 +180,7 @@ class HerbertCmdHandlerInfo:
             return '', ''
         p1, *p2 = re.split('\n\n', method.__doc__, maxsplit=1)
         if register_help == ONLY_BASIC_HELP:
-            p2 = 'This should be self-explanatory. If you really need help, sucks to be you; go look at the code.'
+            return p1, 'This should be self-explanatory. If you really need help, sucks to be you; go look at the code.'
         elif len(p2) == 0:
             logging.getLogger('herbert.SETUP').info(f"/{method.__name__} is missing detailed Documentation!")
             return p1, ''

@@ -7,6 +7,7 @@ Hashing algorithms
 """
 from common.basic_utils import str_to_bytes
 from common.herbert_utils import tx_assert
+from common.constants import ONLY_BASIC_HELP
 from decorators import *
 
 from basebert import InlineBaseBert, Herberror
@@ -19,7 +20,7 @@ __all__ = ["HashBert"]
 
 
 class HashBert(InlineBaseBert):
-    @command(pass_string=True, allow_inline=True)
+    @command(pass_string=True, allow_inline=True, register_help=ONLY_BASIC_HELP)
     @doc(""" Return the md5-hash of the given string """)
     def md5(self, string):
         self.reply_text(hl.md5(str_to_bytes(string)).hexdigest())

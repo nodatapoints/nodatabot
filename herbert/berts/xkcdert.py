@@ -39,7 +39,7 @@ class XKCDert(InlineBaseBert):
             info_json = hercurles_utils.load_json(url)
             self.reply_photo_url(
                 info_json.get('img'),
-                caption=f"{info_json.get('title')}\n\n{info_json.get('alt')}"
+                caption=f"{num}: {info_json.get('title')}\n\n{info_json.get('alt')}"
             )
 
         except json.decoder.JSONDecodeError:

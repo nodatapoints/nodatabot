@@ -5,6 +5,8 @@ import path
 
 from ctypes import create_string_buffer as buf, cdll
 
+from herberror import Herberror
+
 __all__ = ['InterpRert', 'h_bf']
 
 from common.chatformat import link_to

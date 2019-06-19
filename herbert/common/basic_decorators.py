@@ -5,6 +5,7 @@ def argdecorator(fn):
     """
     decorator decorating a decorator, to convert it to a decorator-generating function.
     """
+
     def argreceiver(*args, **kwargs):
         if len(args) == 1 and callable(args[0]):
             return fn(*args, **kwargs)

@@ -77,8 +77,10 @@ class DiaMaltBert(ImageBaseBert):
             'send': Args.T.one_of('img', 'file', 'both'),
         })
         arg_send = argvals.get('send')
-        if arg_send: args.pop(0)
-        else: arg_send = 'img'
+        if arg_send:
+            args.pop(0)
+        else:
+            arg_send = 'img'
 
         # args to parameters
         for to_int in range(len(args)):
@@ -108,7 +110,7 @@ class DiaMaltBert(ImageBaseBert):
         # create needed rules
         subrules = list(f'{num:b}'[::-1])
         # 0-pad up to the needed size
-        subrules.extend([0] * (2**rulelength - len(subrules)))
+        subrules.extend([0] * (2 ** rulelength - len(subrules)))
         # turn to number[] from string[]
         subrules = list(map(int, subrules))
 
@@ -177,7 +179,7 @@ class DiaMaltBert(ImageBaseBert):
     def carpet(self, args):
         scale, depth, width, height = map(int, args[:4])
         matrix = args[4:]
-        if max(width, height)**depth > 5000:
+        if max(width, height) ** depth > 5000:
             raise Herberror("Too much work.")
 
         if len(matrix) != width * height:
@@ -200,8 +202,8 @@ class DiaMaltBert(ImageBaseBert):
         if depth == 0:
             return Image.new('RGB', (scale, scale), atom_colors(entry))
 
-        width = len(matrix[0])**(depth - 1) * scale
-        height = len(matrix)**(depth - 1) * scale
+        width = len(matrix[0]) ** (depth - 1) * scale
+        height = len(matrix) ** (depth - 1) * scale
 
         big_image = Image.new(
             'RGB', (width * len(matrix[0]), height * len(matrix)), atom_colors(entry))

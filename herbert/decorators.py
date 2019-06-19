@@ -239,5 +239,3 @@ def doc(method: Callable, docstring: str):
 
     method.__doc__ = r(docstring)
     return method
-
-

@@ -62,9 +62,9 @@ pre_levels = [empty_tex_template,
               tikz_template]
 
 
-def validate(str):
+def validate(string):
     # TODO make sure people dont tex emojis or whatever
-    if str.strip() == '':
+    if string.strip() == '':
         raise Herberror('Empty Inputs are bad.')
 
 
@@ -129,7 +129,8 @@ class TexBert(ImageBaseBert):
             elif exit_val == 3:
                 raise Herberror('Your \'tex produces output I literally can\'t comprehend.')
             elif exit_val == 4:
-                raise Herberror(f'Lern ma LaTeX 🙄\n{SEP_LINE}\n'f'[{chatformat.bold("LATEX")}] {chatformat.mono(result.stdout)}')
+                raise Herberror(f'Lern ma LaTeX 🙄\n{SEP_LINE}\n'
+                                f'[{chatformat.bold("LATEX")}] {chatformat.mono(result.stdout)}')
             elif exit_val != 0:
                 raise BadHerberror('Error. That was unexpected.')
 
@@ -138,7 +139,8 @@ class TexBert(ImageBaseBert):
             img = Image.open(image_path)
 
             if img.width / img.height > IMG_MAX_ASPECT:
-                buf = Image.new(mode='RGB', size=(img.width, int(img.width / IMG_MAX_ASPECT + 1)), color=(255, 255, 255))
+                buf = Image.new(mode='RGB', size=(img.width, int(img.width / IMG_MAX_ASPECT + 1)),
+                                color=(255, 255, 255))
                 buf.paste(img)
                 img = buf
 

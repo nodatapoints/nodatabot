@@ -1,3 +1,4 @@
+import json
 from PIL import Image
 from io import BytesIO
 
@@ -7,12 +8,39 @@ from herberror import Herberror, BadHerberror
 from common.network import load_content, load_str, get_url_safe_string
 from common.argparser import Args
 
-from common.chatformat import mono
+from common import chatformat
 
 '''
 Meine Datei zum berechenen/bearbeiten von queries
 - Philip
 '''
+
+StateCodeToId = {
+    "ger": 0, "bw": 1, "bay": 2, "be": 3,
+    "brb": 4, "bre": 5, "hh": 6, "he": 7,
+    "mv": 8, "ns": 9, "nrw": 10, "rp": 11,
+    "srl": 12, "sa": 13, "saa": 14,
+    "sh": 15, "th": 16
+}
+
+PartyIdtoName = {
+    0: "Sonstig",
+    1: "  Union",
+    2: "    SPD",
+    3: "    FDP",
+    4: "  Grüne",
+    5: "  Linke",
+    6: "Piraten",
+    7: "    AfD",
+    8: "Freie W",
+    10: "    SSW",
+    13: "DPARTEI",
+    14: " BVB/FW",
+    15: "Tiersch",
+    16: "    BIW",
+    101: "    CDU",
+    102: "    CSU"
+}
 
 
 class KalcBert(InlineBaseBert, ImageBaseBert):
@@ -144,6 +172,82 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
                 raise Herberror('not a working equation')
         else:
             raise Herberror('Only + - * / % ** are supported.')
+
+    @aliases('polit', 'pltc')
+    @command(pass_string=True)
+    @doc(
+        f"""
+        Take a quick look at german polls
+
+        The politic utility uses "dawum" and David Kriesels live viewer to show you the \
+        most recent public politic opinion of every state. For germany as a whole, you also have the option \
+        to take a look at how public opinion fluctuated by using m§[len=90 (/last/all)]§.
+        More Information on {chatformat.link_to("https://dawum.de/Ueber_uns/", "dawum")} and\
+        {chatformat.link_to("http://www.dkriesel.com/", "dkriesel")}.
+        States you can use in the command (m§GER§ is the standard):
+        i§BW, Bay, Be, BrB, Bre, HH, He, MV, NS, NRW, RP, SrL, Sa, SaA, SH, Th, GER§
+
+        e.g: m§/politic [len=all]§
+        e.g: m§/politic MV§
+        """
+    )
+    def politic(self, string):
+        schland = StateCodeToId["ger"]
+        argvals, string = Args.parse(string, {
+            'len': Args.T.one_of("all", "last", "90"),
+        })
+        length = argvals.get('len') or ''
+        state = StateCodeToId.get(string.lower(), schland)
+
+        if state == schland and length:
+            # dkriesel timelines
+            substitution = {"all": "all", "last": "wahl2017", "90": "90tage"}
+            choice = substitution.get(length, substitution["90"])
+            url = f"www.dkriesel.com/_media/sonntagsfrage_{choice}.png"
+
+            # self.reply_photo_url(url, caption="kapollo")
+            _, data = load_content(url)         # ^^^ buffers
+            image = Image.open(BytesIO(data))   # so i need to force a new download
+            # image = Image.new('RGB', (500, 500))
+            link, _ = chatformat.render(chatformat.link_to(url, "David Kriesel"), chatformat.STYLE_BACKEND)
+            self.send_pil_image(image, caption="Data and plots scraped from the website of "+link,
+                                parse_mode='HTML', disable_web_page_preview=True)
+
+        else:
+            # dawum image needs to be loaded
+            url = "https://api.dawum.de/newest_surveys.json"
+            data_type, json_data = load_content(url)
+            if data_type != "application/json":
+                print(data_type)
+                raise BadHerberror('Poll data format changed, please contact an adminstrator')
+
+            data = json.loads(json_data)
+
+            small_string = string.strip().lower()
+            code = StateCodeToId[small_string]
+            name = data["Parliaments"][str(code)]["Name"]
+            # those are ordered, so I can iterate
+            for poll_key, poll_data in data["Surveys"].items():
+                if int(poll_data['Parliament_ID']) == code:
+                    results = poll_data["Results"]
+                    date = poll_data["Date"]
+                    break
+
+            # generate the bars dependent on the percentages
+            def fillHash(n, percent):
+                num_of_hash = int(percent/100*n + 0.5)
+                percentnum = str(percent) + "% "
+                percentnum_length = len(percentnum)
+
+                string = '#'*num_of_hash + ' '*(n-num_of_hash-percentnum_length) + percentnum
+                return string
+
+            output = f"Poll for {name}\nTaken around {date}\n\n"
+            for key, result in results.items():
+                output += f"{PartyIdtoName[int(key)]} |{fillHash(35, result)}|\n"
+
+            output = chatformat.mono(output)
+            self.reply_text(output)
 
     @command(pass_args=False, register_help=False, allow_inline=True)
     def rng(self):

@@ -74,7 +74,7 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         if '=======' in wttr_string:  # good enough
             raise Herberror('No place with that name was found')
 
-        self.reply_text(mono(wttr_string))
+        self.reply_text(chatformat.mono(wttr_string))
 
     @aliases('wa', 'wolframalpha')
     @command(pass_string=True)

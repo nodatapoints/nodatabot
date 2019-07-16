@@ -69,6 +69,10 @@ class Dudert(BaseBert):
         """
     )
     def dudensearch(self, query):
+        if query == '':
+          self.send_sticker("CAADAgADVQADXqr0HUOZu51gMmIAAQI")
+          return
+
         url = f'http://www.duden.de/suchen/dudenonline/{quote(query)}'
         listing = requests.get(url)
         if not listing.ok:

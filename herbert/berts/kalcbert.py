@@ -224,7 +224,10 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
             data = json.loads(json_data)
 
             small_string = string.strip().lower()
-            code = StateCodeToId[small_string]
+
+            code = StateCodeToId.get(small_string)
+            if code is None:
+                raise Herberror("not a supported state code")
             name = data["Parliaments"][str(code)]["Name"]
             # those are ordered, so I can iterate
             for poll_key, poll_data in data["Surveys"].items():

@@ -153,12 +153,12 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         to fit into the flow of the conversation. The spported Operators are brackets \
         and relational operators ( ==, !=, <, >, <=, >=) \
         as well as
-        m$ + § Addition
-        m$ - § Subtraction
-        m$ * § Multiplication
-        m$ / § Division
-        m$ % § Modulus
-        m$ **§ Exponentiation
+        m§ + § Addition
+        m§ - § Subtraction
+        m§ * § Multiplication
+        m§ / § Division
+        m§ % § Modulus
+        m§ **§ Exponentiation
 
         e.g: m§/math 365*(24-8)§
         """

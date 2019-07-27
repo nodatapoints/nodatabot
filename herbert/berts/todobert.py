@@ -32,7 +32,8 @@ class TodoBert(BaseBert):
             with todo_file.open() as fobj:
                 self.send_message('`        Stuff to do:`\n' +
                                   fobj.read(), parse_mode=STYLE_MD)
-        except Exception:
+        except Exception as e:
+            print(e)
             raise BadHerberror('todo.txt not found')
 
     @aliases('+todo', 'td+')

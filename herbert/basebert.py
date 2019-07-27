@@ -88,6 +88,9 @@ class BaseBert:
             **kwargs
         )
 
+    def send_sticker(self, sticker):
+        return self.bot.send_sticker(self.chat_id, sticker)
+
     def send_photo_from_file(self, path, **kwargs):
         return self.bot.send_photo(self.chat_id, open(path, 'rb'), **kwargs)
 

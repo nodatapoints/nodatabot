@@ -21,9 +21,13 @@ __all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command',
 reply_timeout = timedelta(seconds=30)
 
 
-def pull_string(text):  # FIXME requires documentation
-    _, _, string = text.partition(' ')
-    return string
+def pull_string(text):
+    """
+    Discard command name of command message
+    e.g. transform `/do something` into `something`
+    """
+    splits = re.split(r'\s', text, 1)
+    return splits[1] if len(splits) >= 2 else ""
 
 
 def handle_herberrors(method):

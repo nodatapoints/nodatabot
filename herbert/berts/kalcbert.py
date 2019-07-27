@@ -2,6 +2,9 @@ import json
 from PIL import Image
 from io import BytesIO
 
+from ext.sly import Lexer, Parser
+import math
+import pprint
 from decorators import *
 from basebert import ImageBaseBert, InlineBaseBert
 from herberror import Herberror, BadHerberror
@@ -41,6 +44,139 @@ PartyIdtoName = {
     101: "    CDU",
     102: "    CSU"
 }
+
+
+class MathError(Herberror):
+    pass
+
+
+class MathSyntaxError(MathError):
+    def __repr__(self):
+        return f"Syntax Error:\n{super}"
+
+
+class MathRangeError(MathError):
+    def __repr__(self):
+        return f"Range Error:\n{super}"
+
+
+class MathValueError(MathError):
+    def __repr__(self):
+        return f"Value Error:\n{super}"
+
+
+DEFAULT_NAMES = {
+    'pi': math.pi,
+    'e': math.e
+}
+
+DEFAULT_FUNCTIONS = {
+    'sin': math.sin,
+    'cos': math.cos,
+    'ceil': math.ceil,
+    'floor': math.floor,
+    'int': math.trunc
+}
+
+
+# noinspection PyUnboundLocalVariable
+class MathLexer(Lexer):
+    tokens = {NAME, NUMBER, EXP, PLUS, TIMES, MINUS, DIVIDE, ASSIGN, LPAREN, RPAREN}
+    ignore = ' \t\n'
+
+    # Tokens
+    NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
+    NUMBER = r'\d+(\.\d+)?(e\d*(\.\d*)?)?'
+
+    # Special symbols
+    EXP = r'\^'
+    PLUS = r'\+'
+    MINUS = r'-'
+    TIMES = r'\*'
+    DIVIDE = r'/'
+    ASSIGN = r'='
+    LPAREN = r'\('
+    RPAREN = r'\)'
+
+    def error(self, t):
+        raise MathSyntaxError("Illegal character '%s'\n" % t.value[0])
+
+
+class MathParser(Parser):
+    tokens = MathLexer.tokens
+
+    precedence = (
+        ('left', PLUS, MINUS),
+        ('left', TIMES, DIVIDE),
+        ('left', EXP),
+        ('right', UMINUS)
+    )
+
+    def __init__(self):
+        self.names = DEFAULT_NAMES.copy()
+        self.functions = DEFAULT_FUNCTIONS.copy()
+
+    @_('NAME ASSIGN expr')
+    def statement(self, p):
+        self.names[p.NAME] = p.expr
+
+    @_('expr')
+    def statement(self, p):
+        return p.expr
+
+    @_('expr EXP expr')
+    def expr(self, p):
+        if p.expr1 > 100:
+            raise MathRangeError(f"Exponent {p.expr1} is too large.")
+        return p.expr0 ** p.expr1
+
+    @_('expr PLUS expr')
+    def expr(self, p):
+        return p.expr0 + p.expr1
+
+    @_('expr MINUS expr')
+    def expr(self, p):
+        return p.expr0 - p.expr1
+
+    @_('expr TIMES expr')
+    def expr(self, p):
+        return p.expr0 * p.expr1
+
+    @_('expr DIVIDE expr')
+    def expr(self, p):
+        if p.expr1 == 0:
+            # return float('inf')
+            raise MathRangeError(f"What do you {chatformat.italic('think')} dividing by 0 is supposed to mean??")
+        return p.expr0 / p.expr1
+
+    @_('MINUS expr %prec UMINUS')
+    def expr(self, p):
+        return -p.expr
+
+    @_('LPAREN expr RPAREN')
+    def expr(self, p):
+        return p.expr
+
+    @_('NAME LPAREN expr RPAREN')
+    def expr(self, p):
+        return self.functions[p.NAME](p.expr)
+
+    @_('NUMBER')
+    def expr(self, p):
+        return float(p.NUMBER)
+
+    @_('NAME')
+    def expr(self, p):
+        try:
+            return self.names[p.NAME]
+        except LookupError:
+            raise MathValueError(f'Undefined name {p.NAME!r}\n')
+
+    def error(self, token):
+        if token:
+            raise MathSyntaxError(f'Failed at token {token.type}: "{token.value}"')
+        else:
+            raise MathSyntaxError(f'Failed: Empty token list')
 
 
 class KalcBert(InlineBaseBert, ImageBaseBert):
@@ -149,29 +285,42 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         """
         Evaluate a simple mathematical expression and return the result
 
-        This is a simple calculator using python syntax to return results directly in the Telegram environment \
-        to fit into the flow of the conversation. The spported Operators are brackets \
-        and relational operators ( ==, !=, <, >, <=, >=) \
-        as well as
-        m§ + § Addition
-        m§ - § Subtraction
-        m§ * § Multiplication
-        m§ / § Division
-        m§ % § Modulus
-        m§ **§ Exponentiation
-
-        e.g: m§/math 365*(24-8)§
+        This supports basic operations (m§+§, m§-§, m§*§, m§/§, m§^§), variable assignments \
+        (m§x = 5§), variable usage (m§3 + x§), and some function calls (m§sin(3e5)§).
+        
+        Example:
+        m§/math
+        x = 5
+        y = 10
+        z = x * (y^x)
+        
+        z / (x^y)
+        1 + z
+        z^0.5§
         """
     )
     def math(self, string):
-        allowed_chars = set('1234567890.+*-/%=()<> ')
-        if set(string).issubset(allowed_chars):
-            try:
-                self.reply_text(str(eval(string, {}, {})))
-            except Exception:
-                raise Herberror('not a working equation')
-        else:
-            raise Herberror('Only + - * / % ** are supported.')
+        lex = MathLexer()
+        parse = MathParser()
+        printed_something = False
+
+        string = string.strip()
+        if string == '':
+            raise Herberror("Empty input :(")
+
+        for line in string.split('\n'):
+            line = line.strip()
+            if line == '':
+                continue
+
+            result = parse.parse(lex.tokenize(line))
+            if result is not None:
+                printed_something = True
+                self.reply_text(str(result))
+
+        if not printed_something:
+            res_str = "".join(f"\'{var}\': {val}\n" for var, val in parse.names.items())
+            self.reply_text(chatformat.mono(res_str))
 
     @aliases('polit', 'pltc')
     @command(pass_string=True)
@@ -206,11 +355,11 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
             url = f"www.dkriesel.com/_media/sonntagsfrage_{choice}.png"
 
             # self.reply_photo_url(url, caption="kapollo")
-            _, data = load_content(url)         # ^^^ buffers
-            image = Image.open(BytesIO(data))   # so i need to force a new download
+            _, data = load_content(url)  # ^^^ buffers
+            image = Image.open(BytesIO(data))  # so i need to force a new download
             # image = Image.new('RGB', (500, 500))
             link, _ = chatformat.render(chatformat.link_to(url, "David Kriesel"), chatformat.STYLE_BACKEND)
-            self.send_pil_image(image, caption="Data and plots scraped from the website of "+link,
+            self.send_pil_image(image, caption="Data and plots scraped from the website of " + link,
                                 parse_mode='HTML', disable_web_page_preview=True)
 
         else:
@@ -238,11 +387,11 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
 
             # generate the bars dependent on the percentages
             def fillHash(n, percent):
-                num_of_hash = int(percent/100*n + 0.5)
+                num_of_hash = int(percent / 100 * n + 0.5)
                 percentnum = str(percent) + "% "
                 percentnum_length = len(percentnum)
 
-                string = '#'*num_of_hash + ' '*(n-num_of_hash-percentnum_length) + percentnum
+                string = '#' * num_of_hash + ' ' * (n - num_of_hash - percentnum_length) + percentnum
                 return string
 
             output = f"Poll for {name}\nTaken around {date}\n\n"
@@ -254,5 +403,5 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
 
     @command(pass_args=False, register_help=False, allow_inline=True)
     def rng(self):
-        self.reply_text("4")     # chosen by fair dice roll
-        pass                     # guaranteed to be random
+        self.reply_text("4")  # chosen by fair dice roll
+        pass  # guaranteed to be random

@@ -81,7 +81,7 @@ DEFAULT_FUNCTIONS = {
 
 # noinspection PyUnboundLocalVariable
 class MathLexer(Lexer):
-    tokens = {NAME, NUMBER, EXP, PLUS, TIMES, MINUS, DIVIDE, ASSIGN, LPAREN, RPAREN}
+    tokens = {NAME, NUMBER, EXP, PLUS, TIMES, MINUS, DIVIDE, ASSIGN, LPAREN, RPAREN, SEMI}
     ignore = ' \t\n'
 
     # Tokens
@@ -97,6 +97,7 @@ class MathLexer(Lexer):
     ASSIGN = r'='
     LPAREN = r'\('
     RPAREN = r'\)'
+    SEMI = r';'
 
     def error(self, t):
         raise MathSyntaxError("Illegal character '%s'\n" % t.value[0])
@@ -108,7 +109,7 @@ class MathParser(Parser):
     precedence = (
         ('left', PLUS, MINUS),
         ('left', TIMES, DIVIDE),
-        ('left', EXP),
+        ('right', EXP),
         ('right', UMINUS)
     )
 
@@ -124,10 +125,39 @@ class MathParser(Parser):
     def statement(self, p):
         return p.expr
 
+    @_('statement SEMI statement')
+    def statement(self, p):
+        res = ()
+        for s in (p.statement0, p.statement1):
+            if s is not None:
+                res += s if isinstance(s, tuple) else (s,)
+        return res if len(res) > 0 else None
+
     @_('expr EXP expr')
     def expr(self, p):
-        if p.expr1 > 100:
-            raise MathRangeError(f"Exponent {p.expr1} is too large.")
+        if abs(p.expr1) > 100:
+            # raise MathRangeError(f"Exponent {p.expr1} is too large.")
+            try:
+                if p.expr1 > 0:
+                    if -1 < p.expr0 < 1:
+                        return 0
+                    if p.expr0 == 1:
+                        return 1
+                    if p.expr0 > 1:
+                        return float('inf')
+                    return float('nan')
+                else:
+                    if p.expr0 <= 0:
+                        return float('nan')
+                    if p.expr0 < 1:
+                        return float('inf')
+                    if p.expr0 == 1:
+                        return 1
+                    return 0
+            except TypeError:
+                raise MathRangeError(
+                    f"Ey um zu 'große' komplexe exponenten kannst du dich selber kümmern (was auch immer das heißt)")
+
         return p.expr0 ** p.expr1
 
     @_('expr PLUS expr')
@@ -145,8 +175,8 @@ class MathParser(Parser):
     @_('expr DIVIDE expr')
     def expr(self, p):
         if p.expr1 == 0:
-            # return float('inf')
-            raise MathRangeError(f"What do you {chatformat.italic('think')} dividing by 0 is supposed to mean??")
+            return float('NaN')
+            # raise MathRangeError(f"What do you {chatformat.italic('think')} dividing by 0 is supposed to mean??")
         return p.expr0 / p.expr1
 
     @_('MINUS expr %prec UMINUS')
@@ -176,7 +206,7 @@ class MathParser(Parser):
         if token:
             raise MathSyntaxError(f'Failed at token {token.type}: "{token.value}"')
         else:
-            raise MathSyntaxError(f'Failed: Empty token list')
+            raise MathSyntaxError(f'Failed: Unexpected end of input (Empty token list)')
 
 
 class KalcBert(InlineBaseBert, ImageBaseBert):

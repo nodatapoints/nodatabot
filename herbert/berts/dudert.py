@@ -49,7 +49,7 @@ class Dudert(BaseBert):
                 return
 
             else:  # if not, its a problem
-                raise
+                raise Herberror("You need to provide a search query")
 
         self.send_message(f"""\
 {cf.mono(title)}
@@ -70,8 +70,8 @@ class Dudert(BaseBert):
     )
     def dudensearch(self, query):
         if query == '':
-          self.send_sticker("CAADAgADVQADXqr0HUOZu51gMmIAAQI")
-          return
+            self.send_sticker("CAADAgADVQADXqr0HUOZu51gMmIAAQI")
+            return
 
         url = f'http://www.duden.de/suchen/dudenonline/{quote(query)}'
         listing = requests.get(url)

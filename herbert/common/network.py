@@ -49,9 +49,9 @@ def load(url, fake_ua=True):
     """
     try:
         if fake_ua:
-            return HTTP_POOL.request(REQUEST_TYPE_GET, url, retries=2)
+            return HTTP_POOL.request(REQUEST_TYPE_GET, url, timeout=2.0, retries=urllib3.Retry(redirect=2))
         else:
-            return HTTP_PLAIN_POOL.request(REQUEST_TYPE_GET, url, retries=2)
+            return HTTP_PLAIN_POOL.request(REQUEST_TYPE_GET, url, timeout=2.0. retries=urllib3.Retry(redirect=2))
 
     except urllib3.exceptions.HTTPError:
         raise NetworkError(NO_RESPONSE_ERR)

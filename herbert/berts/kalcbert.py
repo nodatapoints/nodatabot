@@ -81,7 +81,7 @@ DEFAULT_FUNCTIONS = {
 
 # noinspection PyUnboundLocalVariable
 class MathLexer(Lexer):
-    tokens = {NAME, NUMBER, EXP, PLUS, TIMES, MINUS, DIVIDE, ASSIGN, LPAREN, RPAREN, SEMI}
+    tokens = {NAME, NUMBER, EXP, PLUS, TIMES, MINUS, DIVIDE, ASSIGN, LPAREN, RPAREN, SEMI, UNIT}
     ignore = ' \t\n'
 
     # Tokens

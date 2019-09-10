@@ -85,7 +85,8 @@ class MathLexer(Lexer):
     ignore = ' \t\n'
 
     # Tokens
-    NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
+    UNIT = r'_[a-zA-Z][a-zA-Z]'
+    NAME = r'[a-zA-Z][a-zA-Z0-9_]*'
     NUMBER = r'\d+(\.\d+)?(e\d*(\.\d*)?)?'
 
     # Special symbols
@@ -189,7 +190,10 @@ class MathParser(Parser):
 
     @_('NAME LPAREN expr RPAREN')
     def expr(self, p):
-        return self.functions[p.NAME](p.expr)
+        try:
+            return self.functions[p.NAME](p.expr)
+        except LookupError:
+            raise MathValueError(f'Undefined function "{p.NAME!r}"')
 
     @_('NUMBER')
     def expr(self, p):

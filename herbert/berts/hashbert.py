@@ -46,7 +46,8 @@ class HashBert(InlineBaseBert):
     @doc(""" Run a string through all available hash-functions """)
     def hashit(self, string):
         import telegram
-        self.send_message(hash_all(str_to_bytes(string)), parse_mode=telegram.ParseMode.MARKDOWN)
+        self.send_message(hash_all(str_to_bytes(string)),
+                          parse_mode=telegram.ParseMode.MARKDOWN)
 
     @aliases('rotate', 'shift', 'ceasar')
     @command(allow_inline=True)
@@ -98,8 +99,14 @@ def hash_all(arg):
 
 
 def b64e(args):
-    return bytes_to_str(b64.b64encode(str_to_bytes(args)))
+    try:
+        return bytes_to_str(b64.b64encode(str_to_bytes(args)))
+    except b64.binascii.Error as e:
+        raise Herberror(f"Couldn't decode: {e}")
 
 
 def b64d(args):
-    return bytes_to_str(b64.b64decode(str_to_bytes(args)))
+    try:
+        return bytes_to_str(b64.b64decode(str_to_bytes(args)))
+    except b64.binascii.Error as e:
+        raise Herberror(f"Couldn't decode: {e}")

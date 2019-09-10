@@ -5,7 +5,7 @@ Herbert Submodule
 Provides an interface to several
 Hashing algorithms
 """
-from common.basic_utils import str_to_bytes
+from common.basic_utils import str_to_bytes, bytes_to_str
 from common.herbert_utils import tx_assert
 from common.constants import ONLY_BASIC_HELP
 from decorators import *
@@ -98,8 +98,8 @@ def hash_all(arg):
 
 
 def b64e(args):
-    return b64.b64encode(str_to_bytes(args)).decode("utf-8")
+    return bytes_to_str(b64.b64encode(str_to_bytes(args)))
 
 
 def b64d(args):
-    return b64.b64decode(str_to_bytes(args)).decode("utf-8")
+    return bytes_to_str(b64.b64decode(str_to_bytes(args)))

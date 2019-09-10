@@ -23,6 +23,13 @@ def str_to_bytes(string: str) -> bytes:
     return bytes(string, encoding="utf-8")
 
 
+def bytes_to_str(bytestr: bytes) -> str:
+    try:
+        return bytestr.decode("utf-8")
+    except UnicodeDecodeError:
+        return str(bytestr)
+
+
 def nth(num: int) -> str:
     """ return a string representing the ordinal of num (1st, 2nd, 3rd, ...) """
     if num >= len(NUM_SUFFIXES):

@@ -10,8 +10,12 @@ from basebert import ImageBaseBert, InlineBaseBert
 from herberror import Herberror, BadHerberror
 from common.network import load_content, load_str, get_url_safe_string
 from common.argparser import Args
+import operator
 
 from common import chatformat
+from abc import ABC, abstractmethod
+from enum import Enum
+from typing import Dict, Union, Callable
 
 '''
 Meine Datei zum berechenen/bearbeiten von queries
@@ -65,27 +69,307 @@ class MathValueError(MathError):
         return f"Value Error:\n{super}"
 
 
-DEFAULT_NAMES = {
-    'pi': math.pi,
-    'e': math.e
+class UnitClass(Enum):
+    LENGTH, TIME, MASS = range(3)
+
+
+def _dict_strip_zeroes(dct):
+    return {k: v for k, v in dct.items() if v != 0}
+
+
+class Unit:
+    def __init__(self, dim: Dict[UnitClass, float], factor: float, allow_prefixing=False):
+        self.dim, self.factor, self.allow_prefixing = dim, factor, allow_prefixing
+
+    def conversion_factor(self, other):
+        if self.dim != other.dim:
+            raise MathValueError('Adding or Subtracting non-matching units')
+        return other.factor / self.factor
+
+    def __eq__(self, other):
+        return _dict_strip_zeroes(self.dim) == _dict_strip_zeroes(other.dim)
+
+    def __mul__(self, other):
+        d = self.dim.copy()
+        for k, v in other.dim.items():
+            d[k] = d.get(k, 0) + v
+        return Unit(d, self.factor * other.factor)
+
+    def __truediv__(self, other):
+        d = self.dim.copy()
+        for k, v in other.dim.items():
+            d[k] = d.get(k, 0) - v
+        return Unit(d, self.factor / other.factor)
+
+    def __pow__(self, exp):
+        return Unit({k: exp * v for k, v in self.dim.items()}, self.factor ** exp)
+
+
+no_unit = Unit(dict(), 1)
+UC = UnitClass
+
+# this should ideally be a multimap<UnitDimension, UnitFamily>
+# where UnitDimension describes the exponents for each UnitClass (e.g. LENGTH: 1)
+# and UnitFamily describes basename (e.g. 'm') or basenames (e.g. m^3 and l),
+# which prefixes are allowed and which version is to be used as the default.
+#
+# I cannot be bothered, however, so this is an approximation and hektowatt and
+# kiloliter are a thing now (and some code is uglier than it needed to be)
+units = {
+    'm': Unit({UC.LENGTH: 1}, 1, True),
+    'g': Unit({UC.MASS: 1}, 1000, True),
+    's': Unit({UC.TIME: 1}, 1),
+    'N': Unit({UC.MASS: 1, UC.LENGTH: 1, UC.TIME: -2}, 1, True),
+    'Hz': Unit({UC.TIME: -1}, 1, True),
+    'J': Unit({UC.MASS: 1, UC.LENGTH: 2, UC.TIME: -2}, 1, True),
+    'W': Unit({UC.MASS: 1, UC.LENGTH: 2, UC.TIME: -3}, 1, True),
+    'l': Unit({UC.LENGTH: 3}, 1000, True)
 }
 
-DEFAULT_FUNCTIONS = {
+
+class PrefixHandler:
+    _prefixes = {
+        'a': 10 ** 18,
+        'f': 10 ** 15,
+        'p': 10 ** 12,
+        'n': 10 ** 9,
+        'u': 10 ** 6,
+        'm': 10 ** 3,
+        'c': 10 ** 2,
+        'd': 10,
+        # identity
+        # 10^-1
+        'h': 10 ** -2,
+        'k': 10 ** -3,
+        'M': 10 ** -6,
+        'G': 10 ** -9,
+        'T': 10 ** -12
+    }
+
+    _str_for_unit_class = {
+        UnitClass.LENGTH: 'm',
+        UnitClass.MASS: 'kg',
+        UnitClass.TIME: 's'
+    }
+
+    @staticmethod
+    def decode_name(namestr) -> Unit:
+        if namestr in units:
+            return units[namestr]
+
+        if namestr == '1':
+            return no_unit
+
+        if namestr[0] in PrefixHandler._prefixes and namestr[1:] in units:
+            base = units[namestr[1:]]
+            fact = PrefixHandler._prefixes[namestr[0]]
+            if base.allow_prefixing:
+                return Unit(base.dim, base.factor * fact)
+
+        raise MathValueError(f'Unknown unit {namestr!r}')
+
+    @staticmethod
+    def encode_value(value) -> str:
+        abs_val, unit = value.absolute, value.unit
+        if unit == no_unit:
+            return str(abs_val / unit.factor)
+
+        tp = PrefixHandler._find_unit(unit.dim)
+        if tp is not None:
+            name, u = tp
+            val, prefix = abs_val * unit.conversion_factor(u), ''
+            if u.allow_prefixing:
+                val, prefix = PrefixHandler.find_fitting_prefix(val)
+            return str(val) + f'_{prefix}{name}'
+
+        return str(abs_val / unit.factor) + PrefixHandler._format_dimension(unit.dim)
+
+    @staticmethod
+    def find_fitting_prefix(val):
+        ok_k = ''
+        ok_v = 1
+        for k, bv in PrefixHandler._prefixes.items():
+            v = 1 / bv
+            if 1 <= ok_v <= v <= val or 1 >= ok_v >= v >= val:
+                ok_k, ok_v = k, v
+        return val / ok_v, ok_k
+
+    @staticmethod
+    def _format_dimension(dim):
+        pos = "*".join(PrefixHandler._str_for_unit_class[k] +
+                       (f'^{v}' if v > 1 else '') for k, v in dim.items() if v > 0)
+        neg = "*".join(PrefixHandler._str_for_unit_class[k] +
+                       (f'^{-v}' if v < -1 else '') for k, v in dim.items() if v < 0)
+        return '_' + (pos if pos else '1') + (f'/({neg})' if neg else '')
+
+    @staticmethod
+    def _find_unit(dim):
+        for name, u in units.items():
+            if u.dim == dim:
+                return name, u
+        return None
+
+
+class Value:
+    def __init__(self, absolute: float, unit: Unit = no_unit):
+        self.absolute, self.unit = absolute, unit
+
+    def __add__(self, other):
+        return Value(self.absolute + other.absolute * other.unit.conversion_factor(self.unit), self.unit)
+
+    def __sub__(self, other):
+        return Value(self.absolute - other.absolute * other.unit.conversion_factor(self.unit), self.unit)
+
+    def __mul__(self, other):
+        return Value(self.absolute * other.absolute, self.unit * other.unit)
+
+    def __truediv__(self, other):
+        res_abs = self.absolute / other.absolute if other.absolute != 0 else float('NaN')
+        return Value(res_abs, self.unit / other.unit)
+
+    def __neg__(self):
+        return Value(-self.absolute, self.unit)
+
+    def __pow__(self, exp):
+        if exp.unit.dim:
+            raise MathValueError('Cannot use units in exponents (yet)')
+        val1, val2 = self.absolute, exp.absolute
+
+        if abs(val2) > 100:
+            try:
+                if val2 > 0:
+                    if -1 < val1 < 1:
+                        return Value(0)
+                    if val1 == 1:
+                        return Value(1)
+                    if val1 > 1:
+                        return Value(float('inf'))
+                    return Value(float('nan'))
+                else:
+                    if val1 <= 0:
+                        return Value(float('nan'))
+                    if val1 < 1:
+                        return Value(float('inf'))
+                    if val1 == 1:
+                        return Value(1)
+                    return Value(0)
+            except TypeError:
+                raise MathRangeError(
+                    f"Ey um zu 'große' komplexe exponenten kannst du dich selber kümmern (was auch immer das heißt)")
+
+        return Value(val1 ** val2, self.unit ** val2)
+
+    def __str__(self):
+        return PrefixHandler.encode_value(self)
+
+    def __repr__(self):
+        return str(self)
+
+
+class ASTNode(ABC):
+    def evaluate(self, names):
+        return self.get_functor()(names)
+
+    @abstractmethod
+    def get_functor(self):
+        raise NotImplemented()
+
+
+class Constant(ASTNode):
+    def __init__(self, valstr, unitstr='_1'):
+        self.value = Value(float(valstr), PrefixHandler.decode_name(unitstr[1:]))
+
+    def get_functor(self):
+        return lambda _: self.value
+
+
+def _get(items, name, tp, tpn):
+    if name not in items:
+        raise MathValueError(f'Undefined {tpn} {name!r}')
+    val = items[name]
+    if not isinstance(val, tp):
+        raise MathValueError(f'Object {name!r} is of invalid type (expected {tpn!r})')
+    return val
+
+
+class VariableLookup(ASTNode):
+    def __init__(self, var_name):
+        self.var_name = var_name
+
+    def get_functor(self):
+        return lambda names: _get(names, self.var_name, Value, 'variable')
+
+
+class FunctionInvocation(ASTNode):
+    def __init__(self, fn_name, arg: ASTNode):
+        self.fn_name = fn_name
+        self.arg = arg
+
+    def get_functor(self):
+        return lambda names: _get(names, self.fn_name, Callable, 'function')(self.arg.evaluate(names))
+
+
+class FunctionExpressionWrapper:
+    def __init__(self, fn, names, *arg_names):
+        self.fn, self.names, self.arg_names = fn, names.copy(), arg_names
+
+    def __call__(self, *args):
+        names = self.names
+        names.update(dict(zip(self.arg_names, args)))
+        return self.fn(names)
+
+
+def _make_bin_op(op):
+    """
+    auto-generate AST classes for binary operators
+    """
+
+    class _C(ASTNode):
+        def __init__(self, lhs: ASTNode, rhs: ASTNode):
+            self.op, self.lhs, self.rhs = op, lhs, rhs
+
+        def get_functor(self):
+            return lambda arg_dict: self.op(self.lhs.evaluate(arg_dict),
+                                            self.rhs.evaluate(arg_dict))
+
+    return _C
+
+
+Product = _make_bin_op(operator.mul)
+Sum = _make_bin_op(operator.add)
+Difference = _make_bin_op(operator.sub)
+Quotient = _make_bin_op(operator.truediv)
+Power = _make_bin_op(operator.pow)
+
+
+class Negate(ASTNode):
+    def __init__(self, val: ASTNode):
+        self.val = val
+
+    def get_functor(self):
+        return lambda names: -self.val.evaluate(names)
+
+
+DEFAULT_NAMES: Dict[str, Union[Value, Callable, FunctionExpressionWrapper]] = {
+    'pi': Value(math.pi),
+    'e': Value(math.e),
     'sin': math.sin,
     'cos': math.cos,
     'ceil': math.ceil,
     'floor': math.floor,
-    'int': math.trunc
+    'int': math.trunc,
+    'c': Value(299792485, Unit({UC.LENGTH: 1, UC.TIME: -1}, 1))
 }
 
 
 # noinspection PyUnboundLocalVariable
 class MathLexer(Lexer):
-    tokens = {NAME, NUMBER, EXP, PLUS, TIMES, MINUS, DIVIDE, ASSIGN, LPAREN, RPAREN, SEMI, UNIT}
+    tokens = {NAME, NUMBER, DEF, EXP, PLUS, TIMES, MINUS, DIVIDE, FASSIGN, ASSIGN, LPAREN, RPAREN, SEMI, UNIT}
     ignore = ' \t\n'
 
     # Tokens
-    UNIT = r'_[a-zA-Z][a-zA-Z]'
+    DEF = r'def'
+    UNIT = r'_[a-zA-Z][a-zA-Z]*'
     NAME = r'[a-zA-Z][a-zA-Z0-9_]*'
     NUMBER = r'\d+(\.\d+)?(e\d*(\.\d*)?)?'
 
@@ -95,19 +379,21 @@ class MathLexer(Lexer):
     MINUS = r'-'
     TIMES = r'\*'
     DIVIDE = r'/'
+    FASSIGN = r':='
     ASSIGN = r'='
     LPAREN = r'\('
     RPAREN = r'\)'
     SEMI = r';'
 
     def error(self, t):
-        raise MathSyntaxError("Illegal character '%s'\n" % t.value[0])
+        raise MathSyntaxError("Illegal character '%s'" % t.value[0])
 
 
 class MathParser(Parser):
     tokens = MathLexer.tokens
 
     precedence = (
+        ('left', SEMI),
         ('left', PLUS, MINUS),
         ('left', TIMES, DIVIDE),
         ('right', EXP),
@@ -116,15 +402,21 @@ class MathParser(Parser):
 
     def __init__(self):
         self.names = DEFAULT_NAMES.copy()
-        self.functions = DEFAULT_FUNCTIONS.copy()
 
     @_('NAME ASSIGN expr')
     def statement(self, p):
-        self.names[p.NAME] = p.expr
+        self.names[p.NAME] = p.expr.evaluate(self.names)
 
     @_('expr')
     def statement(self, p):
-        return p.expr
+        return p.expr.evaluate(self.names)
+
+    @_('function_expr ASSIGN expr')
+    def statement(self, p):
+        name, arg = p.function_expr
+        if not isinstance(arg, VariableLookup):
+            raise MathValueError('Invalid function definition')
+        self.names[name] = FunctionExpressionWrapper(p.expr.get_functor(), self.names, arg.var_name)
 
     @_('statement SEMI statement')
     def statement(self, p):
@@ -132,79 +424,64 @@ class MathParser(Parser):
         for s in (p.statement0, p.statement1):
             if s is not None:
                 res += s if isinstance(s, tuple) else (s,)
-        return res if len(res) > 0 else None
+        if len(res) <= 0:
+            return None
+        elif len(res) == 1:
+            return res[0]
+        else:
+            return res
 
     @_('expr EXP expr')
     def expr(self, p):
-        if abs(p.expr1) > 100:
-            # raise MathRangeError(f"Exponent {p.expr1} is too large.")
-            try:
-                if p.expr1 > 0:
-                    if -1 < p.expr0 < 1:
-                        return 0
-                    if p.expr0 == 1:
-                        return 1
-                    if p.expr0 > 1:
-                        return float('inf')
-                    return float('nan')
-                else:
-                    if p.expr0 <= 0:
-                        return float('nan')
-                    if p.expr0 < 1:
-                        return float('inf')
-                    if p.expr0 == 1:
-                        return 1
-                    return 0
-            except TypeError:
-                raise MathRangeError(
-                    f"Ey um zu 'große' komplexe exponenten kannst du dich selber kümmern (was auch immer das heißt)")
-
-        return p.expr0 ** p.expr1
+        return Power(p.expr0, p.expr1)
 
     @_('expr PLUS expr')
     def expr(self, p):
-        return p.expr0 + p.expr1
+        return Sum(p.expr0, p.expr1)
 
     @_('expr MINUS expr')
     def expr(self, p):
-        return p.expr0 - p.expr1
+        return Difference(p.expr0, p.expr1)
 
     @_('expr TIMES expr')
     def expr(self, p):
-        return p.expr0 * p.expr1
+        return Product(p.expr0, p.expr1)
 
     @_('expr DIVIDE expr')
     def expr(self, p):
-        if p.expr1 == 0:
-            return float('NaN')
-            # raise MathRangeError(f"What do you {chatformat.italic('think')} dividing by 0 is supposed to mean??")
-        return p.expr0 / p.expr1
+        return Quotient(p.expr0, p.expr1)
 
     @_('MINUS expr %prec UMINUS')
     def expr(self, p):
-        return -p.expr
+        return Negate(p.expr)
 
     @_('LPAREN expr RPAREN')
     def expr(self, p):
         return p.expr
 
-    @_('NAME LPAREN expr RPAREN')
+    @_('function_expr')
     def expr(self, p):
-        try:
-            return self.functions[p.NAME](p.expr)
-        except LookupError:
-            raise MathValueError(f'Undefined function "{p.NAME!r}"')
+        return FunctionInvocation(*p.function_expr)
+
+    @_('NUMBER UNIT')
+    def expr(self, p):
+        return Constant(p.NUMBER, p.UNIT)
 
     @_('NUMBER')
     def expr(self, p):
-        return float(p.NUMBER)
+        return Constant(p.NUMBER)
+
+    @_('UNIT')
+    def expr(self, p):
+        return Constant(1, p.UNIT)
 
     @_('NAME')
     def expr(self, p):
-        try:
-            return self.names[p.NAME]
-        except LookupError:
-            raise MathValueError(f'Undefined name {p.NAME!r}\n')
+        return VariableLookup(p.NAME)
+
+    @_('NAME LPAREN expr RPAREN')
+    def function_expr(self, p):
+        return p.NAME, p.expr
 
     def error(self, token):
         if token:

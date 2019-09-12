@@ -12,7 +12,7 @@ fail () {
 }
 
 echo '--- COMPLAINER 9001 ---'
-cd herbert
+cd herbert || { echo "Invalid Directory"; exit 1; }
 
 files='*.py common'
 bert_files='berts'

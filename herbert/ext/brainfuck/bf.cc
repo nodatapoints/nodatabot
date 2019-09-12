@@ -1,14 +1,5 @@
-#include <vector>
+#include <stack>
 #include <cstdio>
-
-template<typename T>
-struct stack : protected std::vector<T> {
-    using std::vector<T>::push_back;
-    using std::vector<T>::vector;
-    using std::vector<T>::pop_back;
-    using std::vector<T>::back;
-    using std::vector<T>::empty;
-};
 
 // instr -> c-style string with bf instructions
 // out -> stdout fake, c-style mutable char buf
@@ -20,7 +11,7 @@ extern "C" int execute(const char* instr, char* out, const unsigned int out_size
   unsigned int iptr = 0;
   unsigned int out_ptr = 0;
 
-  stack<unsigned int> loop;
+  std::stack<unsigned int> loop;
 
   while(--max_it) {
 
@@ -42,15 +33,15 @@ extern "C" int execute(const char* instr, char* out, const unsigned int out_size
           ptr -= BUF_SIZE;
         break;
       case '[':
-        loop.push_back(iptr);
+        loop.push(iptr);
         break;
       case ']':
         if(loop.empty())
           return 3;
         if(buf[ptr])
-          iptr = loop.back();
+          iptr = loop.top();
         else
-          loop.pop_back();
+          loop.pop();
         break;
       case '.':
         if(out_ptr < out_size)

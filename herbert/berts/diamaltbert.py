@@ -177,6 +177,15 @@ class DiaMaltBert(ImageBaseBert):
         """
     )
     def carpet(self, args):
+        argvals, string = Args.parse(' '.join(args), {
+            'send': Args.T.one_of('img', 'file', 'both'),
+        })
+        arg_send = argvals.get('send')
+        if arg_send:
+            args.pop(0)
+        else:
+            arg_send = 'img'
+
         scale, depth, width, height = map(int, args[:4])
         matrix = args[4:]
         if max(width, height) ** depth > 5000:
@@ -189,7 +198,12 @@ class DiaMaltBert(ImageBaseBert):
         base = tuple(tuple(next(itmatrix) for _ in range(width))
                      for _ in range(height))
 
-        self.send_pil_image(self.carpet_recursive(base, depth, scale))
+        image_out = self.carpet_recursive(base, depth, scale)
+
+        if arg_send == 'file' or arg_send == 'both':
+            self.send_pil_image(image_out, full=True)
+        if arg_send == 'img' or arg_send == 'both':
+            self.send_pil_image(image_out)
 
     @lru_cache(256)
     def carpet_recursive(self, matrix, depth, scale, entry=COPY):

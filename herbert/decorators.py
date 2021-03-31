@@ -8,7 +8,7 @@ from typing import Callable
 import re
 
 import telegram.error
-from telegram.ext import CommandHandler, CallbackQueryHandler
+from telegram.ext import PrefixHandler, CallbackQueryHandler
 
 from common.basic_decorators import argdecorator
 from common.herbert_utils import is_cmd_decorated
@@ -18,7 +18,7 @@ from common.constants import ERROR_FAILED, ERROR_TEMPLATE, BAD_ERROR_TEMPLATE, \
 
 __all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback', 'doc']
 
-reply_timeout = timedelta(seconds=30)
+reply_timeout = timedelta(seconds=120)
 
 
 def pull_string(text):
@@ -88,21 +88,27 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
     query.
     """
 
+    from telegram.ext import CallbackContext
+    from telegram import Update
+
     @wraps(bound_method)
-    def wrapped(bot, update, *args, inline=False, inline_query=None,
+    def wrapped(update: Update, context: CallbackContext, inline=False, inline_query=None,
                 inline_args=None, **kwargs):
 
         if inline_args is None:
             inline_args = []
 
-        bound_method.__self__.bot = bot
+
+        args = (context.args,) if pass_args else tuple()
+
+        bound_method.__self__.bot = context.bot
         bound_method.__self__.update = update
         bound_method.__self__.inline = inline
         bound_method.__self__.inline_query = inline_query
         # update.message = None bei edits
 
         if update.message is not None:
-            delta = datetime.now() - update.message.date
+            delta = datetime.now().astimezone() - update.message.date.replace()
             if delta > reply_timeout:
                 logging.getLogger('herbert.RUNTIME') \
                     .info(f'Command "{update.message.text}" timed out '
@@ -126,6 +132,7 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
         return bound_method(*args, **kwargs)
 
     return wrapped
+
 
 
 class PassedInfoType:
@@ -182,19 +189,21 @@ class HerbertCmdHandlerInfo:
 
     def handlers(self, member_method):
         def handlerfor(name):
-            return CommandHandler(name, self._invoke(member_method),
-                                  pass_args=self.pass_info & PassedInfoType.ARGS, **self.ptb_forward)
+            return PrefixHandler('/', name, self._invoke(member_method), **self.ptb_forward)
 
         return (handlerfor(name) for name in self.aliases)
 
     def _invoke(self, member_method):
         return pull_bot_and_update(
             member_method,
-            pass_update=self.pass_info & PassedInfoType.UPDATE is not 0,
-            pass_query=self.pass_info & PassedInfoType.QUERY is not 0,
-            pass_string=self.pass_info & PassedInfoType.STRING is not 0,
-            pass_args=self.pass_info & PassedInfoType.ARGS is not 0
+            pass_update=self.pass_info & PassedInfoType.UPDATE != 0,
+            pass_query=self.pass_info & PassedInfoType.QUERY != 0,
+            pass_string=self.pass_info & PassedInfoType.STRING != 0,
+            pass_args=self.pass_info & PassedInfoType.ARGS != 0
         )
+
+    def _invoke_from_inline(self, member_method):
+        return pull_inline(self.invoke(member_method))
 
 
 @argdecorator

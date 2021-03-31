@@ -1,26 +1,20 @@
 import json
-from PIL import Image
+import math
+import operator
 from io import BytesIO
+from abc import ABC, abstractmethod
+from typing import Dict, Union, Callable
+from enum import Enum
+
+from PIL import Image
 
 from ext.sly import Lexer, Parser
-import math
-import pprint
-from decorators import *
+from decorators import aliases, command, doc
 from basebert import ImageBaseBert, InlineBaseBert
 from herberror import Herberror, BadHerberror
 from common.network import load_content, load_str, get_url_safe_string
 from common.argparser import Args
-import operator
-
 from common import chatformat
-from abc import ABC, abstractmethod
-from enum import Enum
-from typing import Dict, Union, Callable
-
-'''
-Meine Datei zum berechenen/bearbeiten von queries
-- Philip
-'''
 
 StateCodeToId = {
     "ger": 0, "bw": 1, "bay": 2, "be": 3,
@@ -364,6 +358,8 @@ DEFAULT_NAMES: Dict[str, Union[Value, Callable, FunctionExpressionWrapper]] = {
 
 # noinspection PyUnboundLocalVariable
 class MathLexer(Lexer):
+    #pylint: disable = E, W, R, C
+    # (pylint doesnt get what sly is doing)
     tokens = {NAME, NUMBER, DEF, EXP, PLUS, TIMES, MINUS, DIVIDE, FASSIGN, ASSIGN, LPAREN, RPAREN, SEMI, UNIT}
     ignore = ' \t\n'
 
@@ -390,6 +386,7 @@ class MathLexer(Lexer):
 
 
 class MathParser(Parser):
+    #pylint: disable = E, W, R, C
     tokens = MathLexer.tokens
 
     precedence = (
@@ -555,41 +552,6 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
             string = string if self.inline else ''
             self.reply_gif_url(url, caption=string, title='')
 
-    """
-    @aliases('stepbystep', 'sbs')
-    @command(pass_string=True)
-    def sbswolfram(self, string):
-        "-"-"
-        Show detailed step by step solutions for mathematical input problems
-        The step by step wolfram command is specialized for mathematical processes.
-        It presents the steps for the calculation or derivation of some kind of problem in an easy to follow format,
-        with the special benefit that this isn't possible on the standard website.
-
-        meh doesnt work, we need to get premium
-        "-"-"
-        # higly susceptible to fails if WolframAlphas output xml changes
-        # but no scrapy so usable in python 3.7
-        query = get_url_safe_string(string)
-        url = f'http://api.wolframalpha.com/v2/query?appid=36GXXR-K5UA8L8XTY&input={query}&podstate=Step-by-step%20solution&format=image'
-        _, xdatax = load_content(url)  # XML website
-        xdatax = str(xdatax)
-        # check if it worked
-        # find unique point in String relating to the giflink
-        # and go on from there to start of link [magic number 44] later
-        # cut string at start of link
-        datax = xdatax[(xdatax.find('Possible intermediate steps') + 44):]
-        # delete xml artifacts and cut string at end of link
-        data, *_ = datax.replace("&amp;", "&").split("'")
-        # check if it worked and a url is found
-        if data[:4] == "http":
-            _, realdata = load_content(data)
-
-            image = Image.open(BytesIO(realdata))
-            self.send_pil_image(image, full=False)
-        else:
-            raise Herberror('no step by step solution feasible')
-    """
-
     # new part
     @command(pass_string=True, allow_inline=True)
     @doc(
@@ -598,13 +560,13 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
 
         This supports basic operations (m§+§, m§-§, m§*§, m§/§, m§^§), variable assignments \
         (m§x = 5§), variable usage (m§3 + x§), and some function calls (m§sin(3e5)§).
-        
+
         Example:
         m§/math
         x = 5
         y = 10
         z = x * (y^x)
-        
+
         z / (x^y)
         1 + z
         z^0.5§
@@ -690,7 +652,7 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
                 raise Herberror("not a supported state code")
             name = data["Parliaments"][str(code)]["Name"]
             # those are ordered, so I can iterate
-            for poll_key, poll_data in data["Surveys"].items():
+            for _, poll_data in data["Surveys"].items():
                 if int(poll_data['Parliament_ID']) == code:
                     results = poll_data["Results"]
                     date = poll_data["Date"]
@@ -715,4 +677,5 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
     @command(pass_args=False, register_help=False, allow_inline=True)
     def rng(self):
         self.reply_text("4")  # chosen by fair dice roll
-        pass  # guaranteed to be random
+                              # guaranteed to be random
+

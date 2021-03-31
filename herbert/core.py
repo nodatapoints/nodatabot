@@ -9,8 +9,8 @@ import logging
 import path
 
 
-from telegram.ext import Updater, InlineQueryHandler
-from telegram import InlineQueryResultArticle, InputTextMessageContent
+from telegram.ext import Updater, InlineQueryHandler, CallbackContext
+from telegram import InlineQueryResultArticle, InputTextMessageContent, Update
 
 from common.herbert_utils import is_cmd_decorated
 
@@ -65,7 +65,8 @@ def register_bert(cls):
     logging.getLogger('herbert.SETUP').debug(f"Registered Bert {bot} of type {cls.__name__} ({cmds})")
 
 
-def handle_inline_query(bot, update, line=None):
+def handle_inline_query(update: Update, context: CallbackContext, line=None):
+    bot = context.bot
     query = line or update.inline_query.query
 
     command, *args = query.split(" ")
@@ -73,8 +74,8 @@ def handle_inline_query(bot, update, line=None):
     for alias, name in inline_aliases.items():
         if command == alias:
             inline_methods[name](
-                bot,
                 update,
+                context,
                 inline=True,
                 inline_query=update.inline_query,
                 inline_args=args

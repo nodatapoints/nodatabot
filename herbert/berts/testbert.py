@@ -7,6 +7,8 @@ from herberror import Herberror, BadHerberror
 from common.argparser import Args, UnexpectedArgument, ArgumentFormatError
 from decorators import command, aliases
 from datetime import datetime
+from dataclasses import dataclass
+from typing import List
 
 from berts.asciimath import AsciiBert
 from berts.hashbert import HashBert
@@ -52,16 +54,13 @@ class TestBert(BaseBert):
         self.reply_text("".join(args[1:]), parse_mode=args[0])
 
 
-res = ""
-image_sent = False
-
 def test():
     """
     UNIT TESTING
-    
+
     just run `python3.7 testbert.py`
-    
-    there are by no means enough tests to avoid most bugs, but at least this 
+
+    there are by no means enough tests to avoid most bugs, but at least this
     should help to catch some mistakes somewhat easier. please add more tests.
     """
 
@@ -69,61 +68,63 @@ def test():
     # WARNING
     # this is kind of a bodge; test at your own risk
 
+    @dataclass
+    class Result:
+        text: str = ""
+        image_sent: bool = False
+
+
     class FakeBot:
+        def __init__(self):
+            self.result = Result()
+
         def send_message(self, chat_id: int, text: str, *_, **kwargs):
-            global res
-            res += str(text)
+            self.result.text += str(text)
 
         def send_photo(self, chat_id: int, fp, **kwargs):
-            global image_sent
-            image_sent = True  # lol
+            self.result.image_sent = True
 
 
     class FakeMessage:
         def __init__(self, msg: str = None):
-            self.date = datetime.now()
+            self.date = datetime.now().astimezone()
             self.chat_id = 42 | 420
             self.text = msg or 'woah'
-
 
     class FakeUpdate:
         def __init__(self, upd_msg: str):
             self.message = FakeMessage(upd_msg)
 
-
-    fb = FakeBot()
+    @dataclass
+    class FakeContext:
+        bot: FakeBot
+        args: List[str]
 
 
     def fire_cmd(cmd, args: list):
-        global res, image_sent
-        res = ""
-        image_sent = False
+        fb = FakeBot()
         handler, *_ = cmd.cmdinfo.handlers(cmd)
         real_fn = handler.callback
         fu = FakeUpdate(' '.join(['.', *args]))
+        ctx = FakeContext(bot=fb, args=args)
 
-        if handler.pass_args:
-            real_fn(fb, fu, args)
-        else:
-            real_fn(fb, fu)
+        real_fn(fu, ctx)
 
+        return fb.result
 
     def expect_in_response(content: str, cmd, args: list, msg="EXPECT_RESPONSE test case failed."):
-        global res
-        fire_cmd(cmd, args)
+        res = fire_cmd(cmd, args).text
         assert content in res, msg + f"\n\nGot response\n{res}\nWhen \'{content}\' was expected"
 
 
     def match_in_response(regexp: str, cmd, args: list, msg="MATCH_REPONSE test case failed"):
-        global res
-        fire_cmd(cmd, args)
+        res = fire_cmd(cmd, args).text
         match = re.match(regexp, res, flags=re.IGNORECASE | re.MULTILINE)
         assert match is not None, msg + f"\n\nGot response\n{res}\nNot matching \'{regexp}\'"
 
 
     def expect_sent_image(cmd, args: list, msg="EXPECT_IMAGE test failed"):
-        global image_sent
-        fire_cmd(cmd, args)
+        image_sent = fire_cmd(cmd, args).image_sent
         assert image_sent, msg + f"\n\nGot response\n{res}"
 
 
@@ -183,17 +184,6 @@ def test():
     h = HelpBert()
     match_in_response('.*no further help available.*', h.help, ["weewieofhweioufh"])
     expect_in_response('&lt;cmd name&gt;', h.help, [])  # check if escaping works
-    # testing working help is hard because register_bert() isn't executed for this test run
-
-    # TODO test DiaMaltBert
-    # TODO test GameBert
-    # TODO test kalcbert
-    # TODO test todobert (ironic)
-
-    # internet:
-    # TODO test hercurles
-    # TODO test urbanbert
-    # TODO test xkcdert
 
     # Test ArgParser
     expect_error(lambda: Args.parse("[hello=world]", {'x': Args.T.INT}), error=UnexpectedArgument)
@@ -202,6 +192,7 @@ def test():
     expect_error(lambda: Args.parse("[x]", {'x': Args.T.INT}), error=ArgumentFormatError)
     expect_error(lambda: Args.parse("[x=]", {'x': Args.T.INT}), error=ArgumentFormatError)
     expect_error(lambda: Args.parse("[x=string]", {'x': Args.T.INT}), error=ArgumentFormatError)
+    expect_error(lambda: Args.parse("[x=", {'x': Args.T.INT}), error=ArgumentFormatError)
     expect_no_error(lambda: Args.parse("[x=0]", {'x': Args.T.INT}))
     expect_no_error(lambda: Args.parse_positional("a, c 112", [Args.T.STR, Args.T.char_in("bcdef"), Args.T.INT]))
     expect_error(

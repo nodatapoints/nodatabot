@@ -8,7 +8,7 @@ from typing import Callable
 import re
 
 import telegram.error
-from telegram.ext import PrefixHandler, CallbackQueryHandler, CallbackContext
+from telegram.ext import CallbackQueryHandler, CallbackContext
 from telegram import Update
 
 from common.basic_decorators import argdecorator
@@ -16,6 +16,7 @@ from common.herbert_utils import is_cmd_decorated
 from common.constants import ERROR_FAILED, ERROR_TEMPLATE, \
     BAD_ERROR_TEMPLATE, EMOJI_EXPLOSION, EMOJI_WARN, ONLY_BASIC_HELP
 from common.chatformat import render_style_para
+from common.prefixhandler import HerbotPrefixHandler
 
 from herberror import Herberror, BadHerberror
 
@@ -232,7 +233,7 @@ class HerbertCmdHandlerInfo:
         Generate the handlers ptb needs to call the function this is attached to
         """
         def handlerfor(name):
-            return PrefixHandler('/', name, self.invoke(member_method), **self.ptb_forward)
+            return HerbotPrefixHandler(name, self.invoke(member_method), **self.ptb_forward)
 
         return (handlerfor(name) for name in self.aliases)
 

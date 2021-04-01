@@ -101,7 +101,8 @@ class BaseBert:
         if len(msg) > MSG_CHUNK and chunk_if_necessary:
             chat.reply_chunky(self.bot, self.update, msg, parse_mode, **kwargs)
 
-        return self.bot.send_message(
+        return chat.send_message(
+            self.bot,
             self.chat_id,
             text=msg,
             parse_mode=parse_mode,
@@ -245,4 +246,4 @@ class ImageBaseBert(BaseBert):
         if full:
             return self.bot.send_document(self.chat_id, document=file_like)
 
-        return self.bot.send_photo(self.chat_id, file_like, **kwargs)
+        return self.bot.send_photo(self.chat_id, file_like, api_kwargs=kwargs)

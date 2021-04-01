@@ -1,5 +1,19 @@
+"""
+Bert
+
+allows rendering latex to images
+
+provided commands:
+    - texraw
+    - tex
+    - dtex
+    - atex
+    - itex
+    - idtex
+    - iatex
+"""
 import logging
-from subprocess import run, PIPE
+from subprocess import run
 
 from PIL import Image, ImageOps
 
@@ -129,7 +143,6 @@ class TexBert(ImageBaseBert):
                 input=string,
                 encoding='utf8',
                 capture_output=True,
-                stdout=PIPE,
                 check=False
             )
             exit_val = result.returncode

@@ -17,6 +17,8 @@ cd herbert || { echo "Invalid Directory"; exit 1; }
 files='*.py common'
 bert_files='berts'
 
+PYTHONPATH="$PYTHONPATH:." python3 berts/testbert.py
+
 # check type annotations
 # echo 'CHECKING TYPE ANNOTATIONS'
 # python3 -m mypy $files --ignore-missing-imports --strict-optional --python-version 3.7 --namespace-packages || fail 'TYPE CHECKING'

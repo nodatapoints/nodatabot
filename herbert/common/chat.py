@@ -67,7 +67,7 @@ def reply(bot, update, msg, parse_mode=telegram.ParseMode.MARKDOWN, **kwargs):
     the request to this herbert submodule.
     Set Markdown enabled by default.
     """
-    bot.send_message(update.message.chat_id, text=str(msg), parse_mode=parse_mode, **kwargs)
+    send_message(bot, update.message.chat_id, text=str(msg), parse_mode=parse_mode, **kwargs)
 
 
 def reply_err(bot, update, msg):
@@ -78,6 +78,28 @@ def reply_err(bot, update, msg):
     """
     for sub in split("\n", str(msg)):
         reply(bot, update, BOT_ERR_PREFIX + sub)
+
+
+def send_message(bot, chat_id, text, **kwargs):
+    """
+    Call bot.send_message, where we pass the exakt kwargs that
+    ptb wants directly, and everything else through api_kwargs
+    """
+
+    ptb_keys = (
+        'parse_mode',
+        'disable_web_page_preview',
+        'reply_to_message_id',
+        'reply_markup',
+        'timeout',
+        'allow_sending_without_reply',
+        'entities'
+    )
+
+    ptb_args = {key: kwargs[key] for key in ptb_keys if key in kwargs}
+    fwd = {key: arg for key, arg in kwargs.items() if key not in ptb_args}
+
+    bot.send_message(chat_id, text, **ptb_args, api_kwargs=fwd)
 
 
 def make_keyboard(button_dict):

@@ -6,6 +6,7 @@ from common.chatformat import STYLE_MD
 
 class StackBert(BaseBert):
     def __init__(self):
+        super().__init__()
         self._stack = []
 
     @command(pass_string=True)

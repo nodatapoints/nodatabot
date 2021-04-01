@@ -7,25 +7,31 @@ hooks into ../core for this purpose
 provided commands:
     - help
 """
+import re
+from functools import lru_cache
+from typing import Dict, List
+
 from basebert import BaseBert
 from herberror import Herberror
 from common.chatformat import mono, italic, bold, link_to, ensure_markup_clean
 from common.constants import GITHUB_REF, SEP_LINE, HERBERT_TITLE
 from common.herbert_utils import getmethods, is_own_method, is_cmd_decorated
 from decorators import command, aliases, doc
-from typing import Dict, Optional, List
 import core
 # import inspect
-import re
 
 
 __all__ = ['HelpBert']
 
-help_str: Optional[str] = None
 detailed_help: Dict[str, str] = dict()
 
 
 class HelpBert(BaseBert):
+    """
+    Exposes some commands to view the documentation
+    of other command handlers
+    """
+
     @aliases('h')
     @command(pass_string=True)
     @doc("""
@@ -41,11 +47,11 @@ class HelpBert(BaseBert):
     def help(self, string: str):
         string = string.strip()
         if string == '':
-            self.send_message(help_str or make_help_str(), disable_web_page_preview=True)
+            self.send_message(make_help_str(), disable_web_page_preview=True)
 
         else:
-            if help_str is None:
-                make_help_str()
+            # ensure detailed help has been generated
+            make_help_str()
 
             if string in detailed_help:
                 self.send_message(detailed_help[string])
@@ -67,14 +73,13 @@ class HelpBert(BaseBert):
         """))
 
 
+@lru_cache(maxsize=1)
 def make_help_str():
-    global help_str
     res = HELP_HEADER
     for bert in core.berts:
         res += make_bert_str(bert)
     res += HELP_FOOTER
 
-    help_str = res
     return res
 
 
@@ -132,7 +137,9 @@ def make_bert_str(bert: BaseBert):
 
         name, *cmd_aliases = inf.aliases
         ensure_markup_clean(''.join(inf.aliases))
-        res += f"/{name}" + _format_aliases(cmd_aliases)  # TODO somehow figure out args
+        # TODO somehow figure out args
+        res += f"/{name}" + _format_aliases(cmd_aliases)
+
         if inf.help_summary != '':
             ensure_markup_clean(inf.help_summary, msg="The short description of a function can not contain md")
             res += f"- {italic(inf.help_summary.replace(SPACES, ' ').strip())}\n"

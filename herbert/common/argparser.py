@@ -3,9 +3,9 @@ Provide very basic key-value argument parsing
 for arbitrary strings
 """
 from typing import SupportsInt, SupportsFloat, Callable, Tuple, List, Dict, Union
+import re
 
 from herberror import Herberror
-import re
 
 from common.basic_utils import nth
 from common.constants import SEP_LINE
@@ -45,8 +45,8 @@ def _check_if_chars_in(string, charset):
 
 def dict_map(table: dict):
     """ convert a dict to a lookup function """
-    def map_fn(s):
-        return table[s]
+    def map_fn(key):
+        return table[key]
 
     return map_fn
 
@@ -81,9 +81,9 @@ class ArgParser:
         explain = explain or ""
         return ArgParser(lambda s: self.check(s) and secondary_check_fn(s), self.value, explain=self.explain + explain)
 
-    def bounded(self, min: object = 0, max: object = 1, limits: Tuple[object, object] = (0, 1)):
+    def bounded(self, min_val: object = 0, max_val: object = 1, limits: Tuple[object, object] = (0, 1)):
         """ extends the constraints by requiring the value to lie in a certain interval """
-        return self.and_require(lambda s: min or limits[0] <= self.value(s) <= max or limits[1],
+        return self.and_require(lambda s: min_val or limits[0] <= self.value(s) <= max_val or limits[1],
                                 explain=f"Value has to be in Range [{limits[0]}..{limits[1]}].")
 
 
@@ -109,8 +109,8 @@ class Args:
         for kv_pair in kv_pairs:
             try:
                 key, raw_value = re.split('=', kv_pair, maxsplit=1)
-            except ValueError:
-                raise ArgumentFormatError(f'Invalid Argument Format: No value for key in \'{kv_pair}\'')
+            except ValueError as err:
+                raise ArgumentFormatError(f'Invalid Argument Format: No value for key in \'{kv_pair}\'') from err
 
             key = key.strip()
             raw_value = raw_value.strip()
@@ -136,7 +136,8 @@ class Args:
 
         if len(parts) < argc:
             raise Herberror(f"Too few arguments! ({argc} expected)")
-        elif len(parts) > argc:
+
+        if len(parts) > argc:
             raise Herberror(f"Too many arguments! ({argc} expected)")
 
         res = []
@@ -149,7 +150,7 @@ class Args:
 
         return res
 
-    class T:
+    class ArgumentType:
         """
         Wrapper namespace class for several useful basic ArgParsers
         """
@@ -207,3 +208,5 @@ class Args:
                 lambda s: re.match(regexp, s),
                 explain=f'Expected Value to match {regexp}'
             )
+
+    T = ArgumentType

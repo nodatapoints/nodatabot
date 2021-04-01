@@ -1,3 +1,18 @@
+"""
+Provides the BaseBert class
+
+Classes inheriting BaseBert are used both
+as a namespace to group related command
+handlers, and as a context object that is
+installed as part of the command handling,
+such that a command handler can call
+self.reply_text() without needing extra
+information about the invocation context
+and whether the call was via a chat command
+or an inline handler
+"""
+
+import inspect
 from io import BytesIO
 import hashlib
 
@@ -8,12 +23,19 @@ from common.basic_utils import arr_to_bytes
 from common import chat, chatformat
 from common.telegram_limits import MSG_CHUNK
 
-import inspect
 
 __all__ = ['BaseBert', 'ImageBaseBert', 'InlineBaseBert']
 
 
 class BaseBert:
+    """
+    BaseBert
+    All command handlers are methods
+    of classes inheriting this class
+
+    Provides general methods to answer
+    command invocations
+    """
     def __init__(self):
         self.bot = None
         self.update = None
@@ -32,22 +54,20 @@ class BaseBert:
         if self.update.message:
             return self.update.message
 
-        elif self.update.callback_query and self.update.callback_query.message:
+        if self.update.callback_query and self.update.callback_query.message:
             return self.update.callback_query.message
 
-        else:
-            return None
+        return None
 
     @property
     def message_text(self):
         if self.message:
             return self.message.text
 
-        elif self.inline_query:
+        if self.inline_query:
             return self.inline_query.query
 
-        else:
-            return ""
+        return ""
 
     @property
     def query(self):
@@ -111,38 +131,41 @@ class BaseBert:
     def reply_text(self, string, title='', **kwargs):
         title = title or string
         if self.inline:
-            InlineBaseBert._inl_send_str_list([(string, title)], self.inline_query)
+            InlineBaseBert.inl_send_str_list([(string, title)], self.inline_query)
         else:
             self.send_message(string, **kwargs)
 
     def reply_photo_url(self, url, title="", caption=""):
         if self.inline:
-            InlineBaseBert._inl_send_photo_url_list([(url, title, caption)], self.inline_query)
+            InlineBaseBert.inl_send_photo_url_list([(url, title, caption)], self.inline_query)
         else:
             self.send_photo(url, title=title, caption=caption)
 
     def reply_gif_url(self, url, title="", caption=""):
         if self.inline:
-            InlineBaseBert._inl_send_gif_url_list([(url, title, caption)], self.inline_query)
+            InlineBaseBert.inl_send_gif_url_list([(url, title, caption)], self.inline_query)
         else:
             self.send_gif(url, title=title, caption=caption)
 
     @staticmethod
     def wrap_in_file(data, fname):
-        f = BytesIO(data)
-        f.name = fname
-        return f
+        file_like = BytesIO(data)
+        file_like.name = fname
+        return file_like
 
 
 class InlineBaseBert(BaseBert):
+    """
+    Provide methods to answer inline queries
+    """
     def inline_answer_string(self, string):
         self.inline_answer_strings([string])
 
     def inline_answer_strings(self, str_list):
-        InlineBaseBert._inl_send_str_list(str_list, self.inline_query)
+        InlineBaseBert.inl_send_str_list(str_list, self.inline_query)
 
     @staticmethod
-    def _inl_send_str_list(str_list, inline_query):
+    def inl_send_str_list(str_list, inline_query):
         result = [
             InlineQueryResultArticle(
                 id=f"inline{i}-{InlineBaseBert.gen_id(str_list)}",
@@ -158,10 +181,10 @@ class InlineBaseBert(BaseBert):
         self.inline_answer_photo_urls([(url, title, caption)])
 
     def inline_answer_photo_urls(self, url_list):
-        InlineBaseBert._inl_send_photo_url_list(url_list, self.inline_query)
+        InlineBaseBert.inl_send_photo_url_list(url_list, self.inline_query)
 
     @staticmethod
-    def _inl_send_photo_url_list(url_list, inline_query):
+    def inl_send_photo_url_list(url_list, inline_query):
         result = [
             InlineQueryResultPhoto(
                 id=f"photo{i}-{InlineBaseBert.gen_id(url_list)}",
@@ -179,10 +202,10 @@ class InlineBaseBert(BaseBert):
         self.inline_answer_gif_urls([(url, title, caption)])
 
     def inline_answer_gif_urls(self, url_list):
-        InlineBaseBert._inl_send_gif_url_list(url_list, self.inline_query)
+        InlineBaseBert.inl_send_gif_url_list(url_list, self.inline_query)
 
     @staticmethod
-    def _inl_send_gif_url_list(url_list, inline_query):
+    def inl_send_gif_url_list(url_list, inline_query):
         result = [
             InlineQueryResultGif(
                 id=f"gif{i}-{InlineBaseBert.gen_id(url_list)}",
@@ -212,14 +235,14 @@ class InlineBaseBert(BaseBert):
 class ImageBaseBert(BaseBert):
     @staticmethod
     def pil_image_to_fp(image, img_format):
-        fp = BytesIO()
-        image.save(fp, img_format)
-        fp.seek(0)
-        return fp
+        file_like = BytesIO()
+        image.save(file_like, img_format)
+        file_like.seek(0)
+        return file_like
 
     def send_pil_image(self, image, *, img_format='PNG', full=False, **kwargs):
-        fp = ImageBaseBert.pil_image_to_fp(image, img_format)
+        file_like = ImageBaseBert.pil_image_to_fp(image, img_format)
         if full:
-            return self.bot.send_document(self.chat_id, document=fp)
+            return self.bot.send_document(self.chat_id, document=file_like)
 
-        return self.bot.send_photo(self.chat_id, fp, **kwargs)
+        return self.bot.send_photo(self.chat_id, file_like, **kwargs)

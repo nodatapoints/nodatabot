@@ -51,7 +51,7 @@ class UniCoDert(InlineBaseBert):
         try:
             for c in string:
                 res += _retranslate_char(c)
-        except AssertionError:
-            raise Herberror("Well, that sucks. That is, you do.")
+        except AssertionError as err:
+            raise Herberror("Well, that sucks. That is, you do.") from err
 
         self.reply_text(res)

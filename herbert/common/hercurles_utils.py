@@ -3,15 +3,16 @@ Provide a number of network helpers
 Originally meant for berts.hercurles, but
 also used in different contexts
 """
-from common import network
-from herberror import Herberror
 from urllib.parse import quote
 import re
 import json
 
 from lxml import etree
 
+from common import network
 from common.network import NetworkError
+from herberror import Herberror
+
 
 PARSER = etree.XMLParser(recover=True)
 
@@ -55,8 +56,8 @@ def search_for(query: str):
 
         return [elem.attrib['href'] for elem in elements]
 
-    except etree.ParseError:
-        raise Herberror("Searching failed. Unexpected result structure.")
+    except etree.ParseError as err:
+        raise Herberror("Searching failed. Unexpected result structure.") from err
 
-    except NetworkError:
-        raise Herberror("Searching failed because of network problems.")
+    except NetworkError as err:
+        raise Herberror("Searching failed because of network problems.") from err

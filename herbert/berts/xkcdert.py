@@ -1,3 +1,12 @@
+"""
+Bert
+
+Looks up xkcd comics
+
+provided commands:
+    - xkcd
+"""
+import re
 import json.decoder
 
 from basebert import InlineBaseBert
@@ -5,10 +14,13 @@ from herberror import Herberror
 from common import hercurles_utils
 from decorators import command, doc
 import common.chatformat as cf
-import re
 
 
 class XKCDert(InlineBaseBert):
+    """
+    Wraps the xkcd command
+    """
+
     @command(pass_string=True, allow_inline=True)
     @doc(
         f"""
@@ -23,7 +35,7 @@ class XKCDert(InlineBaseBert):
         num = None
         try:
             num = int(float(string))
-        except ValueError:
+        except ValueError as err:
             results = hercurles_utils.search_for('xkcd ' + string)
             for res in results:
                 match = re.match(r'.*xkcd\.com/(\d+)', res)
@@ -32,7 +44,7 @@ class XKCDert(InlineBaseBert):
                     break
 
             if not num:
-                raise Herberror('That is no comic.')
+                raise Herberror('That is no comic.') from err
 
         url = f'www.xkcd.com/{num}/info.0.json'
         try:
@@ -42,5 +54,5 @@ class XKCDert(InlineBaseBert):
                 caption=f"{num}: {info_json.get('title')}\n\n{info_json.get('alt')}"
             )
 
-        except json.decoder.JSONDecodeError:
-            raise Herberror("That didn't work out, sorry.")
+        except json.decoder.JSONDecodeError as err:
+            raise Herberror("That didn't work out, sorry.") from err

@@ -12,12 +12,15 @@
 # IMPORTS
 import telegram
 
-from basebert import *
-from decorators import *
+from basebert import BaseBert
+from decorators import command, aliases, callback, doc
+from herberror import Herberror
 
-from common.network import *
-from common.hercurles_utils import *
-from common.chat import *
+from common.network import load_str, gen_filename_from_url, \
+    load_content, is_image_content_type
+from common.hercurles_utils import search_for
+from common.chat import reply_large_utf8, make_keyboard, \
+    make_callback, reply_filed_binary, get_photo, make_tx_callback
 
 
 # EXPOSE MEMBERS

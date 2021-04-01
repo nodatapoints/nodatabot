@@ -24,10 +24,18 @@ def str_to_bytes(string: str) -> bytes:
 
 
 def bytes_to_str(bytestr: bytes) -> str:
+    """
+    Try to convert a byte sequence to a decoded
+    character sequence
+    """
     try:
         return bytestr.decode("utf-8")
     except UnicodeDecodeError:
         return str(bytestr)
+
+
+def require(_arg):
+    """ Mark some value as used """
 
 
 def nth(num: int) -> str:

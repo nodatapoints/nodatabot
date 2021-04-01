@@ -1,24 +1,22 @@
-from decorators import *
-from basebert import *
-
+from ctypes import create_string_buffer as buf, cdll
 import path
 
-from ctypes import create_string_buffer as buf, cdll
-
+from decorators import aliases, command, doc
+from basebert import BaseBert
 from herberror import Herberror
+
+from common.chatformat import link_to
 
 __all__ = ['InterpRert', 'h_bf']
 
-from common.chatformat import link_to
 
 MAX_INSTRUCTIONS = 1000000
 OUT_SIZE = 512
 
 path.change_path()
 
-# TODO make other architectures available
 try:
-    h_bf = cdll.LoadLibrary('ext/brainfuck/libbf_x86_64-linux-gnu.so')
+    h_bf = cdll.LoadLibrary('ext/brainfuck/libbf.so')
 except Exception:
     print("Warning: cdll could not find libbf.so. Did you `make`?")
     raise
@@ -55,23 +53,24 @@ class InterpRert(BaseBert):
 
 
 def has_invalid_bytes(byte_str):
-    for bt in byte_str:
-        if (bt <= 31 or bt >= 127) and bt != 10:
+    for char in byte_str:
+        if (char <= 31 or char >= 127) and char != 10:
             return True
 
     return False
 
 
 def run_bf(prog):
-    b = buf(OUT_SIZE)
-    result = h_bf.execute(prog, b, OUT_SIZE, MAX_INSTRUCTIONS)
+    string_buffer = buf(OUT_SIZE)
+    result = h_bf.execute(prog, string_buffer, OUT_SIZE, MAX_INSTRUCTIONS)
 
-    if result is 1:
+    if result == 1:
         raise Herberror("Wow, that _timed out_. Good job...")
-    elif result is 3:
+
+    if result == 3:
         raise Herberror("Well, this is certainly not even valid in brainfuck.")
-    else:
-        if has_invalid_bytes(b.value):
-            return str(b.value)
-        else:
-            return b.value.decode("utf-8")
+
+    if has_invalid_bytes(string_buffer.value):
+        return str(string_buffer.value)
+
+    return string_buffer.value.decode("utf-8")

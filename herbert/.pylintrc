@@ -11,7 +11,7 @@ ignore=CVS
 
 # Add files or directories matching the regex patterns to the blacklist. The
 # regex matches against base names, not paths.
-ignore-patterns=testbert.py
+# ignore-patterns=testbert.py
 
 # Python code to execute, usually for sys.path manipulation such as
 # pygtk.require().
@@ -49,7 +49,7 @@ unsafe-load-any-extension=no
 
 # Only show warnings with the listed confidence levels. Leave empty to show
 # all. Valid levels: HIGH, INFERENCE, INFERENCE_FAILURE, UNDEFINED.
-confidence=HIGH
+confidence=
 
 # Disable the message, report, category or checker with the given id(s). You
 # can either give multiple identifiers separated by comma (,) or put this
@@ -170,7 +170,7 @@ output-format=parseable
 reports=no
 
 # Activate the evaluation score.
-score=no
+score=yes
 
 
 [REFACTORING]
@@ -201,6 +201,8 @@ min-similarity-lines=4
 
 
 [TYPECHECK]
+
+signature-mutators=common.basic_decorators.argdecorator,common.basic_decorators.as_partial
 
 # List of decorators that produce context managers, such as
 # contextlib.contextmanager. Add to this list to register other decorators that

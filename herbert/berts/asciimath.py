@@ -1,8 +1,20 @@
-from decorators import command, aliases, doc
+"""
+Bert
 
+Somewhat incomplete, will allow
+writing some math expressions using
+ascii characters instead of requiring
+the latex escapes
+
+provided commands:
+    - asciimath
+"""
 import re
 
+from decorators import command, aliases, doc
 from berts.texbert import TexBert
+
+__all__ = ['AsciiBert']
 
 EXPR = r'(-?[\w\d]+|\([^()]*\)|{[^{}]+?})'
 
@@ -41,6 +53,10 @@ _substitutions = {
 
 
 class AsciiBert(TexBert):
+    """
+    Wraps the asciimath command
+    """
+
     @aliases('am')
     @command(pass_string=True)
     @doc(

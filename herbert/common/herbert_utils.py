@@ -1,8 +1,8 @@
 """
 Utils for basebert and core
 """
-from herberror import Herberror
 import inspect
+from herberror import Herberror
 
 
 def tx_assert(condition, msg, err_class=Herberror):

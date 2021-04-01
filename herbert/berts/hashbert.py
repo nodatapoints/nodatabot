@@ -5,22 +5,28 @@ Herbert Submodule
 Provides an interface to several
 Hashing algorithms
 """
-from common.basic_utils import str_to_bytes, bytes_to_str
-from common.herbert_utils import tx_assert
-from common.constants import ONLY_BASIC_HELP
-from decorators import *
-
-from basebert import InlineBaseBert
-from herberror import Herberror
-
 import hashlib as hl
 import base64 as b64
 import re
+
+from common.basic_utils import str_to_bytes, bytes_to_str
+from common.herbert_utils import tx_assert
+from common.constants import ONLY_BASIC_HELP
+from common.chatformat import STYLE_MD
+from decorators import command, doc, aliases
+
+from basebert import InlineBaseBert
+from herberror import Herberror
 
 __all__ = ["HashBert"]
 
 
 class HashBert(InlineBaseBert):
+    """
+    Wraps several hashing commands, and
+    a letter shift obfuscator
+    """
+
     @command(pass_string=True, allow_inline=True, register_help=ONLY_BASIC_HELP)
     @doc(""" Return the md5-hash of the given string """)
     def md5(self, string):
@@ -45,9 +51,8 @@ class HashBert(InlineBaseBert):
     @command(pass_string=True)
     @doc(""" Run a string through all available hash-functions """)
     def hashit(self, string):
-        import telegram
         self.send_message(hash_all(str_to_bytes(string)),
-                          parse_mode=telegram.ParseMode.MARKDOWN)
+                          parse_mode=STYLE_MD)
 
     @aliases('rotate', 'shift', 'ceasar')
     @command(allow_inline=True)
@@ -63,8 +68,8 @@ class HashBert(InlineBaseBert):
 
         try:
             res = rotate(int(float(shift)), " ".join(rest))
-        except ValueError:
-            raise Herberror(f'shift \'{shift}\' is not a valid integer')
+        except ValueError as err:
+            raise Herberror(f'shift \'{shift}\' is not a valid integer') from err
 
         self.reply_text(res, parse_mode=None)
 
@@ -89,9 +94,9 @@ def hash_all(arg):
     res = ""
     for name in hl.algorithms_available:
         try:
-            h = hl.new(name)
-            h.update(arg)
-            res += f"{re.sub('_', '-', name)}: ```{h.hexdigest()}```\n\n"
+            hash_state = hl.new(name)
+            hash_state.update(arg)
+            res += f"{re.sub('_', '-', name)}: ```{hash_state.hexdigest()}```\n\n"
         except TypeError:
             pass
 
@@ -99,14 +104,20 @@ def hash_all(arg):
 
 
 def b64e(args):
+    """
+    Base64 encode
+    """
     try:
         return bytes_to_str(b64.b64encode(str_to_bytes(args)))
-    except b64.binascii.Error as e:
-        raise Herberror(f"Couldn't decode: {e}")
+    except b64.binascii.Error as err:
+        raise Herberror(f"Couldn't decode: {err}") from err
 
 
 def b64d(args):
+    """
+    Base64 decode
+    """
     try:
         return bytes_to_str(b64.b64decode(str_to_bytes(args)))
-    except b64.binascii.Error as e:
-        raise Herberror(f"Couldn't decode: {e}")
+    except b64.binascii.Error as err:
+        raise Herberror(f"Couldn't decode: {err}") from err

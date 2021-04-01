@@ -5,15 +5,15 @@ from math import log
 
 from PIL import Image, ImageOps
 
-from decorators import command, aliases, doc
+from decorators import command, doc
 from basebert import ImageBaseBert
 from herberror import Herberror
 from common.argparser import Args
 
-'''
-Meine Datei zum malen von coolen Sachen
-- Philip
-'''
+#
+# Meine Datei zum malen von coolen Sachen
+# - Philip
+#
 
 black = 0, 0, 0
 gray = 123, 123, 123
@@ -73,7 +73,7 @@ class DiaMaltBert(ImageBaseBert):
         # /rule {r, t(orus), b(lack), w(hite)} {scale} {r,0,1,2,3,...,255?} {width} {time} {r,[a1,a2,a3,...,awidth]
 
         # get if sent to FLIP_VERTICAL
-        argvals, string = Args.parse(' '.join(args), {
+        argvals, _string = Args.parse(' '.join(args), {
             'send': Args.T.one_of('img', 'file', 'both'),
         })
         arg_send = argvals.get('send')
@@ -83,19 +83,21 @@ class DiaMaltBert(ImageBaseBert):
             arg_send = 'img'
 
         # args to parameters
-        for to_int in range(len(args)):
+        # convert to int
+        for i, val in enumerate(args):
             with suppress(ValueError):
-                args[to_int] = int(args[to_int])
+                args[i] = int(val)
+
         edge, scale, num, width, time, *setup = args
 
         # handle random queries and catch input errors
-        if edge is 'r':
+        if edge == 'r':
             edge = random.choice(['t', 'b', 'w'])
-        if num is 'r':
+        if num == 'r':
             num = random.randint(0, 255)
         elif num < 0:
             raise Herberror('Not a valid rule')
-        if setup[0] is 'r':
+        if setup[0] == 'r':
             setup = [random.randint(0, 1) for _ in range(width)]
         elif len(setup) != width:
             raise Herberror('Not a valid setup')
@@ -153,11 +155,11 @@ class DiaMaltBert(ImageBaseBert):
             if listmin <= i + index + delta_x < listmax:
                 temp_value = last[i + index + delta_x]
             else:
-                if edge is 't':
+                if edge == 't':
                     temp_value = last[(i + index + delta_x) % listmax]
-                elif edge is 'w':
+                elif edge == 'w':
                     temp_value = 0
-                elif edge is 'b':
+                elif edge == 'b':
                     temp_value = 1
                 else:
                     raise Herberror('not a valid edge-identifier')
@@ -177,7 +179,7 @@ class DiaMaltBert(ImageBaseBert):
         """
     )
     def carpet(self, args):
-        argvals, string = Args.parse(' '.join(args), {
+        argvals, _string = Args.parse(' '.join(args), {
             'send': Args.T.one_of('img', 'file', 'both'),
         })
         arg_send = argvals.get('send')

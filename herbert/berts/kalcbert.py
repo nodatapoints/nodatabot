@@ -72,10 +72,17 @@ def _dict_strip_zeroes(dct):
 
 
 class Unit:
+    """
+    Represent the dimension and prescaling of a quantity
+    """
     def __init__(self, dim: Dict[UnitClass, float], factor: float, allow_prefixing=False):
         self.dim, self.factor, self.allow_prefixing = dim, factor, allow_prefixing
 
     def conversion_factor(self, other):
+        """
+        Calculate the relative prescaling between two
+        unit objects
+        """
         if self.dim != other.dim:
             raise MathValueError('Adding or Subtracting non-matching units')
         return other.factor / self.factor
@@ -84,16 +91,16 @@ class Unit:
         return _dict_strip_zeroes(self.dim) == _dict_strip_zeroes(other.dim)
 
     def __mul__(self, other):
-        d = self.dim.copy()
-        for k, v in other.dim.items():
-            d[k] = d.get(k, 0) + v
-        return Unit(d, self.factor * other.factor)
+        dim = self.dim.copy()
+        for k, val in other.dim.items():
+            dim[k] = dim.get(k, 0) + val
+        return Unit(dim, self.factor * other.factor)
 
     def __truediv__(self, other):
-        d = self.dim.copy()
-        for k, v in other.dim.items():
-            d[k] = d.get(k, 0) - v
-        return Unit(d, self.factor / other.factor)
+        dim = self.dim.copy()
+        for k, val in other.dim.items():
+            dim[k] = dim.get(k, 0) - val
+        return Unit(dim, self.factor / other.factor)
 
     def __pow__(self, exp):
         return Unit({k: exp * v for k, v in self.dim.items()}, self.factor ** exp)
@@ -122,6 +129,9 @@ units = {
 
 
 class PrefixHandler:
+    """
+    Parse unit size prefixes
+    """
     _prefixes = {
         'a': 10 ** 18,
         'f': 10 ** 15,
@@ -148,6 +158,9 @@ class PrefixHandler:
 
     @staticmethod
     def decode_name(namestr) -> Unit:
+        """
+        Calculate a unit object from a string
+        """
         if namestr in units:
             return units[namestr]
 
@@ -164,15 +177,19 @@ class PrefixHandler:
 
     @staticmethod
     def encode_value(value) -> str:
+        """
+        Represent a value as a string, using
+        a proper size prefix
+        """
         abs_val, unit = value.absolute, value.unit
         if unit == no_unit:
             return str(abs_val / unit.factor)
 
-        tp = PrefixHandler._find_unit(unit.dim)
-        if tp is not None:
-            name, u = tp
-            val, prefix = abs_val * unit.conversion_factor(u), ''
-            if u.allow_prefixing:
+        unit_type = PrefixHandler._find_unit(unit.dim)
+        if unit_type is not None:
+            name, base_unit = unit_type
+            val, prefix = abs_val * unit.conversion_factor(base_unit), ''
+            if base_unit.allow_prefixing:
                 val, prefix = PrefixHandler.find_fitting_prefix(val)
             return str(val) + f'_{prefix}{name}'
 
@@ -180,12 +197,16 @@ class PrefixHandler:
 
     @staticmethod
     def find_fitting_prefix(val):
+        """
+        Find the closest appropriate size prefix for a floating
+        point value
+        """
         ok_k = ''
         ok_v = 1
-        for k, bv in PrefixHandler._prefixes.items():
-            v = 1 / bv
-            if 1 <= ok_v <= v <= val or 1 >= ok_v >= v >= val:
-                ok_k, ok_v = k, v
+        for k, factor in PrefixHandler._prefixes.items():
+            scaling = 1 / factor
+            if 1 <= ok_v <= scaling <= val or 1 >= ok_v >= scaling >= val:
+                ok_k, ok_v = k, scaling
         return val / ok_v, ok_k
 
     @staticmethod
@@ -198,9 +219,9 @@ class PrefixHandler:
 
     @staticmethod
     def _find_unit(dim):
-        for name, u in units.items():
-            if u.dim == dim:
-                return name, u
+        for name, unit in units.items():
+            if unit.dim == dim:
+                return name, unit
         return None
 
 
@@ -231,25 +252,32 @@ class Value:
 
         if abs(val2) > 100:
             try:
+                res = 0
+
                 if val2 > 0:
                     if -1 < val1 < 1:
-                        return Value(0)
-                    if val1 == 1:
-                        return Value(1)
-                    if val1 > 1:
-                        return Value(float('inf'))
-                    return Value(float('nan'))
+                        res = Value(0)
+                    elif val1 == 1:
+                        res = Value(1)
+                    elif val1 > 1:
+                        res = Value(float('inf'))
+                    else:
+                        res = Value(float('nan'))
                 else:
                     if val1 <= 0:
-                        return Value(float('nan'))
-                    if val1 < 1:
-                        return Value(float('inf'))
-                    if val1 == 1:
-                        return Value(1)
-                    return Value(0)
+                        res = Value(float('nan'))
+                    elif val1 < 1:
+                        res = Value(float('inf'))
+                    elif val1 == 1:
+                        res = Value(1)
+                    else:
+                        res = Value(0)
+
+                return res
+
             except TypeError:
                 raise MathRangeError(
-                    f"Ey um zu 'große' komplexe exponenten kannst du dich selber kümmern (was auch immer das heißt)")
+                    "Ey um zu 'große' komplexe exponenten kannst du dich selber kümmern (was auch immer das heißt)") from None
 
         return Value(val1 ** val2, self.unit ** val2)
 
@@ -266,7 +294,7 @@ class ASTNode(ABC):
 
     @abstractmethod
     def get_functor(self):
-        raise NotImplemented()
+        raise NotImplementedError()
 
 
 class Constant(ASTNode):
@@ -277,11 +305,11 @@ class Constant(ASTNode):
         return lambda _: self.value
 
 
-def _get(items, name, tp, tpn):
+def _get(items, name, expected_type, tpn):
     if name not in items:
         raise MathValueError(f'Undefined {tpn} {name!r}')
     val = items[name]
-    if not isinstance(val, tp):
+    if not isinstance(val, expected_type):
         raise MathValueError(f'Object {name!r} is of invalid type (expected {tpn!r})')
     return val
 
@@ -304,27 +332,27 @@ class FunctionInvocation(ASTNode):
 
 
 class FunctionExpressionWrapper:
-    def __init__(self, fn, names, *arg_names):
-        self.fn, self.names, self.arg_names = fn, names.copy(), arg_names
+    def __init__(self, fun, names, *arg_names):
+        self.fun, self.names, self.arg_names = fun, names.copy(), arg_names
 
     def __call__(self, *args):
         names = self.names
         names.update(dict(zip(self.arg_names, args)))
-        return self.fn(names)
+        return self.fun(self.names)
 
 
-def _make_bin_op(op):
+def _make_bin_op(bin_op):
     """
     auto-generate AST classes for binary operators
     """
 
     class _C(ASTNode):
         def __init__(self, lhs: ASTNode, rhs: ASTNode):
-            self.op, self.lhs, self.rhs = op, lhs, rhs
+            self.bin_op, self.lhs, self.rhs = bin_op, lhs, rhs
 
         def get_functor(self):
-            return lambda arg_dict: self.op(self.lhs.evaluate(arg_dict),
-                                            self.rhs.evaluate(arg_dict))
+            return lambda arg_dict: self.bin_op(self.lhs.evaluate(arg_dict),
+                                                self.rhs.evaluate(arg_dict))
 
     return _C
 
@@ -358,7 +386,7 @@ DEFAULT_NAMES: Dict[str, Union[Value, Callable, FunctionExpressionWrapper]] = {
 
 # noinspection PyUnboundLocalVariable
 class MathLexer(Lexer):
-    #pylint: disable = E, W, R, C
+    # pylint: disable = E, W, R, C
     # (pylint doesnt get what sly is doing)
     tokens = {NAME, NUMBER, DEF, EXP, PLUS, TIMES, MINUS, DIVIDE, FASSIGN, ASSIGN, LPAREN, RPAREN, SEMI, UNIT}
     ignore = ' \t\n'
@@ -386,7 +414,7 @@ class MathLexer(Lexer):
 
 
 class MathParser(Parser):
-    #pylint: disable = E, W, R, C
+    # pylint: disable = E, W, R, C
     tokens = MathLexer.tokens
 
     precedence = (
@@ -543,12 +571,12 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         query = get_url_safe_string(string)
         url = f'https://api.wolframalpha.com/v1/simple?i={query}&appid=36GXXR-K5UA8L8XTY'
 
-        if arg_send == 'file' or arg_send == 'both':  # high resolution file
+        if arg_send in ('file', 'both'):  # high resolution file
             _, data = load_content(url)
             image = Image.open(BytesIO(data))
             self.bot.send_document(
                 self.chat_id, document=ImageBaseBert.pil_image_to_fp(image, 'PNG'))
-        if arg_send == 'img' or arg_send == 'both':  # not full  ->  simple image
+        if arg_send in ('img', 'both'):  # not full  ->  simple image
             string = string if self.inline else ''
             self.reply_gif_url(url, caption=string, title='')
 
@@ -659,7 +687,7 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
                     break
 
             # generate the bars dependent on the percentages
-            def fillHash(n, percent):
+            def fill_hash(n, percent):
                 num_of_hash = int(percent / 100 * n + 0.5)
                 percentnum = str(percent) + "% "
                 percentnum_length = len(percentnum)
@@ -669,13 +697,15 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
 
             output = f"Poll for {name}\nTaken around {date}\n\n"
             for key, result in results.items():
-                output += f"{PartyIdtoName[int(key)]} |{fillHash(35, result)}|\n"
+                output += f"{PartyIdtoName[int(key)]} |{fill_hash(35, result)}|\n"
 
             output = chatformat.mono(output)
             self.reply_text(output)
 
     @command(pass_args=False, register_help=False, allow_inline=True)
     def rng(self):
-        self.reply_text("4")  # chosen by fair dice roll
-                              # guaranteed to be random
-
+        """
+        chosen by fair dice roll
+        guaranteed to be random
+        """
+        self.reply_text("4")

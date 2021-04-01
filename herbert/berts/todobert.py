@@ -1,10 +1,11 @@
+from pathlib import Path
+
 from common import chatformat
 from common.chatformat import STYLE_MD
 from decorators import command, aliases, doc
 from basebert import BaseBert
 from herberror import Herberror, BadHerberror
 
-from pathlib import Path
 todo_file = Path('todo.txt')
 
 MARKDOWNEXTRA = 2
@@ -32,9 +33,9 @@ class TodoBert(BaseBert):
             with todo_file.open() as fobj:
                 self.send_message('`        Stuff to do:`\n' +
                                   fobj.read(), parse_mode=STYLE_MD)
-        except Exception as e:
-            print(e)
-            raise BadHerberror('todo.txt not found')
+        except Exception as err:
+            print(err)
+            raise BadHerberror('todo.txt not found') from err
 
     @aliases('+todo', 'td+')
     @command
@@ -62,9 +63,9 @@ class TodoBert(BaseBert):
 
                 fobj.write(
                     f'`{key}{COLON}`{chatformat.italic(door, style=chatformat.STYLE_MD)}\n')
-                self.send_message(f'Your request was added to the list.')
-        except Exception:
-            raise BadHerberror('todo.txt not found')
+                self.send_message('Your request was added to the list.')
+        except Exception as err:
+            raise BadHerberror('todo.txt not found') from err
 
     @aliases('-todo', 'td-')
     @command
@@ -96,9 +97,9 @@ class TodoBert(BaseBert):
                 fobj.truncate()
                 if not edited:
                     self.send_message(
-                        f'Your query did not match any requests.')
-        except Exception:
-            raise BadHerberror('todo.txt not found')
+                        'Your query did not match any requests.')
+        except Exception as err:
+            raise BadHerberror('todo.txt not found') from err
 
     @aliases('%todo', 'td%')
     @command
@@ -127,19 +128,23 @@ class TodoBert(BaseBert):
                                 'Markup Characters cause Fuckups, please use alternatives')
                         fobj.write(
                             f'{element[:MARKDOWNEXTRA+MAXLENGTHKEY+len(COLON)]}{chatformat.italic(door, style=chatformat.STYLE_MD)}\n')
-                        self.send_message(f'You successfully edited the list.')
+                        self.send_message('You successfully edited the list.')
                         edited = True
                     else:
                         fobj.write(element)
                 fobj.truncate()
                 if not edited:
                     self.send_message(
-                        f'Your query did not match any requests.')
-        except Exception:
-            raise BadHerberror('todo.txt not found')
+                        'Your query did not match any requests.')
+        except Exception as err:
+            raise BadHerberror('todo.txt not found') from err
 
 
 def findkey_td(key, string):
+    """
+    Check if the given string is a todo line
+    marked with the passed key
+    """
     length = MAXLENGTHKEY + len(COLON)
     full_key = f'`{(key+COLON):>{length}.{length}}`'
 

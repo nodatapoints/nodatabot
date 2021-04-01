@@ -7,9 +7,10 @@ import sys
 import logging
 from inspect import getmembers, isclass
 
-import core
+from core import Herbert
 import basebert
 
+# pylint: disable = unused-import
 from berts.asciimath import AsciiBert
 from berts.diamaltbert import DiaMaltBert
 from berts.gamebert import GameBert
@@ -28,6 +29,8 @@ from berts.dudert import Dudert
 
 from berts.testbert import TestBert
 
+__all__ = ['main']
+
 
 def configure_logs(log_lvl):
     """ setup logging for herbert """
@@ -36,21 +39,25 @@ def configure_logs(log_lvl):
     logging.getLogger('herbert.RUNTIME').setLevel(log_lvl)
 
 
-def start_bot():
+def create_bot():
     """ perform some setup """
-    core.init()
+    bot = Herbert()
 
     # Autoregister the included Berts
     for _, c in getmembers(sys.modules[__name__], isclass):
         if issubclass(c, basebert.BaseBert) and c is not basebert.BaseBert:
-            core.register_bert(c)
+            bot.register_bert(c)
 
-    core.register_inline_handler()
+    bot.register_inline_handler()
 
-    if __name__ == '__main__':
-        core.idle()
+    return bot
+
+
+def main():
+    """ main entrypoint, runs bot """
+    configure_logs(logging.DEBUG)
+    create_bot().idle()
 
 
 if __name__ == '__main__':
-    configure_logs(logging.DEBUG)
-    start_bot()
+    main()

@@ -1,0 +1,8 @@
+python-telegram-bot
+cffi
+cryptography
+lxml
+pillow
+requests
+urllib3
+certifi

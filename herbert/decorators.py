@@ -8,15 +8,21 @@ from typing import Callable
 import re
 
 import telegram.error
-from telegram.ext import PrefixHandler, CallbackQueryHandler
+from telegram.ext import PrefixHandler, CallbackQueryHandler, CallbackContext
+from telegram import Update
 
 from common.basic_decorators import argdecorator
 from common.herbert_utils import is_cmd_decorated
-from herberror import Herberror, BadHerberror
-from common.constants import ERROR_FAILED, ERROR_TEMPLATE, BAD_ERROR_TEMPLATE, \
-    EMOJI_EXPLOSION, EMOJI_WARN, ONLY_BASIC_HELP
+from common.constants import ERROR_FAILED, ERROR_TEMPLATE, \
+    BAD_ERROR_TEMPLATE, EMOJI_EXPLOSION, EMOJI_WARN, ONLY_BASIC_HELP
+from common.chatformat import render_style_para
 
-__all__ = ['pull_string', 'handle_herberrors', 'pull_bot_and_update', 'command', 'aliases', 'callback', 'doc']
+from herberror import Herberror, BadHerberror
+
+__all__ = [
+    'pull_string', 'handle_herberrors', 'pull_bot_and_update',
+    'command', 'aliases', 'callback', 'doc'
+]
 
 reply_timeout = timedelta(seconds=120)
 
@@ -47,26 +53,31 @@ def handle_herberrors(method):
         try:
             return method(self, *args, **kwargs)
 
-        except Herberror as e:
+        except Herberror as error:
             template = ERROR_TEMPLATE
             emoji = EMOJI_WARN
-            if isinstance(e, BadHerberror):
+            if isinstance(error, BadHerberror):
                 template = BAD_ERROR_TEMPLATE
                 emoji = EMOJI_EXPLOSION
 
-            res_text = template.format(emoji, " ".join(e.args))
+            res_text = template.format(emoji, " ".join(error.args))
             self.reply_text(res_text, disable_web_page_preview=True)
-            msg, = e.args
-            logging.getLogger('herbert.RUNTIME').debug(f'Herberror: "{msg}"')
+            msg, = error.args
+            logging.getLogger('herbert.RUNTIME').debug('Herberror: "%s"', msg)
 
         except telegram.error.TimedOut:
-            logging.getLogger('herbert.RUNTIME').info('Timed out')
+            logging.getLogger('herbert.RUNTIME') \
+                   .info('Timed out')
+
         except telegram.error.NetworkError:
-            logging.getLogger('herbert.RUNTIME').info('Connection Failed or message rejected by telegram API')
+            logging.getLogger('herbert.RUNTIME') \
+                   .info('Connection Failed or message rejected by telegram API')
 
         except Exception:
             self.reply_text(ERROR_FAILED)
             raise
+
+        return None
 
     return wrapped
 
@@ -88,16 +99,12 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
     query.
     """
 
-    from telegram.ext import CallbackContext
-    from telegram import Update
-
     @wraps(bound_method)
     def wrapped(update: Update, context: CallbackContext, inline=False, inline_query=None,
                 inline_args=None, **kwargs):
 
         if inline_args is None:
             inline_args = []
-
 
         args = (context.args,) if pass_args else tuple()
 
@@ -111,9 +118,10 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
             delta = datetime.now().astimezone() - update.message.date.replace()
             if delta > reply_timeout:
                 logging.getLogger('herbert.RUNTIME') \
-                    .info(f'Command "{update.message.text}" timed out '
-                          f'({delta.seconds:.1f}s > {reply_timeout.seconds:.1f}s)')
-                return
+                       .info('Command "%s" timed out (%.1fs > %.1fs)',
+                             update.message.text, delta.seconds,
+                             reply_timeout.seconds)
+                return None
 
         if pass_args and inline:
             args = (inline_args,)
@@ -134,12 +142,19 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
     return wrapped
 
 
-
 class PassedInfoType:
+    """
+    Encode which information should be passed to
+    a given command handler
+    """
     STRING, ARGS, UPDATE, QUERY = 1, 2, 4, 8
 
     @staticmethod
     def value(pass_string, pass_args, pass_update, pass_query):
+        """
+        Generate an integer representation from four boolean values
+        for the different argument types
+        """
         return (PassedInfoType.STRING if pass_string else 0) + \
                (PassedInfoType.ARGS if pass_args else 0) + \
                (PassedInfoType.UPDATE if pass_update else 0) + \
@@ -169,31 +184,59 @@ class HerbertCmdHandlerInfo:
 
     @staticmethod
     def generatefor(method, register_help=True, **kwargs):
-        h1, h2 = HerbertCmdHandlerInfo.extract_help(method, register_help)
-        return HerbertCmdHandlerInfo(method, [method.__name__], register_help, h1, h2, **kwargs)
+        """
+        Create an instance of this class for a given method, by supplying the
+        method name as the default command name and substituting default values
+        otherwise
+        """
+        summary, fulltext = HerbertCmdHandlerInfo.extract_help(method, register_help)
+        return HerbertCmdHandlerInfo(
+            method,
+            [method.__name__],
+            register_help,
+            summary,
+            fulltext,
+            **kwargs
+        )
 
     @staticmethod
     def extract_help(method, register_help):
+        """
+        Parse the docstring looking for levels of documentation
+        for any given command
+        """
         if not register_help:
             return '', ''
+
         if not method.__doc__:
-            logging.getLogger('herbert.SETUP').info(f"/{method.__name__} is missing ALL Documentation!")
+            logging.getLogger('herbert.SETUP') \
+                   .info("/%s is missing ALL Documentation!", method.__name__)
             return '', ''
-        p1, *p2 = re.split('\n\n', method.__doc__, maxsplit=1)
+
+        # re.split will return either one or two results
+        summary, *fulltext = re.split('\n\n', method.__doc__, maxsplit=1)
+
         if register_help == ONLY_BASIC_HELP:
-            return p1, 'This should be self-explanatory. If you really need help, sucks to be you; go look at the code.'
-        elif len(p2) == 0:
-            logging.getLogger('herbert.SETUP').info(f"/{method.__name__} is missing detailed Documentation!")
-            return p1, ''
-        return (p1, *p2)
+            return summary, 'This should be self-explanatory. If you really ' \
+                            'need help, sucks to be you; go look at the code.'
+
+        if len(fulltext) == 0:
+            logging.getLogger('herbert.SETUP') \
+                   .info("/%s is missing detailed Documentation!", method.__name__)
+            return summary, ''
+
+        return (summary, *fulltext)
 
     def handlers(self, member_method):
+        """
+        Generate the handlers ptb needs to call the function this is attached to
+        """
         def handlerfor(name):
-            return PrefixHandler('/', name, self._invoke(member_method), **self.ptb_forward)
+            return PrefixHandler('/', name, self.invoke(member_method), **self.ptb_forward)
 
         return (handlerfor(name) for name in self.aliases)
 
-    def _invoke(self, member_method):
+    def invoke(self, member_method):
         return pull_bot_and_update(
             member_method,
             pass_update=self.pass_info & PassedInfoType.UPDATE != 0,
@@ -202,28 +245,43 @@ class HerbertCmdHandlerInfo:
             pass_args=self.pass_info & PassedInfoType.ARGS != 0
         )
 
-    def _invoke_from_inline(self, member_method):
-        return pull_inline(self.invoke(member_method))
-
 
 @argdecorator
-def command(method, *args, pass_args=None, pass_update=False, pass_string=False,
+def command(*args, pass_args=None, pass_update=False, pass_string=False,
             register_help=True, allow_inline=False, **kwargs):
-    if args:
-        logging.getLogger('herbert.SETUP').warning(f'Ignoring arguments to @command ({args}) on {method.__name__}')
+    """
+    Attach this decorator to a method to generate a HerbertCmdHandlerInfo,
+    which is in turn used in `core.py` to identify command handlers.
+    The wrapped function will be called with the appropriate arguments.
+    """
+
+    method, *args = args
+
+    if len(args) > 1:
+        logging.getLogger('herbert.SETUP') \
+               .warning('Ignoring arguments to @command (%s) on %s', args, method.__name__)
 
     pass_args = pass_args if pass_args is not None else not pass_string
     pass_info = PassedInfoType.value(pass_string, pass_args, pass_update, False)
 
-    method.cmdinfo = HerbertCmdHandlerInfo.generatefor(method,
-                                                       pass_info=pass_info, allow_inline=allow_inline,
-                                                       register_help=register_help, **kwargs)
+    method.cmdinfo = HerbertCmdHandlerInfo.generatefor(
+        method,
+        pass_info=pass_info,
+        allow_inline=allow_inline,
+        register_help=register_help,
+        **kwargs
+    )
 
     return handle_herberrors(method)
 
 
 @argdecorator
 def aliases(method, *args):
+    """
+    Add an alias to the HerbertCmdHandlerInfo, which already has to
+    be present on `method`. Will allow other Telegram commands to call
+    the decorated function (the default command is the function name)
+    """
     if is_cmd_decorated(method):
         method.cmdinfo.aliases.extend(args)
     else:
@@ -233,6 +291,10 @@ def aliases(method, *args):
 
 @argdecorator
 def callback(method=None, *, pass_update=False, pass_query=True, **kwargs):
+    """
+    Construct a ptb CallbackQueryHandler, to mark the decorated function
+    as an entrypoint for button clicks etc.
+    """
     def handler(bound_method):
         inner_callback = pull_bot_and_update(
             bound_method, pass_update, pass_query)
@@ -244,11 +306,16 @@ def callback(method=None, *, pass_update=False, pass_query=True, **kwargs):
 
 @argdecorator
 def doc(method: Callable, docstring: str):
-    from common.chatformat import render_style_para as r
+    """
+    Change the docstring of a function to the argument of this decorator
+    This can be used to use f-strings to use inline-parameters on the
+    documentation
+    """
 
     if is_cmd_decorated(method):
-        logging.getLogger('herbert.SETUP').warning('calling @doc on already decorated method! '
-                                                   'In the current version, @doc has to be applied before @command')
+        logging.getLogger('herbert.SETUP') \
+               .warning('calling @doc on already decorated method! '
+                        'In the current version, @doc has to be applied before @command')
 
-    method.__doc__ = r(docstring)
+    method.__doc__ = render_style_para(docstring)
     return method

@@ -1,5 +1,5 @@
 import logging
-from subprocess import run
+from subprocess import run, PIPE
 
 from PIL import Image, ImageOps
 
@@ -14,12 +14,12 @@ from decorators import command, aliases, doc
 # format breaks here because e.g. {{amsfonts}} gets transformed to {amsfonts} and then the
 # real substiture will throw a KeyError
 
-empty_tex_template = """{}"""
-very_basic_tex_template = """
+EMPTY_TEX_TEMPLATE = """{}"""
+VERY_BASIC_TEX_TEMPLATE = """
 \\documentclass[preview, margin=1mm]{{standalone}}
 {}
 """
-packages_tex_template = very_basic_tex_template.replace("{}", """
+PACKAGES_TEX_TEMPLATE = VERY_BASIC_TEX_TEMPLATE.replace("{}", """
 \\usepackage{{amsmath}}
 \\usepackage{{amssymb}}
 \\usepackage{{wasysym}}
@@ -37,15 +37,15 @@ packages_tex_template = very_basic_tex_template.replace("{}", """
 \\usepackage[utf8]{{inputenc}}
 {}
 """)
-basic_tex_template = packages_tex_template.replace("{}", """
+BASIC_TEX_TEMPLATE = PACKAGES_TEX_TEMPLATE.replace("{}", """
 \\begin{{document}}
 {} % This is where the code goes
 \\end{{document}}
 """)
-display_math_template = basic_tex_template.replace("{}", """{{$\\displaystyle {}$}}""")
-aligned_math_template = display_math_template.replace("{}", """{{\\begin{{aligned}} {} \\end{{aligned}} }}""")
+DISPLAY_MATH_TEMPLATE = BASIC_TEX_TEMPLATE.replace("{}", """{{$\\displaystyle {}$}}""")
+ALIGNED_MATH_TEMPLATE = DISPLAY_MATH_TEMPLATE.replace("{}", """{{\\begin{{aligned}} {} \\end{{aligned}} }}""")
 
-tikz_template = packages_tex_template.replace("{}", """
+TIKZ_TEMPLATE = PACKAGES_TEX_TEMPLATE.replace("{}", """
 \\usetikzlibrary{{shapes,arrows}}
 \\begin{{document}}
 \\begin{{tikzpicture}}
@@ -54,21 +54,29 @@ tikz_template = packages_tex_template.replace("{}", """
 \\end{{document}}
 """)
 
-pre_levels = [empty_tex_template,
-              very_basic_tex_template,
-              basic_tex_template,
-              display_math_template,
-              aligned_math_template,
-              tikz_template]
+pre_levels = [EMPTY_TEX_TEMPLATE,
+              VERY_BASIC_TEX_TEMPLATE,
+              BASIC_TEX_TEMPLATE,
+              DISPLAY_MATH_TEMPLATE,
+              ALIGNED_MATH_TEMPLATE,
+              TIKZ_TEMPLATE]
 
 
 def validate(string):
-    # TODO make sure people dont tex emojis or whatever
+    """
+    If the input can reasonably be handed off to latex,
+    do nothing, otherwise throw an appropriate error
+    """
     if string.strip() == '':
         raise Herberror('Empty Inputs are bad.')
 
 
 class TexBert(ImageBaseBert):
+    """
+    Bert for rendering latex code
+    See `TexBert.texraw`
+    """
+
     @command(pass_string=True)
     @doc(
         f"""
@@ -120,12 +128,14 @@ class TexBert(ImageBaseBert):
                 ('./ext/texit.zsh', f'{target_pixel_width:d}'),
                 input=string,
                 encoding='utf8',
-                capture_output=True
+                capture_output=True,
+                stdout=PIPE,
+                check=False
             )
             exit_val = result.returncode
 
             if exit_val == 2:
-                logging.getLogger('herbert.RUNTIME').warning(f'Couldn\'t cleanup working directory.')
+                logging.getLogger('herbert.RUNTIME').warning('Couldn\'t cleanup working directory.')
             elif exit_val == 3:
                 raise Herberror('Your \'tex produces output I literally can\'t comprehend.')
             elif exit_val == 4:
@@ -148,13 +158,13 @@ class TexBert(ImageBaseBert):
                 img = ImageOps.invert(img.convert(mode='RGB'))
 
             arg_send = argvals.get('send') or 'img'
-            if arg_send == 'file' or arg_send == 'both':
+            if arg_send in ('file', 'both'):
                 self.send_pil_image(img, full=True)
-            if arg_send == 'img' or arg_send == 'both':
+            if arg_send in ('img', 'both'):
                 self.send_pil_image(img)
 
-        except FileNotFoundError:
-            raise BadHerberror('`texit.zsh` is broken 😢')
+        except FileNotFoundError as err:
+            raise BadHerberror('`texit.zsh` is broken 😢') from err
 
     @command(pass_string=True)
     @doc(

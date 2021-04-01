@@ -1,15 +1,25 @@
+"""
+Bert
+
+provides an interface to dictionaries
+
+provided commands:
+    - dict
+    - dude
+"""
+import requests
+from requests.utils import quote
+from lxml import etree
 from decorators import aliases, command, doc
 from basebert import BaseBert
 from herberror import Herberror
 import common.chatformat as cf
 
 
-import requests
-from requests.utils import quote
-from lxml import etree
-
-
 class Dudert(BaseBert):
+    """
+    Wraps some dictionary commands
+    """
     @aliases('urban', 'dict')
     @command(pass_string=True)
     @doc(
@@ -38,7 +48,7 @@ class Dudert(BaseBert):
             meaning = join_chunked('//div[@class="meaning"]')
             example = join_chunked('//div[@class="example"]')
 
-        except IndexError:
+        except IndexError as err:
             # Check if its just the "not defined yet" page
             if dom.xpath('//a[text()="Define it!"]'):
                 self.send_message(
@@ -48,8 +58,8 @@ class Dudert(BaseBert):
                 )
                 return
 
-            else:  # if not, its a problem
-                raise Herberror("You need to provide a search query")
+            # if not, its a problem
+            raise Herberror("You need to provide a search query") from err
 
         self.send_message(f"""\
 {cf.mono(title)}
@@ -88,10 +98,11 @@ class Dudert(BaseBert):
 
         top_entry, *_ = results
 
-        msg = self._parse_definition(url='http://www.duden.de/'+top_entry)
+        msg = Dudert._parse_definition(url='http://www.duden.de/'+top_entry)
         self.send_message(msg)
 
-    def _parse_definition(self, *, word=None, url=None):
+    @staticmethod
+    def _parse_definition(*, word=None, url=None):
         """
         Creates a full Telegram message containing information about a
         word. The word is either passed as `word` as itself, or in an already

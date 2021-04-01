@@ -2,8 +2,8 @@
 FIXME this contains several specific hardcoded style definitions and conversions
 please improve (without breaking things)
 """
-from common.basic_decorators import as_partial
 import re
+from common.basic_decorators import as_partial
 
 STYLE_MD = 'MARKDOWN'
 STYLE_HTML = 'HTML'
@@ -19,7 +19,6 @@ STYLE = STYLE_BACKEND
 
 class MessageMarkupError(Exception):
     """ thrown if the markup of a message is invalid """
-    pass
 
 
 def get_parse_mode(style=STYLE):
@@ -29,7 +28,7 @@ def get_parse_mode(style=STYLE):
 
 def get_output_mode(style=STYLE):
     """ return the correct output encoding after rendering """
-    if style == STYLE_BACKEND or style == STYLE_PARA:
+    if style in (STYLE_BACKEND, STYLE_PARA):
         return STYLE_HTML
     return style
 
@@ -110,8 +109,8 @@ def link_to(url, name=None, style=STYLE):
             STYLE_MD: f'[{name}]({url})',
             STYLE_BACKEND: f'!§![a{url}!§!|A{name}!§!]a',
         }[style]
-    except KeyError:
-        raise ValueError(f'Style {style} is undefined or cannot markup links.')
+    except KeyError as err:
+        raise ValueError(f'Style {style} is undefined or cannot markup links.') from err
 
 
 def _wrap_delimiters(style_dict: dict, text: str, escape=True, style=STYLE) -> str:
@@ -122,8 +121,8 @@ def _wrap_delimiters(style_dict: dict, text: str, escape=True, style=STYLE) -> s
 
         return prefix + text + suffix
 
-    except KeyError:
-        raise ValueError(f'Style {style} is undefined.')
+    except KeyError as err:
+        raise ValueError(f'Style {style} is undefined.') from err
 
 
 @as_partial(

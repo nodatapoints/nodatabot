@@ -1,11 +1,12 @@
 """
 Utilities for interfacing with the telegram api
 """
-import telegram
 from functools import wraps
 from io import BytesIO
 from re import split
 import hashlib
+
+import telegram
 
 from common.telegram_limits import MSG_CHUNK
 
@@ -86,7 +87,7 @@ def make_keyboard(button_dict):
     """
     return telegram.InlineKeyboardMarkup(
         [[telegram.InlineKeyboardButton(key, callback_data=val) for key, val in val.items()]
-         if type(val) is dict else [telegram.InlineKeyboardButton(key, callback_data=val)]
+         if isinstance(val, dict) else [telegram.InlineKeyboardButton(key, callback_data=val)]
          for key, val in button_dict.items()]
     )
 
@@ -146,7 +147,7 @@ def make_tx_callback(handler):
     @wraps(handler)
     def wrapper(self, query):
         stored_data = CALLBACK_DATA_STORE[query.data]
-        name, *args = split(CALLBACK_ARGUMENT_SEPARATOR, stored_data)
+        _name, *args = split(CALLBACK_ARGUMENT_SEPARATOR, stored_data)
 
         return handler(self, query, args)
 

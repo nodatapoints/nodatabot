@@ -1,11 +1,11 @@
 """
 General network utility
 """
+import re
+from urllib.parse import quote
 import urllib3
 import certifi
-import re
 
-from urllib.parse import quote
 from herberror import Herberror
 
 # fake it 'til you make it
@@ -50,11 +50,11 @@ def load(url, fake_ua=True):
     try:
         if fake_ua:
             return HTTP_POOL.request(REQUEST_TYPE_GET, url, timeout=2.0, retries=urllib3.Retry(redirect=2))
-        else:
-            return HTTP_PLAIN_POOL.request(REQUEST_TYPE_GET, url, timeout=2.0, retries=urllib3.Retry(redirect=2))
 
-    except urllib3.exceptions.HTTPError:
-        raise NetworkError(NO_RESPONSE_ERR)
+        return HTTP_PLAIN_POOL.request(REQUEST_TYPE_GET, url, timeout=2.0, retries=urllib3.Retry(redirect=2))
+
+    except urllib3.exceptions.HTTPError as err:
+        raise NetworkError(NO_RESPONSE_ERR) from err
 
 
 def load_str(url, **kwargs):
@@ -80,8 +80,8 @@ def load_str(url, **kwargs):
     try:
         return res.data.decode(charset or 'utf-8')
 
-    except UnicodeDecodeError:
-        raise Herberror(NOT_TEXT_ERR)
+    except UnicodeDecodeError as err:
+        raise Herberror(NOT_TEXT_ERR) from err
 
 
 def load_content(url, **kwargs):
@@ -157,4 +157,7 @@ def response_extract_charset(response_header):
 
 
 def get_url_safe_string(inn):
+    """
+    wrap urllibs quote
+    """
     return quote(inn, safe='')

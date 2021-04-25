@@ -80,6 +80,12 @@ def reply_err(bot, update, msg):
         reply(bot, update, BOT_ERR_PREFIX + sub)
 
 
+def _split_dict(dct, *keysets):
+    for keys in keysets:
+        yield {key: arg for key, arg in dct.items() if key in keys}
+    yield {key: arg for key, arg in dct.items() if key not in set.union(*keysets)}
+
+
 def send_message(bot, chat_id, text, **kwargs):
     """
     Call bot.send_message, where we pass the exakt kwargs that
@@ -96,10 +102,23 @@ def send_message(bot, chat_id, text, **kwargs):
         'entities'
     )
 
-    ptb_args = {key: kwargs[key] for key in ptb_keys if key in kwargs}
-    fwd = {key: arg for key, arg in kwargs.items() if key not in ptb_args}
+    chat_keys = (
+        'edit_id'
+    )
 
-    bot.send_message(chat_id, text, **ptb_args, api_kwargs=fwd)
+    ptb_args, fwd, options = _split_dict(kwargs, ptb_keys, chat_keys)
+
+    ptb_args['chat_id'] = chat_id
+    ptb_args['text'] = text
+    ptb_args['api_kwargs'] = fwd
+
+    if 'edit_id' in options:
+        ptb_args.message_id = options['edit_id']
+
+        bot.edit_message_text(**ptb_args)
+
+    else:
+        bot.send_message(**ptb_args)
 
 
 def make_keyboard(button_dict):

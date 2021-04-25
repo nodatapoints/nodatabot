@@ -9,14 +9,14 @@ provided commands:
 import re
 import json.decoder
 
-from basebert import InlineBaseBert
+from basebert import BaseBert
 from herberror import Herberror
 from common import hercurles_utils
 from decorators import command, doc
 import common.chatformat as cf
 
 
-class XKCDert(InlineBaseBert):
+class XKCDert(BaseBert):
     """
     Wraps the xkcd command
     """

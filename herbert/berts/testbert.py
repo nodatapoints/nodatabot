@@ -68,7 +68,7 @@ class TestBert(BaseBert):
     @command(register_help=False, pass_string=True)
     def dbg_render_md(self, string: str):
         """ parse backend format escapes """
-        self.reply_text(render_style_para(string), 'abc',
+        self.reply_text(render_style_para(string), caption='abc',
                         parse_mode=chatformat.STYLE_BACKEND)
 
     @aliases('dbg_mdx')
@@ -218,7 +218,7 @@ def test():
 
     bert = HelpBert()
     match_in_response('.*no further help available.*', bert.help, ["weewieofhweioufh"])
-    expect_in_response('&lt;cmd name&gt;', bert.help, [])  # check if escaping works
+    expect_in_response('<cmd name>', bert.help, [])  # check if escaping works
 
     # Test ArgParser
     expect_error(lambda: Args.parse("[hello=world]", {'x': Args.T.INT}), error=UnexpectedArgument)

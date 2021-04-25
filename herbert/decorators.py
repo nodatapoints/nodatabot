@@ -17,6 +17,7 @@ from common.constants import ERROR_FAILED, ERROR_TEMPLATE, \
     BAD_ERROR_TEMPLATE, EMOJI_EXPLOSION, EMOJI_WARN, ONLY_BASIC_HELP
 from common.chatformat import render_style_para
 from common.prefixhandler import HerbotPrefixHandler
+from common import reply_data
 
 from herberror import Herberror, BadHerberror
 
@@ -109,11 +110,16 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
 
         args = (context.args,) if pass_args else tuple()
 
-        bound_method.__self__.bot = context.bot
-        bound_method.__self__.update = update
-        bound_method.__self__.inline = inline
-        bound_method.__self__.inline_query = inline_query
+        # bound_method.__self__.bot = context.bot
+        # bound_method.__self__.update = update
+        # bound_method.__self__.inline = inline
+        # bound_method.__self__.inline_query = inline_query
         # update.message = None bei edits
+
+        bound_method.__self__.context = (
+            reply_data.InlineContext(context.bot, inline_query) if inline else
+            reply_data.ChatContext(context.bot, update.message)
+        )
 
         if update.message is not None:
             delta = datetime.now().astimezone() - update.message.date.replace()

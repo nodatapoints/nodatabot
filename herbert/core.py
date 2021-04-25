@@ -78,11 +78,18 @@ class Herbert:
         self.updater.start_polling()
 
     def idle(self):
+        """ start the updated event loop """
         self.start()
         self.updater.idle()
 
 
 def handle_inline_query(update: Update, context: CallbackContext, line=None):
+    """
+    If python-telegram-bot receives an inline query, this function
+    will select the correct command handler based on the query string,
+    then run the command with an appropriate context object to allow
+    answering the query by using the normal send methods
+    """
     query = None
 
     if line is not None:

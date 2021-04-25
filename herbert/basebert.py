@@ -14,17 +14,24 @@ or an inline handler
 
 import inspect
 from io import BytesIO
-import hashlib
+# import hashlib
 
-from telegram import InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultPhoto, InlineQueryResultGif
-import telegram.error
+# from telegram import InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultPhoto, InlineQueryResultGif
+# import telegram.error
 
-from common.basic_utils import arr_to_bytes
-from common import chat, chatformat
-from common.telegram_limits import MSG_CHUNK
+# from common.basic_utils import arr_to_bytes
+from common import chatformat
+# from common import chat
+# from common.telegram_limits import MSG_CHUNK
+
+from common.reply import send_message
+from common.reply_data import (
+    File, Gif, Photo, PhotoUrl, Sticker, Text, ReplyData,
+    ChatContext, InlineContext
+)
 
 
-__all__ = ['BaseBert', 'ImageBaseBert', 'InlineBaseBert']
+__all__ = ['BaseBert', 'ImageBaseBert']
 
 
 class BaseBert:
@@ -37,11 +44,7 @@ class BaseBert:
     command invocations
     """
     def __init__(self):
-        self.bot = None
-        self.update = None
-        self.inline = False
-        self.inline_query = None
-        self.inline_args = []
+        self.context = None
 
     def enumerate_cmds(self):
         return filter(lambda m: hasattr(m, 'cmdinfo'), self.enumerate_members())
@@ -51,199 +54,109 @@ class BaseBert:
 
     @property
     def message(self):
-        if self.update.message:
-            return self.update.message
+        """
+        retrieve a message object, if that is
+        available in the current context
+        """
+        if isinstance(self.context, ChatContext):
+            return self.context.message
 
-        if self.update.callback_query and self.update.callback_query.message:
-            return self.update.callback_query.message
-
+        # if isinstance(self.context, CallbackContext):
+        #     return self.context.query.message
         return None
 
     @property
     def message_text(self):
+        """
+        if there is a message object associated
+        with the current context, return its
+        message text. Otherwise, if the context
+        is from an inline query, return the query
+        text
+        """
         if self.message:
             return self.message.text
 
-        if self.inline_query:
-            return self.inline_query.query
+        if isinstance(self.context, InlineContext):
+            return self.context.query.query
 
         return ""
 
     @property
-    def query(self):
-        return self.update.callback_query
-
-    @property
     def chat_id(self):
-        return self.message.chat_id
+        """
+        if there is a message object associated
+        with the current context, return its
+        chat_id
+        """
+        return self.message and self.message.chat_id
+
+    def send(self, obj: ReplyData):
+        return send_message(obj, self.context)
 
     def send_message(self, msg, parse_mode=chatformat.get_parse_mode(),
-                     chunk_if_necessary=True, file_long=True, file_len=None,
-                     **kwargs):
+                     disable_web_page_preview=False):
         """
         Send text to the user
         :param msg: A utf-8 encoded string to be sent
         :param parse_mode: One of the Styles defined in common.chatformat; states how formatting is expressed in msg
-        :param kwargs: any other keyword arguments are forwarded to python-telegram-bot
-        :param file_len: if len(msg) is greater than this value (default 3*msg_chunk) and file_long is true, send as a
-                text file instead
-        :param file_long: see file_len
-        :param chunk_if_necessary: if the message is too long to fit into a single telegram message, split it into
-                appropriately sized chunks
+        :param disable_web_page_preview: set whether telegram should show the user a preview or not
         :return: a telegram.Message object on success
         """
-
-        msg, parse_mode = chatformat.render(msg, parse_mode)
-
-        if len(msg) > (file_len or 3*MSG_CHUNK) and file_long:
-            self.send_text_file(msg)
-
-        if len(msg) > MSG_CHUNK and chunk_if_necessary:
-            chat.reply_chunky(self.bot, self.update, msg, parse_mode, **kwargs)
-
-        return chat.send_message(
-            self.bot,
-            self.chat_id,
-            text=msg,
-            parse_mode=parse_mode,
-            **kwargs
-        )
+        return self.send(Text(*chatformat.parse_entities(msg, parse_mode), disable_web_page_preview=disable_web_page_preview))
 
     def send_sticker(self, sticker):
-        return self.bot.send_sticker(self.chat_id, sticker)
+        return self.send(Sticker(sticker))
 
-    def send_photo_from_file(self, path, **kwargs):
-        return self.bot.send_photo(self.chat_id, open(path, 'rb'), **kwargs)
+    def send_photo_from_file(self, path, caption=None, **kwargs):
+        """ load a photo from a path and send it """
+        assert len(kwargs) == 0
+        with open(path, 'rb'):
+            return self.send(Photo(caption, path))
 
-    def send_file(self, fname, data, **kwargs):
-        chat.reply_filed_binary(self.bot, self.update, data, name=fname, **kwargs)
+    def send_file(self, fname, data, caption=None):
+        """ send a binary file """
+        return self.send(File(caption, data, fname))
 
-    def send_text_file(self, msg, fname="message.txt", **kwargs):
-        chat.reply_filed_utf8(self.bot, self.update, msg, name=fname, **kwargs)
+    def send_text_file(self, msg, fname="message.txt", caption=None):
+        """ send a text file """
+        return self.send(File(caption, bytes(msg, encoding="UTF-8"), fname))
 
-    def send_photo(self, data, **kwargs):
-        self.bot.send_photo(self.chat_id, data, **kwargs)
+    def send_photo(self, data, caption=None):
+        """ send an in-memory photo """
+        return self.send(Photo(caption, data))
 
-    def send_gif(self, data, **kwargs):
-        self.bot.send_animation(self.chat_id, data, **kwargs)
-
-    # reply_ methods are a unified way to respond
+    # reply_ methods were a unified way to respond
     # both @inline and /directly.
-    def reply_text(self, string, title='', **kwargs):
-        title = title or string
-        if self.inline:
-            InlineBaseBert.inl_send_str_list([(string, title)], self.inline_query)
-        else:
-            self.send_message(string, **kwargs)
+    # since all methods support this now if available,
+    # these are for backwards compatability
+    def reply_text(self, string, **kwargs):
+        return self.send_message(string, **kwargs)
 
-    def reply_photo_url(self, url, title="", caption=""):
-        if self.inline:
-            InlineBaseBert.inl_send_photo_url_list([(url, title, caption)], self.inline_query)
-        else:
-            self.send_photo(url, title=title, caption=caption)
+    def reply_photo_url(self, url, caption=None):
+        return self.send(PhotoUrl(caption, url))
 
-    def reply_gif_url(self, url, title="", caption=""):
-        if self.inline:
-            InlineBaseBert.inl_send_gif_url_list([(url, title, caption)], self.inline_query)
-        else:
-            self.send_gif(url, title=title, caption=caption)
-
-    @staticmethod
-    def wrap_in_file(data, fname):
-        file_like = BytesIO(data)
-        file_like.name = fname
-        return file_like
-
-
-class InlineBaseBert(BaseBert):
-    """
-    Provide methods to answer inline queries
-    """
-    def inline_answer_string(self, string):
-        self.inline_answer_strings([string])
-
-    def inline_answer_strings(self, str_list):
-        InlineBaseBert.inl_send_str_list(str_list, self.inline_query)
-
-    @staticmethod
-    def inl_send_str_list(str_list, inline_query):
-        result = [
-            InlineQueryResultArticle(
-                id=f"inline{i}-{InlineBaseBert.gen_id(str_list)}",
-                title=title,
-                input_message_content=InputTextMessageContent(string)
-            )
-            for i, (string, title) in enumerate(str_list)
-        ]
-
-        InlineBaseBert._inl_send(result, inline_query)
-
-    def inline_answer_photo_url(self, url, title="", caption=""):
-        self.inline_answer_photo_urls([(url, title, caption)])
-
-    def inline_answer_photo_urls(self, url_list):
-        InlineBaseBert.inl_send_photo_url_list(url_list, self.inline_query)
-
-    @staticmethod
-    def inl_send_photo_url_list(url_list, inline_query):
-        result = [
-            InlineQueryResultPhoto(
-                id=f"photo{i}-{InlineBaseBert.gen_id(url_list)}",
-                photo_url=url,
-                title=title,
-                caption=desc,
-                thumb_url=url
-            )
-            for i, (url, title, desc) in enumerate(url_list)
-        ]
-
-        InlineBaseBert._inl_send(result, inline_query)
-
-    def inline_answer_gif_url(self, url, title="", caption=""):
-        self.inline_answer_gif_urls([(url, title, caption)])
-
-    def inline_answer_gif_urls(self, url_list):
-        InlineBaseBert.inl_send_gif_url_list(url_list, self.inline_query)
-
-    @staticmethod
-    def inl_send_gif_url_list(url_list, inline_query):
-        result = [
-            InlineQueryResultGif(
-                id=f"gif{i}-{InlineBaseBert.gen_id(url_list)}",
-                gif_url=url,
-                title=title,
-                caption=desc,
-                thumb_url=url
-            )
-            for i, (url, title, desc) in enumerate(url_list)
-        ]
-
-        InlineBaseBert._inl_send(result, inline_query)
-
-    @staticmethod
-    def gen_id(array):
-        return hashlib.md5(arr_to_bytes(array))
-
-    @staticmethod
-    def _inl_send(result, inline_query):
-        try:
-            inline_query.answer(result)
-        except telegram.error.BadRequest:
-            # took too long to answer
-            pass
+    def reply_gif_url(self, url, caption=None):
+        return self.send(Gif(caption, url))
 
 
 class ImageBaseBert(BaseBert):
+    """
+    Add some functions to basebert that
+    are helpful for image handling
+    """
     @staticmethod
     def pil_image_to_fp(image, img_format):
+        """ convert a pil-image to a file-like object """
         file_like = BytesIO()
         image.save(file_like, img_format)
         file_like.seek(0)
         return file_like
 
-    def send_pil_image(self, image, *, img_format='PNG', full=False, **kwargs):
+    def send_pil_image(self, image, *a, img_format='PNG', full=False, caption=None, **kwargs):
+        """ send a pil image by converting it to a file object, then sending that """
+        assert len(kwargs) == 0 and len(a) == 0
         file_like = ImageBaseBert.pil_image_to_fp(image, img_format)
-        if full:
-            return self.bot.send_document(self.chat_id, document=file_like)
-
-        return self.bot.send_photo(self.chat_id, file_like, api_kwargs=kwargs)
+        return self.send(
+            File(caption, file_like, 'image.png') if full else
+            Photo(caption, file_like))

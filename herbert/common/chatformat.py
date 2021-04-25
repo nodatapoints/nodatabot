@@ -3,7 +3,12 @@ FIXME this contains several specific hardcoded style definitions and conversions
 please improve (without breaking things)
 """
 import re
+from html.parser import HTMLParser
+
+from telegram import MessageEntity
+
 from common.basic_decorators import as_partial
+from herberror import BadHerberror
 
 STYLE_MD = 'MARKDOWN'
 STYLE_HTML = 'HTML'
@@ -28,7 +33,7 @@ def get_parse_mode(style=STYLE):
 
 def get_output_mode(style=STYLE):
     """ return the correct output encoding after rendering """
-    if style in (STYLE_BACKEND, STYLE_PARA):
+    if style in (STYLE_BACKEND, STYLE_PARA, STYLE_MD):
         return STYLE_HTML
     return style
 
@@ -66,10 +71,21 @@ def render_style_para(string, target_style=STYLE_BACKEND):
     return string
 
 
+def render_style_markdown(string, target_style=STYLE_HTML):
+    """ transform STYLE_PARA to target_style """
+    string = re.sub(r'`([^`]*)`', lambda m: mono(m.group(1), style=target_style), string)
+    string = re.sub(r'_([^`]*)_', lambda m: bold(m.group(1), style=target_style), string)
+    string = re.sub(r'\*([^`]*)\*', lambda m: italic(m.group(1), style=target_style), string)
+
+    return string
+
+
 def render(text, input_style):
     """ transform text from one style to another """
     if input_style == STYLE_BACKEND:
         render_text = render_style_backend(text)
+    elif input_style == STYLE_MD:
+        render_text = render_style_markdown(text)
     elif input_style == STYLE_PARA:
         render_text = render_style_backend(render_style_para(text, target_style=STYLE_BACKEND))
     else:
@@ -98,6 +114,76 @@ def escape_string(string, style=STYLE):
         return string.replace("<", "&lt;").replace(">", "&gt;")
 
     return string
+
+
+def parse_entities(string, style=STYLE) -> tuple[str, list[int]]:
+    """ convert in-string markup into message entities """
+    if style is None:
+        return string, []
+    text, output_mode = render(string, style)
+
+    if output_mode != STYLE_HTML:
+        raise BadHerberror(f"Invalid output format {output_mode}, cannot parse entities")
+
+    type_map = {
+        'a': MessageEntity.URL,
+        'i': MessageEntity.ITALIC,
+        'b': MessageEntity.BOLD,
+        'code': MessageEntity.CODE
+    }
+
+    class Parser(HTMLParser):
+        """ handles the html tags in a message """
+        def __init__(self):
+            super().__init__()
+            self.output = ''
+            self.output_pos = 0
+            self.entities = []
+            self.entity_stacks = dict()
+
+        def handle_starttag(self, tag, attrs):
+            if tag not in self.entity_stacks:
+                self.entity_stacks[tag] = list()
+
+            self.entity_stacks[tag].append(
+                {
+                    'start': self.output_pos,
+                    'type': tag,
+                    'attrs': dict(attrs)
+                }
+            )
+
+        def handle_endtag(self, tag):
+            if (tag not in self.entity_stacks or
+                    len(self.entity_stacks[tag]) == 0):
+                raise BadHerberror("Invalid markup generated: Illegal closing tag.")
+
+            data = self.entity_stacks[tag].pop()
+
+            if data['type'] not in type_map:
+                raise BadHerberror("Invalid markup generated: Illegal tag type.")
+
+            entity_type = type_map[data['type']]
+            start = data['start']
+
+            entity = MessageEntity(entity_type, start, self.output_pos - start)
+
+            if entity_type == MessageEntity.URL:
+                if 'href' in data['attrs']:
+                    entity.url = data['attrs']['href']
+
+            self.entities.append(entity)
+
+        def handle_data(self, data):
+            self.output += data
+            self.output_pos = len(self.output)
+
+        def error(self, message):
+            raise BadHerberror("Invalid markup generated")
+
+    parser = Parser()
+    parser.feed(text)
+    return parser.output, parser.entities
 
 
 def link_to(url, name=None, style=STYLE):

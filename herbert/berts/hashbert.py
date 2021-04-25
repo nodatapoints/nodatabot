@@ -15,13 +15,13 @@ from common.constants import ONLY_BASIC_HELP
 from common.chatformat import STYLE_MD
 from decorators import command, doc, aliases
 
-from basebert import InlineBaseBert
+from basebert import BaseBert
 from herberror import Herberror
 
 __all__ = ["HashBert"]
 
 
-class HashBert(InlineBaseBert):
+class HashBert(BaseBert):
     """
     Wraps several hashing commands, and
     a letter shift obfuscator
@@ -79,6 +79,10 @@ def rotate_char(shift, char, low, high):
 
 
 def rotate(shift, string):
+    """
+    Obfuscate a string by rotating all alphabetic characters
+    by some shift value (e.g. shift=1 takes A to B, E to F, etc)
+    """
     res = ""
     for char in string:
         if 'a' <= char <= 'z':
@@ -91,6 +95,9 @@ def rotate(shift, string):
 
 
 def hash_all(arg):
+    """
+    Run all available hash functions
+    """
     res = ""
     for name in hl.algorithms_available:
         try:

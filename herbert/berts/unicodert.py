@@ -1,6 +1,6 @@
 import re
 
-from basebert import InlineBaseBert
+from basebert import BaseBert
 from herberror import Herberror
 from common.constants import FLAG_CHARS
 from decorators import command, aliases, doc
@@ -18,7 +18,7 @@ def _retranslate_char(c: str):
     return chr(ord('A') + FLAG_CHARS.find(c))
 
 
-class UniCoDert(InlineBaseBert):
+class UniCoDert(BaseBert):
 
     @aliases('flag', 'flg')
     @command(pass_string=True, allow_inline=True)

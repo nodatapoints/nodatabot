@@ -10,11 +10,12 @@ from PIL import Image
 
 from ext.sly import Lexer, Parser
 from decorators import aliases, command, doc
-from basebert import ImageBaseBert, InlineBaseBert
+from basebert import ImageBaseBert
 from herberror import Herberror, BadHerberror
 from common.network import load_content, load_str, get_url_safe_string
 from common.argparser import Args
 from common import chatformat
+from common.reply_data import Gif
 
 StateCodeToId = {
     "ger": 0, "bw": 1, "bay": 2, "be": 3,
@@ -515,7 +516,7 @@ class MathParser(Parser):
             raise MathSyntaxError(f'Failed: Unexpected end of input (Empty token list)')
 
 
-class KalcBert(InlineBaseBert, ImageBaseBert):
+class KalcBert(ImageBaseBert):
     @aliases('wttr')
     @command(allow_inline=True, pass_string=True)
     @doc(
@@ -574,11 +575,13 @@ class KalcBert(InlineBaseBert, ImageBaseBert):
         if arg_send in ('file', 'both'):  # high resolution file
             _, data = load_content(url)
             image = Image.open(BytesIO(data))
-            self.bot.send_document(
-                self.chat_id, document=ImageBaseBert.pil_image_to_fp(image, 'PNG'))
+            # self.bot.send_document(
+            #     self.chat_id, document=ImageBaseBert.pil_image_to_fp(image, 'PNG'))
+            self.send_pil_image(image)
         if arg_send in ('img', 'both'):  # not full  ->  simple image
-            string = string if self.inline else ''
-            self.reply_gif_url(url, caption=string, title='')
+            # string = string if self.inline else ''
+            # self.reply_gif_url(url, caption=string, title='')
+            self.send(Gif(url=url, caption=string))
 
     # new part
     @command(pass_string=True, allow_inline=True)

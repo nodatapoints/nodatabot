@@ -9,10 +9,10 @@ provides commands:
 """
 import datetime
 from decorators import command, doc
-from basebert import InlineBaseBert
+from basebert import BaseBert
 
 
-class PingBert(InlineBaseBert):
+class PingBert(BaseBert):
     """ bert - allow pinging """
 
     @command(pass_args=False)

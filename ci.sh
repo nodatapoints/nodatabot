@@ -14,7 +14,7 @@ fail () {
 echo '--- COMPLAINER 9001 ---'
 cd herbert || { echo "Invalid Directory"; exit 1; }
 
-files='*.py common'
+files="*.py common"
 bert_files='berts'
 
 PYTHONPATH="$PYTHONPATH:." python3 berts/testbert.py

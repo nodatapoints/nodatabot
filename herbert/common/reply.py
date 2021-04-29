@@ -162,9 +162,12 @@ class TransformReply:
             end = min(len(text.msg), pos + MSG_CHUNK)
             entities = list()
             for entity in text.entities:
-                if entity.offset in range(pos, end) or entity.offset + entity.length in range(pos, end):
+                if (entity.offset in range(pos, end)
+                        or entity.offset + entity.length in range(pos, end)
+                        or (entity.offset < pos and entity.offset + entity.length > end)):
                     chunk_entity = copy(entity)
-                    chunk_entity.offset -= pos
+                    chunk_entity.offset = max(0, chunk_entity.offset - pos)
+                    chunk_entity.length = min(chunk_entity.length, end - chunk_entity.offset)
                     entities.append(chunk_entity)
 
             res.append(Text(text.msg[pos:end], entities))

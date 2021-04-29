@@ -78,7 +78,7 @@ class Herbert:
         self.updater.start_polling()
 
     def idle(self):
-        """ start the updated event loop """
+        """ start the updater event loop """
         self.start()
         self.updater.idle()
 

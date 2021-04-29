@@ -64,7 +64,7 @@ def _t_search_for(query):
     results = "\n".join(search_for(query))
 
     # reply_large_utf8(bot, update, results)
-    return Text(results)
+    return Text(results, [])
 
 
 def _t_search_for_first(query):
@@ -75,7 +75,7 @@ def _t_search_for_first(query):
         result = "No Link found."
 
     # reply_large_utf8(bot, update, result)
-    return Text(result)
+    return Text(result, [])
 
 
 class Hercurles(BaseBert):
@@ -104,7 +104,7 @@ class Hercurles(BaseBert):
     @doc(""" Return the first link the given string hits when searched for on DuckDuckGo """)
     def searchforfirst(self, string):
         # _t_search_for_first(self.bot, self.update, string)
-        self.send(_t_search_for(string.strip()))
+        self.send(_t_search_for_first(string.strip()))
 
     @callback(pattern='T.*')
     @make_tx_callback

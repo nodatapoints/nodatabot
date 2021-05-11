@@ -40,9 +40,8 @@ def _t_get_text(url: str):
     if " " in url:
         raise Herberror("URLS cannot contain spaces")
 
-    # reply_large_utf8(bot, update, load_str(url), name=gen_filename_from_url(url))
     name = gen_filename_from_url(url)
-    return Text(load_str(url).encode('utf-8'), name=name)
+    return Text(load_str(url), name=name)
 
 
 def _t_get(url: str):
@@ -52,7 +51,6 @@ def _t_get(url: str):
     data_type, data = load_content(url)
 
     reply_markup = make_keyboard({"Show as Photo": make_callback("0", url)}) if is_image_content_type(data_type) else None
-    # reply_filed_binary(bot, update, data, gen_filename_from_url(url, data_type), reply_markup=reply_markup)
     name = gen_filename_from_url(url, data_type)
     res = File(name, data, name)
     res.reply_markup = reply_markup
@@ -60,21 +58,16 @@ def _t_get(url: str):
 
 
 def _t_search_for(query):
-
     results = "\n".join(search_for(query))
-
-    # reply_large_utf8(bot, update, results)
     return Text(results, [])
 
 
 def _t_search_for_first(query):
-
     try:
         result = search_for(query)[0]
     except IndexError:
         result = "No Link found."
 
-    # reply_large_utf8(bot, update, result)
     return Text(result, [])
 
 

@@ -103,7 +103,7 @@ class BaseBert:
         :param disable_web_page_preview: set whether telegram should show the user a preview or not
         :return: a telegram.Message object on success
         """
-        return self.send(Text(*chatformat.parse_entities(msg, parse_mode), disable_web_page_preview=disable_web_page_preview))
+        return self.send(self._prepare_text(msg, parse_mode, disable_web_page_preview))
 
     def send_sticker(self, sticker):
         return self.send(Sticker(sticker))
@@ -139,6 +139,11 @@ class BaseBert:
     def reply_gif_url(self, url, caption=None):
         return self.send(Gif(caption, url))
 
+    @staticmethod
+    def _prepare_text(msg, parse_mode, disable_web_page_preview):
+        return Text(*chatformat.parse_entities(msg, parse_mode),
+                    disable_web_page_preview=disable_web_page_preview)
+
 
 class ImageBaseBert(BaseBert):
     """
@@ -153,10 +158,13 @@ class ImageBaseBert(BaseBert):
         file_like.seek(0)
         return file_like
 
-    def send_pil_image(self, image, *a, img_format='PNG', full=False, caption=None, **kwargs):
+    def send_pil_image(self, image, *a, img_format='PNG', full=False, caption=None,
+                       disable_web_page_preview=False, parse_mode=None, **kwargs):
         """ send a pil image by converting it to a file object, then sending that """
         assert len(kwargs) == 0 and len(a) == 0
         file_like = ImageBaseBert.pil_image_to_fp(image, img_format)
+        if isinstance(caption, str):
+            caption = self._prepare_text(caption, parse_mode, disable_web_page_preview)
         return self.send(
             File(caption, file_like, 'image.png') if full else
             Photo(caption, file_like))

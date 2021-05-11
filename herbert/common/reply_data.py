@@ -34,7 +34,7 @@ class ReplyData:
 class Text(ReplyData):
     """ replies consisting of simple, possibly markupped text """
     msg: str
-    entities: list
+    entities: list = field(default_factory=lambda: [])
     name: str = None  # in case this gets converted to a file
     disable_web_page_preview: bool = False
 

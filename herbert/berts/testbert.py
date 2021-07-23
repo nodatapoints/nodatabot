@@ -18,7 +18,7 @@ from dataclasses import dataclass
 
 from common import chatformat
 from common.argparser import Args, UnexpectedArgument, ArgumentFormatError
-from common.chatformat import render_style_para
+from common.chatformat import render_style_para, STYLE_HTML, mono
 from common.basic_utils import require
 from basebert import BaseBert
 from herberror import Herberror, BadHerberror
@@ -81,6 +81,18 @@ class TestBert(BaseBert):
         if len(args) <= 1:
             return
         self.reply_text("".join(args[1:]), parse_mode=args[0])
+
+    @command(register_help=False, pass_string=True)
+    def dbg_parse(self, string: str):
+        """
+        Parse markup tags in the input and return both
+        the text as well as a description of the respective
+        message entities
+        """
+        self.reply_text(string, parse_mode=STYLE_HTML)
+
+        _text, entities = chatformat.parse_entities(string, STYLE_HTML)
+        self.reply_text('\n'.join(mono(f'E {e.offset} {e.length}') for e in entities))
 
 
 def test():

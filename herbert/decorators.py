@@ -52,6 +52,8 @@ def handle_herberrors(method):
         Functional wrapper to handle errors a command_handler
         might throw as well as errors that are entirely unexpected
         """
+        log = logging.getLogger('herbert.RUNTIME')
+
         try:
             return method(self, *args, **kwargs)
 
@@ -65,15 +67,13 @@ def handle_herberrors(method):
             res_text = template.format(emoji, " ".join(error.args))
             self.reply_text(res_text, disable_web_page_preview=True)
             msg, = error.args
-            logging.getLogger('herbert.RUNTIME').debug('Herberror: "%s"', msg)
+            log.debug('Herberror: "%s"', msg, exc_info=error)
 
         except telegram.error.TimedOut:
-            logging.getLogger('herbert.RUNTIME') \
-                   .info('Timed out')
+            log.info('Timed out')
 
         except telegram.error.NetworkError:
-            logging.getLogger('herbert.RUNTIME') \
-                   .info('Connection Failed or message rejected by telegram API')
+            log.info('Connection Failed or message rejected by telegram API')
 
         except Exception:
             self.reply_text(ERROR_FAILED)

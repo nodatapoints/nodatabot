@@ -35,3 +35,6 @@ python3 -m pylint $bert_files --disable=missing-docstring --rcfile .pylintrc --c
 echo 'PEP8'
 python3 -m pycodestyle . --max-line-length 140 --exclude 'ext' || fail 'PEP8'
 
+echo 'TESTS'
+python3 -m unittest test/*.py
+

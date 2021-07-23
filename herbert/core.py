@@ -113,12 +113,13 @@ def handle_inline_query(update: Update, context: CallbackContext, line=None):
 
             return True
 
-    update.inline_query.answer([
-        InlineQueryResultArticle(
-            id="error0",
-            title='Failed to find Command "' + command + '".',
-            input_message_content=InputTextMessageContent("Hello, guys!")
-        )
-    ])
+    if update.inline_query:
+        update.inline_query.answer([
+            InlineQueryResultArticle(
+                id="error0",
+                title='Failed to find Command "' + command + '".',
+                input_message_content=InputTextMessageContent("Hello, guys!")
+            )
+        ])
 
     return False

@@ -26,6 +26,7 @@ from berts.xkcdert import XKCDert
 from berts.unicodert import UniCoDert
 from berts.stackbert import StackBert
 from berts.dudert import Dudert
+from berts.wikibert import WikiBert
 
 from berts.testbert import TestBert
 

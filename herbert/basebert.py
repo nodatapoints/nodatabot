@@ -14,20 +14,13 @@ or an inline handler
 
 import inspect
 from io import BytesIO
-# import hashlib
+from typing import Callable, Any
 
-# from telegram import InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultPhoto, InlineQueryResultGif
-# import telegram.error
-
-# from common.basic_utils import arr_to_bytes
 from common import chatformat
-# from common import chat
-# from common.telegram_limits import MSG_CHUNK
-
-from common.reply import send_message
+from common.reply import send_message as default_send
 from common.reply_data import (
     File, Gif, Photo, PhotoUrl, Sticker, Text, ReplyData,
-    ChatContext, InlineContext
+    ChatContext, InlineContext, Context
 )
 
 
@@ -43,8 +36,9 @@ class BaseBert:
     Provides general methods to answer
     command invocations
     """
-    def __init__(self):
+    def __init__(self, backend: Callable[[ReplyData, Context], Any] = default_send):
         self.context = None
+        self._backend = backend
 
     def enumerate_cmds(self):
         return filter(lambda m: hasattr(m, 'cmdinfo'), self.enumerate_members())
@@ -92,7 +86,11 @@ class BaseBert:
         return self.message and self.message.chat_id
 
     def send(self, obj: ReplyData):
-        return send_message(obj, self.context)
+        """
+        Forward data to backend
+        """
+        if self.context is not None:
+            return self._backend(obj, self.context)
 
     def send_message(self, msg, parse_mode=chatformat.get_parse_mode(),
                      disable_web_page_preview=False):

@@ -4,7 +4,6 @@ be classified AND have no dependencies
 on libraries or other code not in this
 exact module.
 """
-from common.constants import NUM_SUFFIXES
 
 
 def arr_to_bytes(arr: list):
@@ -40,8 +39,16 @@ def require(_arg):
 
 def nth(num: int) -> str:
     """ return a string representing the ordinal of num (1st, 2nd, 3rd, ...) """
-    if num >= len(NUM_SUFFIXES):
+    num_suffixes = ['th', 'st', 'nd', 'rd']
+    if num >= len(num_suffixes):
         idx = 0
     else:
         idx = num
-    return f"{num}{NUM_SUFFIXES[idx]}"
+    return f"{num}{num_suffixes[idx]}"
+
+
+def utf16len(string: str) -> int:
+    """
+    Return the number of utf16 codepoints in the string
+    """
+    return len(string.encode("utf-16le")) // 2

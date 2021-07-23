@@ -36,7 +36,6 @@ BAD_ERROR_TEMPLATE = ERROR_TEMPLATE + BAD_ERROR_SUFFIX
 EMOJI_WARN = '⚠️'
 EMOJI_EXPLOSION = '💥'
 
-NUM_SUFFIXES = ['th', 'st', 'nd', 'rd']
 FLAG_CHARS = "🇦🇧🇨🇩🇪🇫🇬🇭🇮🇯🇰🇱🇲🇳🇴🇵🇶🇷🇸🇹🇺🇻🇼🇽🇾🇿"
 
 ONLY_BASIC_HELP = 42

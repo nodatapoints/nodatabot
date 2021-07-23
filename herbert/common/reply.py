@@ -9,7 +9,7 @@ from telegram import InlineQueryResultArticle, InputTextMessageContent, InlineQu
 from telegram.error import BadRequest
 
 from common.telegram_limits import MSG_CHUNK
-from common.basic_utils import arr_to_bytes
+from common.basic_utils import arr_to_bytes, utf16len
 from common.type_dispatch import TypeDispatch
 from common.reply_data import (
     ReplyData,
@@ -157,9 +157,10 @@ class TransformReply:
         """
         res = list()
         pos = 0
+        size = utf16len(text.msg)
 
-        while pos < len(text.msg):
-            end = min(len(text.msg), pos + MSG_CHUNK)
+        while pos < size:
+            end = min(size, pos + MSG_CHUNK)
             entities = list()
             for entity in text.entities:
                 if (entity.offset in range(pos, end)
@@ -179,6 +180,10 @@ class TransformReply:
         return [img]  # maybe actually do something
 
 
+def processed_message_parts(data: ReplyData):
+    yield from TransformReply()(data)
+
+
 def send_message(data: ReplyData, ctx: Context):
     """
     Best-effort method for returning some piece of data
@@ -187,5 +192,5 @@ def send_message(data: ReplyData, ctx: Context):
     to the actual sending methods using the context
     type.
     """
-    for part in TransformReply()(data):
+    for part in processed_message_parts(data):
         SendReply()(part, ctx)

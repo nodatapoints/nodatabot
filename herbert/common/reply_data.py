@@ -4,7 +4,7 @@ as well as ways *how* the things can
 be replied.
 """
 from dataclasses import dataclass, field
-from typing import List, Union
+from typing import List, Union, Optional
 from io import BytesIO
 
 from telegram import Bot, CallbackQuery, InlineQuery
@@ -27,7 +27,7 @@ class ReplyData:
     into files or whatever before being handed
     over to a send method
     """
-    reply_markup: telegram.ReplyMarkup = field(default=None, init=False)
+    reply_markup: Optional[telegram.ReplyMarkup] = field(default=None, init=False)
 
 
 @dataclass
@@ -35,7 +35,7 @@ class Text(ReplyData):
     """ replies consisting of simple, possibly markupped text """
     msg: str
     entities: list = field(default_factory=lambda: [])
-    name: str = None  # in case this gets converted to a file
+    name: Optional[str] = None  # in case this gets converted to a file
     disable_web_page_preview: bool = False
 
 

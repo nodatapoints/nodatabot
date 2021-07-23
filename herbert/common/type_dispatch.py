@@ -130,7 +130,7 @@ class TypeDispatch:
         as valid dispatch targets
         """
         for name, member in cls.__dict__.items():
-            if name[0] == '_':
+            if len(name) == 0 or name[0] == '_':
                 continue
 
             assert not isinstance(member, type), "Cannot recursively generate lookups"

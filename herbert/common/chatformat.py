@@ -4,10 +4,12 @@ please improve (without breaking things)
 """
 import re
 from html.parser import HTMLParser
+from typing import Tuple, List
 
 from telegram import MessageEntity
 
 from common.basic_decorators import as_partial
+from common.basic_utils import utf16len
 from herberror import BadHerberror
 
 STYLE_MD = 'MARKDOWN'
@@ -116,7 +118,7 @@ def escape_string(string, style=STYLE):
     return string
 
 
-def parse_entities(string, style=STYLE) -> tuple[str, list[int]]:
+def parse_entities(string, style=STYLE) -> Tuple[str, List[MessageEntity]]:
     """ convert in-string markup into message entities """
     if style is None:
         return string, []
@@ -137,9 +139,15 @@ def parse_entities(string, style=STYLE) -> tuple[str, list[int]]:
         def __init__(self):
             super().__init__()
             self.output = ''
-            self.output_pos = 0
             self.entities = []
             self.entity_stacks = dict()
+
+        @property
+        def output_pos(self):
+            """
+            return number of processed utf-16 code units
+            """
+            return utf16len(self.output)
 
         def handle_starttag(self, tag, attrs):
             if tag not in self.entity_stacks:
@@ -176,7 +184,6 @@ def parse_entities(string, style=STYLE) -> tuple[str, list[int]]:
 
         def handle_data(self, data):
             self.output += data
-            self.output_pos = len(self.output)
 
         def error(self, message):
             raise BadHerberror("Invalid markup generated")

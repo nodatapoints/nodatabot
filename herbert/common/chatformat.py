@@ -42,6 +42,9 @@ def get_output_mode(style=STYLE):
 
 def render_style_backend(string, target_style=STYLE_HTML):
     """ transform STYLE_BACKEND to target_style """
+    if target_style == STYLE_BACKEND:
+        return string
+
     assert target_style == STYLE_HTML, "Markdown rendering is not supported yet"
     substitutions = {
         '!§![i': '<i>',
@@ -63,37 +66,50 @@ def render_style_backend(string, target_style=STYLE_HTML):
     return string
 
 
-def render_style_para(string, target_style=STYLE_BACKEND):
+def render_style_para(string, target_style=STYLE_HTML):
     """ transform STYLE_PARA to target_style """
-    assert target_style == STYLE_BACKEND, "Direct HTML rendering is not supported yet"
-    string = re.sub(r'm§([^§]*)§', lambda m: mono(m.group(1), style=STYLE_BACKEND), string)
-    string = re.sub(r'b§([^§]*)§', lambda m: bold(m.group(1), style=STYLE_BACKEND), string)
-    string = re.sub(r'i§([^§]*)§', lambda m: italic(m.group(1), style=STYLE_BACKEND), string)
+    def replace(match):
+        text = match.group(1)
+        match_type = text[0]
+        match_content = text[2:]
+        return dict(m=mono, i=italic, b=bold).get(match_type)(match_content, style=target_style)
+
+    string = re.sub(r'([mbi]§[^§]*)§', replace, string)
 
     return string
 
 
 def render_style_markdown(string, target_style=STYLE_HTML):
-    """ transform STYLE_PARA to target_style """
+    """ transform STYLE_MD to target_style """
     string = re.sub(r'`([^`]*)`', lambda m: mono(m.group(1), style=target_style), string)
-    string = re.sub(r'_([^`]*)_', lambda m: bold(m.group(1), style=target_style), string)
-    string = re.sub(r'\*([^`]*)\*', lambda m: italic(m.group(1), style=target_style), string)
+    string = re.sub(r'_([^_]*)_', lambda m: italic(m.group(1), style=target_style), string)
+    string = re.sub(r'\*([^*]*)\*', lambda m: bold(m.group(1), style=target_style), string)
 
     return string
 
 
-def render(text, input_style):
-    """ transform text from one style to another """
-    if input_style == STYLE_BACKEND:
-        render_text = render_style_backend(text)
-    elif input_style == STYLE_MD:
-        render_text = render_style_markdown(text)
-    elif input_style == STYLE_PARA:
-        render_text = render_style_backend(render_style_para(text, target_style=STYLE_BACKEND))
-    else:
-        render_text = text
+def render_style_html(string, target_style=STYLE_HTML):
+    """
+    transform STYLE_HTML to target style, except the
+    only valid target style is html itself
+    """
+    assert target_style == STYLE_HTML
+    return string
 
-    return render_text, get_output_mode(input_style)
+
+def render(text, input_style, target_style=None):
+    """ transform text from one style to another """
+    renderers = {
+        STYLE_BACKEND: render_style_backend,
+        STYLE_MD: render_style_markdown,
+        STYLE_PARA: render_style_para,
+        STYLE_HTML: render_style_html
+    }
+
+    if target_style is None:
+        target_style = get_output_mode(input_style)
+
+    return renderers[input_style](text, target_style), target_style
 
 
 def ensure_markup_clean(string, msg='', style=STYLE):
@@ -246,9 +262,9 @@ def bold(): """ adds bold formatting to the given text """
     _wrap_delimiters,
     {
         STYLE_HTML: ('<code>', '</code>'),
-        STYLE_MD: ('*', '*'),
+        STYLE_MD: ('`', '`'),
         STYLE_BACKEND: ('!§![c', '!§!]c'),
-        STYLE_PARA: ('i§', '§')
+        STYLE_PARA: ('m§', '§')
     }
 )
 def mono(): """ adds monospaced formatting to the given text """

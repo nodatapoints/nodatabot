@@ -69,7 +69,11 @@ class WikiBert(BaseBert):
 
     @aliases('wiki', 'w')
     @command(pass_string=True)
-    @doc("""Search for a thing on wikipedia""")
+    @doc("""Search for a thing on wikipedia
+
+    Usage: m§/wiki <query>§
+    Will search wikipedia for something matching the given string
+    """)
     def getwikipage(self, query):
         """
         Use the wiki api calls to return some

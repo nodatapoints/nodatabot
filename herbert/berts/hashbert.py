@@ -12,7 +12,7 @@ import re
 from common.basic_utils import str_to_bytes, bytes_to_str
 from common.herbert_utils import tx_assert
 from common.constants import ONLY_BASIC_HELP
-from common.chatformat import STYLE_MD
+from common.chatformat import STYLE_MD, mono
 from decorators import command, doc, aliases
 
 from basebert import BaseBert
@@ -30,23 +30,23 @@ class HashBert(BaseBert):
     @command(pass_string=True, allow_inline=True, register_help=ONLY_BASIC_HELP)
     @doc(""" Return the md5-hash of the given string """)
     def md5(self, string):
-        self.reply_text(hl.md5(str_to_bytes(string)).hexdigest())
+        self.reply_text(mono(hl.md5(str_to_bytes(string)).hexdigest()))
 
     @aliases('sha512', 'hash', 'sha')
     @command(pass_string=True, allow_inline=True)
     @doc(""" Return the sha512-hash of the given string """)
     def sha512(self, string):
-        self.reply_text(hl.sha512(str_to_bytes(string)).hexdigest())
+        self.reply_text(mono(hl.sha512(str_to_bytes(string)).hexdigest()))
 
     @command(pass_string=True, allow_inline=True)
     @doc(""" Base64-encode the given string """)
     def b64enc(self, string):
-        self.reply_text(b64e(string))
+        self.reply_text(mono(b64e(string)))
 
     @command(pass_string=True, allow_inline=True)
     @doc(""" Base64-decode the given string """)
     def b64dec(self, string):
-        self.reply_text(b64d(string))
+        self.reply_text(mono(b64d(string)))
 
     @command(pass_string=True)
     @doc(""" Run a string through all available hash-functions """)

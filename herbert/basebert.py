@@ -14,7 +14,7 @@ or an inline handler
 
 import inspect
 from io import BytesIO
-from typing import Callable, Any
+from typing import Callable, Any, Optional
 
 from common import chatformat
 from common.reply import send_message as default_send
@@ -37,7 +37,7 @@ class BaseBert:
     command invocations
     """
     def __init__(self, backend: Callable[[ReplyData, Context], Any] = default_send):
-        self.context = None
+        self.context: Optional[Context] = None
         self._backend = backend
 
     def enumerate_cmds(self):
@@ -91,6 +91,7 @@ class BaseBert:
         """
         if self.context is not None:
             return self._backend(obj, self.context)
+        return None
 
     def send_message(self, msg, parse_mode=chatformat.get_parse_mode(),
                      disable_web_page_preview=False):

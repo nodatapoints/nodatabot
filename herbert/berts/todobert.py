@@ -7,6 +7,7 @@ from basebert import BaseBert
 from herberror import Herberror, BadHerberror
 
 todo_file = Path('todo.txt')
+todo_file.touch(exist_ok=True)
 
 MARKDOWNEXTRA = 2
 MAXLENGTHKEY = 6

@@ -15,7 +15,7 @@ from common.basic_decorators import argdecorator
 from common.herbert_utils import is_cmd_decorated
 from common.constants import ERROR_FAILED, ERROR_TEMPLATE, \
     BAD_ERROR_TEMPLATE, EMOJI_EXPLOSION, EMOJI_WARN, ONLY_BASIC_HELP
-from common.chatformat import render_style_para
+from common.chatformat import render_style_para, STYLE_BACKEND
 from common.prefixhandler import HerbotPrefixHandler
 from common import reply_data
 
@@ -318,5 +318,5 @@ def doc(method: Callable, docstring: str):
                .warning('calling @doc on already decorated method! '
                         'In the current version, @doc has to be applied before @command')
 
-    method.__doc__ = render_style_para(docstring)
+    method.__doc__ = render_style_para(docstring, target_style=STYLE_BACKEND)
     return method

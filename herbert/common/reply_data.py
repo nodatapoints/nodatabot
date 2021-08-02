@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import List, Union, Optional
 from io import BytesIO
 
-from telegram import Bot, CallbackQuery, InlineQuery
+from telegram import Bot, CallbackQuery, InlineQuery, Message
 import telegram
 
 
@@ -102,7 +102,7 @@ class Context:
 @dataclass
 class ChatContext(Context):
     """ send into a normal chat """
-    message: object
+    message: Message
 
     @property
     def chat_id(self):

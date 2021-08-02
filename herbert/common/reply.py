@@ -88,12 +88,12 @@ def _inl_send_photo_url_list(photo_list, query):
     _inl_send(result, query)
 
 
-@TypeDispatch(ReplyData, Context)
-class SendReply:
+class SendReply(metaclass=TypeDispatch):
     """
     Take a message descriptor and an invocation context object
     and try to deliver the message to the right endpoint
     """
+    _types = [ReplyData, Context]
 
     # Text
     def edit_text(self, text: Text, ctx: ChatEditContext):
@@ -139,12 +139,12 @@ class SendReply:
         )
 
 
-@TypeDispatch(ReplyData)
-class TransformReply:
+class TransformReply(metaclass=TypeDispatch):
     """
     Reshape a message object, if sending would be impossible
     or impractical (very long texts etc.).
     """
+    _types = [ReplyData]
 
     @staticmethod
     def _dispatch_fail(_classes, instances):

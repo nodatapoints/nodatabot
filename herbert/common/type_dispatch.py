@@ -14,6 +14,7 @@ avoids spamming accept() functions everywhere
 in the data classes.
 """
 from inspect import getargs
+from typing import Callable, Any, Dict
 
 
 class HandlerError(Exception):
@@ -29,7 +30,7 @@ def _raise_err(key, instances):
     raise Exception(f"No handler installed for {key}.")
 
 
-class TypeDispatch:
+class TypeDispatchProcessor:
     """
     Use instances of this class as a decorator
     to register functions, then call .invoke()
@@ -42,13 +43,13 @@ class TypeDispatch:
     subtype.
 
     class DataProcessor:
-        _handle = TypeDispatch(Data)
+        _handle = TypeDispatchProcessor(Data)
 
-        @_handle
+        @_handle.process
         def handle_d1(data: ConcreteData1):
             ...
 
-        @_handle
+        @_handle.process
         def handle_d2(data: ConcreteData2):
             ...
 
@@ -73,26 +74,21 @@ class TypeDispatch:
     of decorators.
 
     This might not be a good way to do anything,
-    by the way, but it __does__ saves some typing.
+    by the way, but it __does__ save some typing.
     """
     def __init__(self, *classes, invalid_call=_raise_err):
         self._dispatch_table = dict()
         self._classes = (classes,) if isinstance(classes, type) else tuple(classes)
-        self._invalid_call = invalid_call
+        self.invalid_call = invalid_call
         self._width = len(self._classes)
 
-    def __call__(self, obj, with_self=False):
+    def process(self, function: Callable[..., Any], with_self=False) -> None:
         """
         Add a function to the dispatch handlers, using the types defined
         in the annotations of the arguments
         Automatically delegates to self.generate if the passed object
         is a class
         """
-        if isinstance(obj, type):
-            return self.generate(obj)
-
-        function = obj
-
         args = tuple(getargs(function.__code__).args)
 
         if with_self:
@@ -111,7 +107,6 @@ class TypeDispatch:
                 f"A call via {key} is already handled by {self._dispatch_table[key]}.")
 
         self._dispatch_table[key] = lambda *a: function(self, *a) if with_self else function
-        return function
 
     def invoke(self, *instances):
         """
@@ -121,26 +116,45 @@ class TypeDispatch:
         assert len(instances) == self._width
         key = tuple(i.__class__ for i in instances)
         if key not in self._dispatch_table:
-            return self._invalid_call(key, instances)
+            return self.invalid_call(key, instances)
         return self._dispatch_table[key](*instances)
 
-    def generate(self, cls: type):
-        """
-        Register all non-private member methods of a class
-        as valid dispatch targets
-        """
-        for name, member in cls.__dict__.items():
+
+class TypeDispatch(type):
+    """
+    Metaclass to register all non-private member methods of
+    a class as valid dispatch targets
+
+    Equivalent to adding a process-decorator before each
+    method not starting with an underscore
+
+    Set the array of types to dispatch over as a _types 
+    class member
+
+    This will make the processor available as a _processor
+    class member, and bind the invoke operation to the call
+    operator of instances of the class
+    """
+    def __new__(cls, cls_name: str, bases: tuple, namespace: Dict[str, Callable[..., Any]]):
+        type_member = '_types'
+        try:
+            processor = TypeDispatchProcessor(*namespace[type_member])
+        except KeyError as err:
+            raise ValueError(f'Expected class with \'{type_member}\' member') from err
+
+        res: Dict[str, Callable[..., Any]] = dict()
+        for name, member in namespace.items():
             if len(name) == 0 or name[0] == '_':
                 continue
 
-            assert not isinstance(member, type), "Cannot recursively generate lookups"
-            setattr(cls, name, self(member, with_self=True))
+            assert not isinstance(member, type), 'No recursion allowed'
+            processor.process(member, with_self=True)
 
-        if (self._invalid_call is _raise_err and
-                (err := getattr(cls, '_dispatch_fail', None)) is not None):
-            self._invalid_call = err
+        if (handler := namespace.get('_dispatch_fail', None)):
+            processor.invalid_call = handler
 
-        setattr(cls, '_type_dispatch', self)
-        setattr(cls, '__call__', staticmethod(self.invoke))
+        res['__call__'] = lambda self, *args: processor.invoke(*args)
+        res['__init__'] = lambda self: None
+        res['_processor'] = processor
 
-        return cls
+        return type.__new__(cls, cls_name, bases, res)

@@ -33,14 +33,14 @@ from berts.testbert import TestBert
 __all__ = ['main']
 
 
-def configure_logs(log_lvl):
+def configure_logs(log_lvl: int) -> None:
     """ setup logging for herbert """
     logging.basicConfig()
     logging.getLogger('herbert.SETUP').setLevel(log_lvl)
     logging.getLogger('herbert.RUNTIME').setLevel(log_lvl)
 
 
-def create_bot():
+def create_bot() -> Herbert:
     """ perform some setup """
     bot = Herbert()
 
@@ -54,7 +54,7 @@ def create_bot():
     return bot
 
 
-def main():
+def main() -> None:
     """ main entrypoint, runs bot """
     configure_logs(logging.DEBUG)
     create_bot().idle()

@@ -6,6 +6,7 @@ also used in different contexts
 from urllib.parse import quote
 import re
 import json
+from dataclasses import dataclass
 
 from lxml import etree
 
@@ -41,6 +42,11 @@ def load_xml(url: str, **kwargs):
 SPACES = "\\s+"
 PLUS = "+"
 
+@dataclass
+class SearchResult:
+    url: str
+    title: str
+
 
 def search_for(query: str):
     """
@@ -52,8 +58,12 @@ def search_for(query: str):
     try:
         root = load_xml(url)
 
-        elements = root.findall(".//a[@class='result__snippet']")
+        find_urls = etree.XPath(
+            ".//div[re:test(@class, 'web-result', 'i')]//a[@class='result__a']",
+            namespaces=dict(re='http://exslt.org/regular-expressions')
+        )
 
+        elements = find_urls(root)
         return [elem.attrib['href'] for elem in elements]
 
     except etree.ParseError as err:

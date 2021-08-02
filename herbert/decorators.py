@@ -4,13 +4,14 @@ Define all the decorators!
 import logging
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Callable
+from typing import Callable, TypeVar, Any
 import re
 
 import telegram.error
 from telegram.ext import CallbackQueryHandler, CallbackContext
 from telegram import Update
 
+from basebert import BaseBert
 from common.basic_decorators import argdecorator
 from common.herbert_utils import is_cmd_decorated
 from common.constants import ERROR_FAILED, ERROR_TEMPLATE, \
@@ -27,9 +28,10 @@ __all__ = [
 ]
 
 reply_timeout = timedelta(seconds=120)
+Ret = TypeVar('Ret')
 
 
-def pull_string(text):
+def pull_string(text: str) -> str:
     """
     Discard command name of command message
     e.g. transform `/do something` into `something`
@@ -38,7 +40,7 @@ def pull_string(text):
     return splits[1] if len(splits) >= 2 else ""
 
 
-def handle_herberrors(method):
+def handle_herberrors(method: Callable[[BaseBert, ...], Ret]) -> Callable[[BaseBert, ...], Ret]:
     """
     Returns a wrapper around `method`, which in turn
     Catches `Herberror` and sends the argument of the exception as a message
@@ -47,7 +49,7 @@ def handle_herberrors(method):
     """
 
     @wraps(method)
-    def wrapped(self, *args, **kwargs):
+    def wrapped(self: BaseBert, *args, **kwargs):
         """
         Functional wrapper to handle errors a command_handler
         might throw as well as errors that are entirely unexpected

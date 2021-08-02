@@ -14,7 +14,9 @@ or an inline handler
 
 import inspect
 from io import BytesIO
-from typing import Callable, Any, Optional
+from typing import Callable, Any, Optional, List, TypeVar, Iterable, Tuple
+
+from telegram import Message
 
 from common import chatformat
 from common.reply import send_message as default_send
@@ -25,6 +27,10 @@ from common.reply_data import (
 
 
 __all__ = ['BaseBert', 'ImageBaseBert']
+CommandType = Callable[..., Any]
+BackendRet = TypeVar('BackendRet')
+Tp = TypeVar('Tp')
+SendRet = Optional[BackendRet]
 
 
 class BaseBert:
@@ -36,18 +42,19 @@ class BaseBert:
     Provides general methods to answer
     command invocations
     """
-    def __init__(self, backend: Callable[[ReplyData, Context], Any] = default_send):
+    def __init__(self, backend: Callable[[ReplyData, Context], BackendRet] = default_send):
         self.context: Optional[Context] = None
         self._backend = backend
 
-    def enumerate_cmds(self):
+    def enumerate_cmds(self) -> Iterable[CommandType]:
         return filter(lambda m: hasattr(m, 'cmdinfo'), self.enumerate_members())
 
-    def enumerate_members(self):
-        return map(lambda m: m[1], inspect.getmembers(self, inspect.ismethod))
+    def enumerate_members(self) -> Iterable[CommandType]:
+        map_func: Callable[[Tuple[str, Tp]], Tp] = lambda m: m[1]
+        return map(map_func, inspect.getmembers(self, inspect.ismethod))
 
     @property
-    def message(self):
+    def message(self) -> Optional[Message]:
         """
         retrieve a message object, if that is
         available in the current context
@@ -60,7 +67,7 @@ class BaseBert:
         return None
 
     @property
-    def message_text(self):
+    def message_text(self) -> str:
         """
         if there is a message object associated
         with the current context, return its
@@ -77,15 +84,17 @@ class BaseBert:
         return ""
 
     @property
-    def chat_id(self):
+    def chat_id(self) -> Optional[int]:
         """
         if there is a message object associated
         with the current context, return its
         chat_id
         """
-        return self.message and self.message.chat_id
+        if self.message:
+            return self.message.chat_id
+        return None
 
-    def send(self, obj: ReplyData):
+    def send(self, obj: ReplyData) -> SendRet:
         """
         Forward data to backend
         """
@@ -93,8 +102,8 @@ class BaseBert:
             return self._backend(obj, self.context)
         return None
 
-    def send_message(self, msg, parse_mode=chatformat.get_parse_mode(),
-                     disable_web_page_preview=False):
+    def send_message(self, msg: str, parse_mode=chatformat.get_parse_mode(),
+                     disable_web_page_preview=False) -> SendRet:
         """
         Send text to the user
         :param msg: A utf-8 encoded string to be sent
@@ -104,7 +113,7 @@ class BaseBert:
         """
         return self.send(self._prepare_text(msg, parse_mode, disable_web_page_preview))
 
-    def send_sticker(self, sticker):
+    def send_sticker(self, sticker: str) -> SendRet:
         return self.send(Sticker(sticker))
 
     def send_photo_from_file(self, path, caption=None, **kwargs):

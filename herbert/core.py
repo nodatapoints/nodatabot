@@ -58,9 +58,9 @@ class Herbert:
                 for handler in inf.handlers(method):
                     self.updater.dispatcher.add_handler(handler)
 
-                if inf.allow_inline:
+                if inf.properties.allow_inline:
                     inline_methods[method.__name__] = inf.invoke(method)
-                    for command in inf.aliases:
+                    for command in inf.properties.aliases:
                         inline_aliases[command] = method.__name__
 
             elif hasattr(method, 'callback_query_handler'):

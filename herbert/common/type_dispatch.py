@@ -26,7 +26,7 @@ class HandlerError(Exception):
     """
 
 
-def _raise_err(key, instances):
+def _raise_err(_self, key, instances):
     raise Exception(f"No handler installed for {key}.")
 
 
@@ -116,7 +116,7 @@ class TypeDispatchProcessor:
         assert len(instances) == self._width
         key = tuple(i.__class__ for i in instances)
         if key not in self._dispatch_table:
-            return self.invalid_call(key, instances)
+            return self.invalid_call(self, key, instances)
         return self._dispatch_table[key](*instances)
 
 
@@ -128,7 +128,7 @@ class TypeDispatch(type):
     Equivalent to adding a process-decorator before each
     method not starting with an underscore
 
-    Set the array of types to dispatch over as a _types 
+    Set the array of types to dispatch over as a _types
     class member
 
     This will make the processor available as a _processor

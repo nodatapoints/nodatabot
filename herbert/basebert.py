@@ -14,7 +14,7 @@ or an inline handler
 
 import inspect
 from io import BytesIO
-from typing import Callable, Any, Optional, List, TypeVar, Iterable, Tuple
+from typing import Callable, Any, Optional, TypeVar, Iterable, Tuple
 
 from telegram import Message
 
@@ -47,9 +47,17 @@ class BaseBert:
         self._backend = backend
 
     def enumerate_cmds(self) -> Iterable[CommandType]:
+        """
+        Return an iterable collection of all command handlers part of
+        this object
+        """
         return filter(lambda m: hasattr(m, 'cmdinfo'), self.enumerate_members())
 
     def enumerate_members(self) -> Iterable[CommandType]:
+        """
+        Return an iterable collection of all member functions of
+        this object
+        """
         map_func: Callable[[Tuple[str, Tp]], Tp] = lambda m: m[1]
         return map(map_func, inspect.getmembers(self, inspect.ismethod))
 

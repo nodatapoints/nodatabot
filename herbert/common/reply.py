@@ -146,8 +146,7 @@ class TransformReply(metaclass=TypeDispatch):
     """
     _types = [ReplyData]
 
-    @staticmethod
-    def _dispatch_fail(_classes, instances):
+    def _dispatch_fail(self, _classes, instances):
         return list(instances)
 
     def process_text(self, text: Text):

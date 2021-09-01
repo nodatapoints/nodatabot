@@ -4,7 +4,8 @@ Define all the decorators!
 import logging
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Callable, TypeVar, Any
+from typing import Callable, TypeVar, List
+from dataclasses import dataclass
 import re
 
 import telegram.error
@@ -145,23 +146,35 @@ def pull_bot_and_update(bound_method, pass_update=False, pass_query=True,
     return wrapped
 
 
+@dataclass
 class PassedInfoType:
     """
-    Encode which information should be passed to
-    a given command handler
-    """
-    STRING, ARGS, UPDATE, QUERY = 1, 2, 4, 8
+    Property of a command handler, describing which
+    arguments should be passed to the handling function
 
-    @staticmethod
-    def value(pass_string, pass_args, pass_update, pass_query):
-        """
-        Generate an integer representation from four boolean values
-        for the different argument types
-        """
-        return (PassedInfoType.STRING if pass_string else 0) + \
-               (PassedInfoType.ARGS if pass_args else 0) + \
-               (PassedInfoType.UPDATE if pass_update else 0) + \
-               (PassedInfoType.QUERY if pass_query else 0)
+    pass_string: the full text of the invocation message
+    pass_args: an array containing the words of the invocation,
+        excluding the command itself
+    pass_update: the telegram update object
+    pass_query: the telegram query object
+    """
+    pass_string: bool = False
+    pass_args: bool = False
+    pass_update: bool = False
+    pass_query: bool = False
+
+
+@dataclass
+class CmdHandlerProperties:
+    """
+    Data used by the HerbertCmdHandlerInfo
+    """
+    aliases: List[str]
+    register_help: bool
+    help_summary: str
+    help_detailed: str
+    pass_info: PassedInfoType = PassedInfoType(pass_string=True)
+    allow_inline: bool = False
 
 
 class HerbertCmdHandlerInfo:
@@ -172,33 +185,32 @@ class HerbertCmdHandlerInfo:
     not having to check for each individual attribute
     """
 
-    def __init__(self, method, alias_list, register_help, help_summary, help_detailed,
-                 pass_info=PassedInfoType.STRING, allow_inline=False, **ptb_args):
-        self.aliases = alias_list
+    def __init__(self, method, properties: CmdHandlerProperties, **ptb_args):
+        self.properties = properties
         self.method = method  # to add handlers we still need an actual instance
-        self.register_help = register_help
-        self.help_summary, self.help_detailed = help_summary, help_detailed
-        self.pass_info = pass_info
-        self.allow_inline = allow_inline
         self.ptb_forward = ptb_args
         self.callback_query_handler = None
-
         self.cache_err_handled_method = None
 
     @staticmethod
-    def generatefor(method, register_help=True, **kwargs):
+    def generatefor(method, pass_info, allow_inline=False, register_help=True, **kwargs):
         """
         Create an instance of this class for a given method, by supplying the
         method name as the default command name and substituting default values
         otherwise
         """
+
         summary, fulltext = HerbertCmdHandlerInfo.extract_help(method, register_help)
         return HerbertCmdHandlerInfo(
             method,
-            [method.__name__],
-            register_help,
-            summary,
-            fulltext,
+            CmdHandlerProperties(
+                pass_info=pass_info,
+                allow_inline=allow_inline,
+                aliases=[method.__name__],
+                register_help=register_help,
+                help_summary=summary,
+                help_detailed=fulltext
+            ),
             **kwargs
         )
 
@@ -237,15 +249,20 @@ class HerbertCmdHandlerInfo:
         def handlerfor(name):
             return HerbotPrefixHandler(name, self.invoke(member_method), **self.ptb_forward)
 
-        return (handlerfor(name) for name in self.aliases)
+        return (handlerfor(name) for name in self.properties.aliases)
 
     def invoke(self, member_method):
+        """
+        Function that gets invoked by the HerbotPrefixHandler
+        Propagates call to the actual command handler
+        """
+        pass_info = self.properties.pass_info
         return pull_bot_and_update(
             member_method,
-            pass_update=self.pass_info & PassedInfoType.UPDATE != 0,
-            pass_query=self.pass_info & PassedInfoType.QUERY != 0,
-            pass_string=self.pass_info & PassedInfoType.STRING != 0,
-            pass_args=self.pass_info & PassedInfoType.ARGS != 0
+            pass_update=pass_info.pass_update,
+            pass_query=pass_info.pass_query,
+            pass_string=pass_info.pass_string,
+            pass_args=pass_info.pass_args
         )
 
 
@@ -265,7 +282,7 @@ def command(*args, pass_args=None, pass_update=False, pass_string=False,
                .warning('Ignoring arguments to @command (%s) on %s', args, method.__name__)
 
     pass_args = pass_args if pass_args is not None else not pass_string
-    pass_info = PassedInfoType.value(pass_string, pass_args, pass_update, False)
+    pass_info = PassedInfoType(pass_string, pass_args, pass_update, False)
 
     method.cmdinfo = HerbertCmdHandlerInfo.generatefor(
         method,
@@ -286,7 +303,7 @@ def aliases(method, *args):
     the decorated function (the default command is the function name)
     """
     if is_cmd_decorated(method):
-        method.cmdinfo.aliases.extend(args)
+        method.cmdinfo.properties.aliases.extend(args)
     else:
         raise ValueError('Only command-decorated methods can have aliases')
     return method

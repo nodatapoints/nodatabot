@@ -3,10 +3,10 @@ Provide a number of network helpers
 Originally meant for berts.hercurles, but
 also used in different contexts
 """
-from urllib.parse import quote
+from io import BytesIO
 import re
 import json
-from dataclasses import dataclass
+from urllib.parse import quote
 
 from lxml import etree
 
@@ -18,6 +18,18 @@ from herberror import Herberror
 PARSER = etree.XMLParser(recover=True)
 
 __all__ = ['load_json', 'load_xml', 'search_for']
+
+
+def parse_xml(xml_string: str):
+    """
+    Parse the string to etree xml representation,
+    ignoring all namespaces
+    """
+    xml_bytes = BytesIO(xml_string.encode('utf-8'))
+    iterator = etree.iterparse(xml_bytes, recover=True)
+    for _, element in iterator:
+        _, _, element.tag = element.tag.rpartition('}')
+    return iterator.root
 
 
 def load_json(url: str, **kwargs):
@@ -34,18 +46,11 @@ def load_xml(url: str, **kwargs):
     Load the content of the given url and try to
     convert it into a XML-representation
     """
-    res = network.load_str(url, **kwargs)
-    res = re.sub('xmlns=".*?"', " ", res)
-    return etree.fromstring(res, parser=PARSER)
+    return parse_xml(network.load_str(url, **kwargs))
 
 
 SPACES = "\\s+"
 PLUS = "+"
-
-@dataclass
-class SearchResult:
-    url: str
-    title: str
 
 
 def search_for(query: str):

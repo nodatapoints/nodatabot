@@ -4,6 +4,7 @@ Provide methods for sending Messages to Telegram
 
 from copy import copy
 import hashlib
+import logging
 
 from telegram import InlineQueryResultArticle, InputTextMessageContent, InlineQueryResultPhoto
 from telegram.error import BadRequest
@@ -49,7 +50,7 @@ def _inl_send(result, inline_query):
 
 def _caption_args(c: Captionable):
     if c is None or c.caption is None:
-        return dict()
+        return {}
 
     if isinstance(c.caption, str):
         return {
@@ -57,6 +58,7 @@ def _caption_args(c: Captionable):
             'caption_entities': []
         }
 
+    # c.caption is Text
     return {
         'caption': c.caption.msg,
         'caption_entities': c.caption.entities
@@ -119,7 +121,7 @@ class SendReply(metaclass=TypeDispatch):
 
     # Photo
     def send_photo(self, photo: Photo, ctx: ChatContext):
-        ctx.bot.send_photo(ctx.chat_id, photo.data, **_caption_args(photo), reply_markup=photo.reply_markup)
+        ctx.bot.send_photo(ctx.chat_id, photo.data, parse_mode=None, **_caption_args(photo), reply_markup=photo.reply_markup)
 
     # PhotoUrl
     def send_photo_url(self, photo: PhotoUrl, ctx: ChatContext):
@@ -154,7 +156,7 @@ class TransformReply(metaclass=TypeDispatch):
         send a message in chunks if it is too long
         for a single telegram message
         """
-        res = list()
+        res = []
         pos = 0
         size = utf16len(text.msg)
 
@@ -192,4 +194,5 @@ def send_message(data: ReplyData, ctx: Context):
     type.
     """
     for part in processed_message_parts(data):
+        logging.getLogger('herbert.MESSAGES').debug('>>> %s', part)
         SendReply()(part, ctx)

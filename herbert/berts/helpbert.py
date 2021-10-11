@@ -121,7 +121,7 @@ def make_bert_str(bert: BaseBert):
     def provides_help(member):
         """ returns true if the given member function is a command with a nonempty help string """
         _, method = member  # first arg is member name, not needed here
-        return is_cmd_decorated(method) and method.cmdinfo.register_help
+        return is_cmd_decorated(method) and method.cmdinfo.properties.register_help
     help_fns = [*filter(provides_help, getmethods(bert))]
 
     if len(help_fns) == 0:

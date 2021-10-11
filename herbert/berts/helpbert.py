@@ -133,7 +133,7 @@ def make_bert_str(bert: BaseBert):
         if not is_own_method(method, bert):
             continue
 
-        inf = method.cmdinfo
+        inf = method.cmdinfo.properties
 
         name, *cmd_aliases = inf.aliases
         ensure_markup_clean(''.join(inf.aliases))

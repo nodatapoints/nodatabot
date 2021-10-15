@@ -21,8 +21,7 @@ PYTHONPATH="$PYTHONPATH:." python3 berts/testbert.py
 
 # check type annotations
 echo 'CHECKING TYPE ANNOTATIONS'
-python3 -m mypy $files --ignore-missing-imports --strict-optional --python-version 3.7 --namespace-packages || fail 'TYPE CHECKING'
-python3 -m mypy $bert_files --ignore-missing-imports --strict-optional --python-version 3.7 --namespace-packages || fail 'TYPE CHECKING BERTS'
+python3 -m mypy $files $bert_files --ignore-missing-imports --strict-optional --python-version 3.7 --namespace-packages || fail 'TYPE CHECKING'
 
 # echo 'LINTING (BASIC)'
 # python3 -m pylint $files --rcfile .pylintrc || fail 'LINTING'

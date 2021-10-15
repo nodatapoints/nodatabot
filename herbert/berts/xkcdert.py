@@ -33,18 +33,20 @@ class XKCDert(BaseBert):
     )
     def xkcd(self, string):
         num = None
-        try:
-            num = int(float(string))
-        except ValueError as err:
+
+        def search():
             results = hercurles_utils.search_for('xkcd ' + string)
             for res in results:
                 match = re.match(r'.*xkcd\.com/(\d+)', res)
                 if match:
-                    num = match.group(1)
-                    break
+                    return match.group(1)
 
-            if not num:
-                raise Herberror('That is no comic.') from err
+            raise Herberror('That is no comic.')
+
+        try:
+            num = int(float(string))
+        except ValueError as err:
+            num = search()
 
         url = f'www.xkcd.com/{num}/info.0.json'
         try:

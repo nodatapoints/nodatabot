@@ -39,7 +39,7 @@ class Herbert:
     The bot can then run with .idle()
     """
 
-    def __init__(self, token_file='token.txt'):
+    def __init__(self, token_file='token.txt') -> None:
         path.change_path()
 
         with open(token_file, 'r') as fobj:
@@ -47,7 +47,7 @@ class Herbert:
 
         self.updater = Updater(self.token)
 
-    def register_bert(self, cls):
+    def register_bert(self, cls: type) -> None:
         """Adds a Bert to Herbert"""
         bot = cls()
         berts.append(bot)
@@ -58,9 +58,9 @@ class Herbert:
                 for handler in inf.handlers(method):
                     self.updater.dispatcher.add_handler(handler)
 
-                if inf.allow_inline:
+                if inf.properties.allow_inline:
                     inline_methods[method.__name__] = inf.invoke(method)
-                    for command in inf.aliases:
+                    for command in inf.properties.aliases:
                         inline_aliases[command] = method.__name__
 
             elif hasattr(method, 'callback_query_handler'):
@@ -71,13 +71,13 @@ class Herbert:
         cmds = ", ".join((m.__name__ for m in bot.enumerate_cmds()))
         logging.getLogger('herbert.SETUP').debug("Registered Bert %s of type %s (%s)", bot, cls.__name__, cmds)
 
-    def register_inline_handler(self):
+    def register_inline_handler(self) -> None:
         self.updater.dispatcher.add_handler(InlineQueryHandler(handle_inline_query))
 
-    def start(self):
+    def start(self) -> None:
         self.updater.start_polling()
 
-    def idle(self):
+    def idle(self) -> None:
         """ start the updater event loop """
         self.start()
         self.updater.idle()

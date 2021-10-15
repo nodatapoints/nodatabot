@@ -122,7 +122,11 @@ class Dudert(BaseBert):
         word_def = ', '.join(dom.xpath('//h1/span/text()'))
         word_class, *_ = dom.xpath('//dd[@class="tuple__val"]/text()')
 
-        freq = dom.xpath('//span[@class="shaft__full"]/text()')[0]
+        if (e := dom.xpath('//span[@class="shaft__full"]/text()')):
+            freq = e[0]
+
+        else:
+            freq = None
 
         # check for single definition
         meanings = dom.xpath('//div[@id="bedeutung"]/p/text()')
@@ -140,7 +144,7 @@ class Dudert(BaseBert):
             f'{i+1}. {cf.italic(meaning)}' for i, meaning in enumerate(meanings)) or cf.italic("Keine Bedeutungen gefunden.")
         return f"""{cf.bold(word_def)}
 {cf.italic(word_class)}
-Häufigkeit: {'💬'*len(freq)}
+Häufigkeit: {'💬'*len(freq) if freq else '❓'}
 
 Bedeutungen:
 {meanings_list_str}"""

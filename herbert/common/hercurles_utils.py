@@ -73,7 +73,7 @@ def search_for(query: str):
 
         elements = find_urls(root)
 
-        urls = elem.attrib["href"] for elem in elements
+        urls = (elem.attrib["href"] for elem in elements)
 
         # remove ads from url list
         return list(filter(lambda url: re.match(AD, url), urls))

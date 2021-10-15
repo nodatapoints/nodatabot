@@ -38,8 +38,9 @@ def load_xml(url: str, **kwargs):
     return etree.fromstring(res, parser=PARSER)
 
 
-SPACES = "\\s+"
-PLUS = "+"
+SPACES = r"\s+"
+PLUS = r"+"
+AD = r"^https://duckduckgo\.com/y\.js\?ad_provider.*$"
 
 
 def search_for(query: str):
@@ -53,8 +54,10 @@ def search_for(query: str):
         root = load_xml(url)
 
         elements = root.findall(".//a[@class='result__snippet']")
+        urls = elem.attrib["href"] for elem in elements
 
-        return [elem.attrib['href'] for elem in elements]
+        # remove ads from url list
+        return list(filter(lambda url: re.match(AD, url), urls))
 
     except etree.ParseError as err:
         raise Herberror("Searching failed. Unexpected result structure.") from err

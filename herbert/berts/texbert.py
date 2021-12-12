@@ -70,6 +70,7 @@ TIKZ_TEMPLATE = PACKAGES_TEX_TEMPLATE.replace("{}", """
 
 pre_levels = [EMPTY_TEX_TEMPLATE,
               VERY_BASIC_TEX_TEMPLATE,
+              PACKAGES_TEX_TEMPLATE,
               BASIC_TEX_TEMPLATE,
               DISPLAY_MATH_TEMPLATE,
               ALIGNED_MATH_TEMPLATE,
@@ -105,14 +106,16 @@ class TexBert(ImageBaseBert):
         rendering itself, not as tex source code.
 
         Valid options are
-        m§pre§ (integer value, range 0-{len(pre_levels)}) - setup a tex environment. (0 - nothing, \
-        4 - aligned block in displaymath in document)
+        m§pre§ (integer value, range 0-{len(pre_levels) - 1}) - setup a tex environment.
         m§inv§ (boolean value) - invert the colors of the output image
         m§res§ (integer value) - width of the output image in pixels
         m§send§ (either img or file or both or validate) - decide which information to return
 
+        The pre-environments available are, in this order: Nothing, the standard documentclass, a default preamble, \
+        start of the document, math environment, multiline math environment, and a tikzimage.
+        
         Try
-        m§/tex [pre=4, inv=yes, send=both] x &= y \\\\ &= z §
+        m§/tex [pre=5, inv=yes, send=both] x &= y \\\\ &= z §
         m§/dtex [res=1000, inv=false] \\sum §
         """
     )

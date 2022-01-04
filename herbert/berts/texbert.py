@@ -111,15 +111,14 @@ class TexBert(ImageBaseBert):
         m§res§ (integer value) - width of the output image in pixels
         m§send§ (either img or file or both or validate) - decide which information to return
 
-        The pre-environments available are, in this order: Nothing, the standard documentclass, a default preamble, \
-        start of the document, math environment, multiline math environment, and a tikzimage:
-        0: gar nix
+        The pre-environments available are:
+        0: nothing
         1: documentclass standalone
         2: packages (mathsstuff, tikz, ifthen)
         3: packages + begin document
-        4: display math
-        5: aligned multiline display math
-        6: tikz
+        4: display math environment
+        5: aligned multiline display math environment
+        6: tikzimage environment
         
         Try
         m§/tex [pre=5, inv=yes, send=both] x &= y \\\\ &= z §
@@ -200,7 +199,7 @@ class TexBert(ImageBaseBert):
         """
     )
     def tex(self, string, invert=False):
-        self.texraw(string, invert=invert, pre_level=2)
+        self.texraw(string, invert=invert, pre_level=3)
 
     @aliases('dtex')
     @command(pass_string=True)
